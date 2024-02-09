@@ -13,7 +13,7 @@ To create an ELAN file with sign and sentence segments:
 (To demo this on a longer file, you can download a large pose file from [here](https://nlp.biu.ac.il/~amit/datasets/poses/holistic/dgs_corpus/1413451-11105600-11163240_a.pose))
 
 ```bash
-sign_language_segmentation --pose="sign.pose" --elan="sign.eaf" [--video="sign.mp4"]
+pose_to_segments --pose="sign.pose" --elan="sign.eaf" [--video="sign.mp4"]
 ```
 
 ---
