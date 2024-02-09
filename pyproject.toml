@@ -45,7 +45,9 @@ generated-members = ["torch.*", "numpy.*", "cv2.*"]
 
 [tool.setuptools]
 packages = [
-    "sign_language_segmentation"
+    "sign_language_segmentation",
+    "sign_language_segmentation.src",
+    "sign_language_segmentation.src.utils",
 ]
 
 [tool.setuptools.package-data]
