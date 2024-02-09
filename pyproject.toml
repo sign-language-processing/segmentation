@@ -1,0 +1,59 @@
+[project]
+name = "sign-language-segmentation"
+description = "Sign language pose segmentation model on both the sentence and sign level"
+version = "0.0.1"
+authors = [
+    { name = "Amit Moryossef", email = "amitmoryossef@gmail.com" },
+    { name = "Zifan Jiang", email = "jiang@cl.uzh.ch" }
+]
+readme = "README.md"
+dependencies = [
+    "pose-format>=0.3.2",
+    "numpy",
+    "pympi-ling", # Working with ELAN files in CLI
+    "torch",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "pylint",
+    "pytorch-lightning",
+    "sign-language-datasets",
+    "wandb",
+    "matplotlib",
+    "scikit-learn",
+    "pandas"
+]
+
+[tool.yapf]
+based_on_style = "google"
+column_limit = 120
+
+[tool.pylint]
+max-line-length = 120
+disable = [
+    "C0114", # Missing module docstring
+    "C0115", # Missing class docstring
+    "C0116", # Missing function or method docstring
+    "C0415", # Import outside toplevel
+]
+good-names = ["i", "f", "x", "y"]
+
+[tool.pylint.typecheck]
+generated-members = ["torch.*", "numpy.*", "cv2.*"]
+
+[tool.setuptools]
+packages = [
+    "sign_language_segmentation"
+]
+
+[tool.setuptools.package-data]
+sign_language_segmentation = ["dist/*.pth"]
+
+[tool.pytest.ini_options]
+addopts = "-v"
+testpaths = ["sign_language_segmentation"]
+
+[project.scripts]
+sign_language_segmentation = "sign_language_segmentation.bin:main"
