@@ -47,7 +47,7 @@ sentence_bio = sentence_bio_tagger(pose_encoding)
 ### Optical flow 
 Optical flow is highly correlative to phrase boundaries. 
 
-![Optical flow](figures/optical_fow/optical_flow_sentence_example.png)
+![Optical flow](sign_language_segmentation/figures/optical_fow/optical_flow_sentence_example.png)
 
 ### 3D Hand Normalization
 3D hand normalization may assist the model with learning hand shape changes.
