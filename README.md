@@ -2,6 +2,8 @@
 
 Pose segmentation model on both the sentence and sign level
 
+Code for the paper [Linguistically Motivated Sign Language Segmentation](https://aclanthology.org/2023.findings-emnlp.846).
+
 ## Usage
 
 
@@ -10,7 +12,7 @@ pip install git+https://github.com/sign-language-processing/segmentation
 ```
 
 To create an ELAN file with sign and sentence segments:
-(To demo this on a longer file, you can download a large pose file from [here](https://nlp.biu.ac.il/~amit/datasets/poses/holistic/dgs_corpus/1413451-11105600-11163240_a.pose))
+(To demo this on a longer file, you can download a large pose file from [here](https://firebasestorage.googleapis.com/v0/b/sign-language-datasets/o/poses%2Fholistic%2Fdgs_corpus%2F1413451-11105600-11163240_a.pose?alt=media&token=432f0b57-3fb9-45ad-a9a4-0b6fae4ffcf7))
 
 ```bash
 pose_to_segments --pose="sign.pose" --elan="sign.eaf" [--video="sign.mp4"]
@@ -122,3 +124,21 @@ python -m sign_language_segmentation.src.train --dataset=dgs_corpus --pose=holis
 ```
 
 To test on an external dataset, see [evaluate_mediapi.py](https://github.com/sign-language-processing/transcription/blob/main/sign_language_segmentation/src/evaluate_mediapi.py) for an example.
+
+## Cite
+
+```bibtex
+@inproceedings{moryossef-etal-2023-linguistically,
+    title = "Linguistically Motivated Sign Language Segmentation",
+    author = {Moryossef, Amit  and Jiang, Zifan  and M{\"u}ller, Mathias  and Ebling, Sarah  and Goldberg, Yoav},
+    editor = "Bouamor, Houda  and Pino, Juan  and Bali, Kalika",
+    booktitle = "Findings of the Association for Computational Linguistics: EMNLP 2023",
+    month = dec,
+    year = "2023",
+    address = "Singapore",
+    publisher = "Association for Computational Linguistics",
+    url = "https://aclanthology.org/2023.findings-emnlp.846",
+    doi = "10.18653/v1/2023.findings-emnlp.846",
+    pages = "12703--12724",
+}
+```
