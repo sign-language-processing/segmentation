@@ -65,7 +65,7 @@ def get_args():
     parser.add_argument('--save_crops', 
                         type=str, 
                         choices=["SENTENCE","SIGN"],
-                        help='whether to save cropped sentence .pose files')
+                        help='whether to save cropped .pose files')
     parser.add_argument('--video', default=None, required=False, type=str, help='path to video file')
     parser.add_argument('--subtitles', default=None, required=False, type=str, help='path to subtitle file')
     parser.add_argument('--model', default='model_E1s-1.pth', required=False, type=str, help='path to model file')
@@ -102,7 +102,6 @@ def main():
         else:
             pose = process_pose(pose)
 
-    print(pose)
     print('Loading model ...')
     install_dir = str(os.path.dirname(os.path.abspath(__file__)))
     model = load_model(os.path.join(install_dir, "dist", args.model))
