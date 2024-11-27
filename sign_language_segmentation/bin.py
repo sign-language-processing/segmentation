@@ -98,7 +98,7 @@ def main():
 
     fps = pose.body.fps
 
-    eaf = pympi.Elan.Eaf(author="sign-langauge-processing/transcription")
+    eaf = pympi.Elan.Eaf(author="sign-language-processing/transcription")
     if args.video is not None:
         mimetype = None  # pympi is not familiar with mp4 files
         if args.video.endswith(".mp4"):
