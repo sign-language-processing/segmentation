@@ -9,6 +9,7 @@ from pose_format import Pose
 from pose_format.utils.generic import pose_normalization_info, pose_hide_legs, normalize_hands_3d
 
 from sign_language_segmentation.src.utils.probs_to_segments import probs_to_segments
+from pathlib import Path
 
 
 def add_optical_flow(pose: Pose):
@@ -59,8 +60,12 @@ def predict(model, pose: Pose):
 
 def get_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--pose', required=True, type=str, help='path to input pose file')
+    parser.add_argument('--pose', required=True, type=Path, help='path to input pose file')
     parser.add_argument('--elan', required=True, type=str, help='path to output elan file')
+    parser.add_argument('--save_crops', 
+                        type=str, 
+                        choices=["SENTENCE","SIGN"],
+                        help='whether to save cropped sentence .pose files')
     parser.add_argument('--video', default=None, required=False, type=str, help='path to video file')
     parser.add_argument('--subtitles', default=None, required=False, type=str, help='path to subtitle file')
     parser.add_argument('--model', default='model_E1s-1.pth', required=False, type=str, help='path to model file')
@@ -68,6 +73,23 @@ def get_args():
 
     return parser.parse_args()
 
+def save_pose_segments(tiers, tier_id, input_file_path):
+    # reload it without any of the processing, so we get all the original points and such. 
+    with input_file_path.open("rb") as f:
+        pose = Pose.read(f.read())
+        
+    for i, segment in enumerate(tiers[tier_id]):
+                out_path = input_file_path.parent / f"{input_file_path.stem}_{tier_id}_{i}.pose"
+                start_frame = int(segment["start"])
+                end_frame = int(segment["end"])
+                cropped_pose = Pose(
+                    header=pose.header,
+                    body=pose.body[start_frame:end_frame]
+                )
+                
+                print(f"saving cropped pose with start {start_frame} and end {end_frame} to {out_path}")
+                with out_path.open("wb") as f:
+                    cropped_pose.write(f)
 
 def main():
     args = get_args()
@@ -80,6 +102,7 @@ def main():
         else:
             pose = process_pose(pose)
 
+    print(pose)
     print('Loading model ...')
     install_dir = str(os.path.dirname(os.path.abspath(__file__)))
     model = load_model(os.path.join(install_dir, "dist", args.model))
@@ -109,9 +132,17 @@ def main():
         eaf.add_linked_file(args.pose, mimetype="application/pose")
 
     for tier_id, segments in tiers.items():
+        # print(f"TIER: {tier_id}")s
         eaf.add_tier(tier_id)
         for segment in segments:
-            eaf.add_annotation(tier_id, int(segment["start"] / fps * 1000), int(segment["end"] / fps * 1000))
+            start_frame = int(segment["start"] / fps * 1000)
+            end_frame = int(segment["end"] / fps * 1000)
+            eaf.add_annotation(tier_id, start_frame, end_frame)
+            
+    if args.save_crops:
+        print(f"Saving {args.save_crops} cropped .pose files")
+        save_pose_segments(tiers, tier_id=args.save_crops, input_file_path=args.pose)
+            
 
     if args.subtitles and os.path.exists(args.subtitles):
         import srt
@@ -122,7 +153,7 @@ def main():
                 end = subtitle.end.total_seconds()
                 eaf.add_annotation("SUBTITLE", int(start * 1000), int(end * 1000), subtitle.content)
 
-    print('Saving to disk ...')
+    print('Saving .eaf to disk ...')
     eaf.to_file(args.elan)
 
 
