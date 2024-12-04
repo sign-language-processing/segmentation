@@ -130,10 +130,12 @@ def main():
 
     for tier_id, segments in tiers.items():
         eaf.add_tier(tier_id)
+        frames_per_millisecond = fps*1000
         for segment in segments:
-            start_frame = int(segment["start"] / fps * 1000)
-            end_frame = int(segment["end"] / fps * 1000)
-            eaf.add_annotation(tier_id, start_frame, end_frame)
+            # convert frame numbers to millisecond timestamps, for Elan
+            start_frame_time = int(segment["start"] / fps * frames_per_millisecond)
+            end_frame_time = int(segment["end"] / fps * frames_per_millisecond)
+            eaf.add_annotation(tier_id, start_frame_time, end_frame_time)
 
     if args.save_segments:
         print(f"Saving {args.save_segments} cropped .pose files")
