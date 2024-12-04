@@ -58,7 +58,7 @@ def predict(model, pose: Pose):
         return model(pose_data)
 
 
-def save_pose_segments(tiers, tier_id, input_file_path):
+def save_pose_segments(tiers:dict, tier_id:str, input_file_path:Path):
     # reload it without any of the processing, so we get all the original points and such.
     with input_file_path.open("rb") as f:
         pose = Pose.read(f.read())
@@ -69,7 +69,7 @@ def save_pose_segments(tiers, tier_id, input_file_path):
         end_frame = int(segment["end"])
         cropped_pose = Pose(header=pose.header, body=pose.body[start_frame:end_frame])
 
-        print(f"saving cropped pose with start {start_frame} and end {end_frame} to {out_path}")
+        print(f"Saving cropped pose with start {start_frame} and end {end_frame} to {out_path}")
         with out_path.open("wb") as f:
             cropped_pose.write(f)
 
