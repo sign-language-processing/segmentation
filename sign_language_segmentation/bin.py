@@ -12,7 +12,7 @@ from pose_format.utils.generic import pose_normalization_info, pose_hide_legs, n
 from sign_language_segmentation.src.utils.probs_to_segments import probs_to_segments
 
 
-def add_optical_flow(pose: Pose):
+def add_optical_flow(pose: Pose)->None:
     from pose_format.numpy.representation.distance import DistanceRepresentation
     from pose_format.utils.optical_flow import OpticalFlowCalculator
 
@@ -26,7 +26,7 @@ def add_optical_flow(pose: Pose):
     pose.body.data = np.concatenate([pose.body.data, flow], axis=-1).astype(np.float32)
 
 
-def process_pose(pose: Pose, optical_flow=False, hand_normalization=False):
+def process_pose(pose: Pose, optical_flow=False, hand_normalization=False) -> Pose:
     pose = pose.get_components(["POSE_LANDMARKS", "LEFT_HAND_LANDMARKS", "RIGHT_HAND_LANDMARKS"])
 
     normalization_info = pose_normalization_info(pose.header)
@@ -58,7 +58,7 @@ def predict(model, pose: Pose):
         return model(pose_data)
 
 
-def save_pose_segments(tiers:dict, tier_id:str, input_file_path:Path):
+def save_pose_segments(tiers:dict, tier_id:str, input_file_path:Path)->None:
     # reload it without any of the processing, so we get all the original points and such.
     with input_file_path.open("rb") as f:
         pose = Pose.read(f.read())
