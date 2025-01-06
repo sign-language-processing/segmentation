@@ -9,7 +9,7 @@ authors = [
 readme = "README.md"
 dependencies = [
     "pose-format>=0.3.2",
-    "numpy",
+    "numpy<2.0.0",
     "pympi-ling", # Working with ELAN files in CLI
     "torch",
 ]
@@ -19,7 +19,8 @@ dev = [
     "pytest",
     "pylint",
     "pytorch-lightning",
-    "sign-language-datasets",
+    "mediapipe",
+    "sign_language_datasets @ git+https://github.com/sign-language-processing/datasets",
     "wandb",
     "matplotlib",
     "scikit-learn",
