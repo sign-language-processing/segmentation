@@ -8,10 +8,11 @@ authors = [
 ]
 readme = "README.md"
 dependencies = [
-    "pose-format>=0.3.2",
+    "pose-format>=0.8.1",
     "numpy",
     "pympi-ling", # Working with ELAN files in CLI
     "torch",
+    "pose_anonymization @ git+https://github.com/sign-language-processing/pose-anonymization", # Used for normalization
 ]
 
 [project.optional-dependencies]
@@ -19,11 +20,10 @@ dev = [
     "pytest",
     "pylint",
     "pytorch-lightning",
-    "sign-language-datasets",
     "wandb",
     "matplotlib",
     "scikit-learn",
-    "pandas"
+    "psycopg2-binary" # to fetch the annotations from the database
 ]
 
 [tool.yapf]
