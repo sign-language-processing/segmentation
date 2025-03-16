@@ -1,18 +1,21 @@
 #!/usr/bin/env python
-from pathlib import Path
 import argparse
 import os
+from pathlib import Path
 
 import numpy as np
 import pympi
 import torch
 from pose_format import Pose
 from pose_format.utils.generic import pose_normalization_info, pose_hide_legs, normalize_hands_3d
+from torch.fx.experimental.symbolic_shapes import lru_cache
 
 from sign_language_segmentation.src.utils.probs_to_segments import probs_to_segments
 
+DEFAULT_MODEL = "model_E1s-1.pth"
 
-def add_optical_flow(pose: Pose)->None:
+
+def add_optical_flow(pose: Pose) -> None:
     from pose_format.numpy.representation.distance import DistanceRepresentation
     from pose_format.utils.optical_flow import OpticalFlowCalculator
 
@@ -44,6 +47,7 @@ def process_pose(pose: Pose, optical_flow=False, hand_normalization=False) -> Po
     return pose
 
 
+@lru_cache(maxsize=1)
 def load_model(model_path: str):
     model = torch.jit.load(model_path)
     model.eval()
@@ -58,7 +62,7 @@ def predict(model, pose: Pose):
         return model(pose_data)
 
 
-def save_pose_segments(tiers:dict, tier_id:str, input_file_path:Path)->None:
+def save_pose_segments(tiers: dict, tier_id: str, input_file_path: Path) -> None:
     # reload it without any of the processing, so we get all the original points and such.
     with input_file_path.open("rb") as f:
         pose = Pose.read(f.read())
@@ -83,10 +87,53 @@ def get_args():
     )
     parser.add_argument("--video", default=None, required=False, type=str, help="path to video file")
     parser.add_argument("--subtitles", default=None, required=False, type=str, help="path to subtitle file")
-    parser.add_argument("--model", default="model_E1s-1.pth", required=False, type=str, help="path to model file")
+    parser.add_argument("--model", default=DEFAULT_MODEL, required=False, type=str, help="path to model file")
     parser.add_argument("--no-pose-link", action="store_true", help="whether to link the pose file")
 
     return parser.parse_args()
+
+
+def segment_pose(pose: Pose, model: str = DEFAULT_MODEL, verbose=True):
+    if "E4" in model:
+        pose = process_pose(pose, optical_flow=True, hand_normalization=True)
+    else:
+        pose = process_pose(pose)
+
+    if verbose:
+        print("Loading model ...")
+    install_dir = str(os.path.dirname(os.path.abspath(__file__)))
+    model = load_model(os.path.join(install_dir, "dist", model))
+
+    if verbose:
+        print("Estimating segments ...")
+    probs = predict(model, pose)
+
+    sign_segments = probs_to_segments(probs["sign"], 60, 50)
+    sentence_segments = probs_to_segments(probs["sentence"], 90, 90)
+
+    if verbose:
+        print("Building ELAN file ...")
+    eaf = pympi.Elan.Eaf(author="sign-language-processing/transcription")
+
+    fps = pose.body.fps
+
+    tiers = {
+        "SIGN": sign_segments,
+        "SENTENCE": sentence_segments,
+    }
+
+    for tier_id, segments in tiers.items():
+        eaf.add_tier(tier_id)
+        for segment in segments:
+            if segment["end"] == segment["start"]:
+                segment["end"] += 1
+
+            # convert frame numbers to millisecond timestamps, for Elan
+            start_time_ms = int(segment["start"] / fps * 1000)
+            end_time_ms = int(segment["end"] / fps * 1000)
+            eaf.add_annotation(tier_id, start_time_ms, end_time_ms)
+
+    return eaf, tiers
 
 
 def main():
@@ -95,30 +142,9 @@ def main():
     print("Loading pose ...")
     with open(args.pose, "rb") as f:
         pose = Pose.read(f.read())
-        if "E4" in args.model:
-            pose = process_pose(pose, optical_flow=True, hand_normalization=True)
-        else:
-            pose = process_pose(pose)
 
-    print("Loading model ...")
-    install_dir = str(os.path.dirname(os.path.abspath(__file__)))
-    model = load_model(os.path.join(install_dir, "dist", args.model))
+    eaf, tiers = segment_pose(pose, model=args.model)
 
-    print("Estimating segments ...")
-    probs = predict(model, pose)
-
-    sign_segments = probs_to_segments(probs["sign"], 60, 50)
-    sentence_segments = probs_to_segments(probs["sentence"], 90, 90)
-
-    print("Building ELAN file ...")
-    tiers = {
-        "SIGN": sign_segments,
-        "SENTENCE": sentence_segments,
-    }
-
-    fps = pose.body.fps
-
-    eaf = pympi.Elan.Eaf(author="sign-language-processing/transcription")
     if args.video is not None:
         mimetype = None  # pympi is not familiar with mp4 files
         if args.video.endswith(".mp4"):
@@ -127,18 +153,6 @@ def main():
 
     if not args.no_pose_link:
         eaf.add_linked_file(args.pose, mimetype="application/pose")
-
-    for tier_id, segments in tiers.items():
-        eaf.add_tier(tier_id)
-        for segment in segments:
-            # convert frame numbers to millisecond timestamps, for Elan
-            start_time_ms = int(segment["start"] / fps * 1000)
-            end_time_ms = int(segment["end"] / fps * 1000)
-            eaf.add_annotation(tier_id, start_time_ms, end_time_ms)
-
-    if args.save_segments:
-        print(f"Saving {args.save_segments} cropped .pose files")
-        save_pose_segments(tiers, tier_id=args.save_segments, input_file_path=args.pose)
 
     if args.subtitles and os.path.exists(args.subtitles):
         import srt

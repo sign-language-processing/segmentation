@@ -69,7 +69,9 @@ python -m sign_language_segmentation.src.train --dataset=dgs_corpus --pose=holis
 ### E1: Bidirectional BIO Tagger
 We replace the IO tagging heads in E0 with BIO heads to form our baseline. Our preliminary experiments indicate that inputting only the 75 hand and body keypoints and making the LSTM layer bidirectional yields optimal results.
 ```bash
-python -m sign_language_segmentation.src.train --dataset=dgs_corpus --pose=holistic --fps=25 --hidden_dim=256 --encoder_depth=1 --encoder_bidirectional=true
+conda activate segmentation
+export CUDA_VISIBLE_DEVICES=3
+python -m sign_language_segmentation.src.train --dataset=dgs_corpus --pose=holistic --fps=25 --hidden_dim=256 --encoder_depth=4 --encoder_bidirectional=true --no_wandb true
 ```
 Or for the mediapi-skel dataset (only phrase segmentation)
 ```bash
