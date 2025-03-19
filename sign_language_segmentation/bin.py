@@ -77,6 +77,42 @@ def save_pose_segments(tiers: dict, tier_id: str, input_file_path: Path) -> None
         with out_path.open("wb") as f:
             cropped_pose.write(f)
 
+def time_str_to_ms(time_str):
+    """
+    Convert a time string in "HH:MM:SS.mmm" format to milliseconds.
+    """
+    h, m, s = time_str.split(':')
+    s, ms = s.split('.')
+    return int(h) * 3600000 + int(m) * 60000 + int(s) * 1000 + int(ms)
+
+def add_subtitle_tier(eaf, subtitle_path, tier_name):
+    if not os.path.exists(subtitle_path):
+        return
+
+    # Add the tier only once.
+    eaf.add_tier(tier_name)
+    ext = os.path.splitext(subtitle_path)[1].lower()
+    
+    if ext == ".vtt":
+        try:
+            import webvtt
+        except ImportError:
+            raise ImportError("webvtt-py is required to parse VTT files. Install it via 'pip install webvtt-py'.")
+        for caption in webvtt.read(subtitle_path):
+            # Instead of relying on caption.start_in_seconds, we parse the time string directly for precision.
+            start = time_str_to_ms(caption.start)
+            end = time_str_to_ms(caption.end)
+            # HACK: avoid zero or negative length annotation
+            if start >= end:
+                end = start + 1
+            eaf.add_annotation(tier_name, start, end, caption.text)
+    else:
+        import srt
+        with open(subtitle_path, "r", encoding="utf-8-sig") as infile:
+            for subtitle in srt.parse(infile):
+                start = subtitle.start.total_seconds()
+                end = subtitle.end.total_seconds()
+                eaf.add_annotation(tier_name, int(start * 1000), int(end * 1000), subtitle.content)
 
 def get_args():
     parser = argparse.ArgumentParser()
@@ -87,7 +123,10 @@ def get_args():
     )
     parser.add_argument("--video", default=None, required=False, type=str, help="path to video file")
     parser.add_argument("--subtitles", default=None, required=False, type=str, help="path to subtitle file")
-    parser.add_argument("--model", default=DEFAULT_MODEL, required=False, type=str, help="path to model file")
+    parser.add_argument("--subtitles-corrected", default=None, required=False, type=str, help="path to subtitle file")
+    parser.add_argument("--model", default="model_E1s-1.pth", required=False, type=str, help="path to model file")
+    parser.add_argument("--sign-b-threshold", default=60, type=int)
+    parser.add_argument("--sign-o-threshold", default=50, type=int)
     parser.add_argument("--no-pose-link", action="store_true", help="whether to link the pose file")
 
     return parser.parse_args()
@@ -154,18 +193,22 @@ def main():
     if not args.no_pose_link:
         eaf.add_linked_file(args.pose, mimetype="application/pose")
 
-    if args.subtitles and os.path.exists(args.subtitles):
-        import srt
+    for tier_id, segments in tiers.items():
+        eaf.add_tier(tier_id)
+        for segment in segments:
+            # convert frame numbers to millisecond timestamps, for Elan
+            start_time_ms = int(segment["start"] / fps * 1000)
+            end_time_ms = int(segment["end"] / fps * 1000)
+            eaf.add_annotation(tier_id, start_time_ms, end_time_ms)
 
-        eaf.add_tier("SUBTITLE")
-        # open with explicit encoding,
-        # as directed in https://github.com/cdown/srt/blob/master/srt_tools/utils.py#L155-L160
-        # see also https://github.com/cdown/srt/issues/67, https://github.com/cdown/srt/issues/36
-        with open(args.subtitles, "r", encoding="utf-8-sig") as infile:
-            for subtitle in srt.parse(infile):
-                start = subtitle.start.total_seconds()
-                end = subtitle.end.total_seconds()
-                eaf.add_annotation("SUBTITLE", int(start * 1000), int(end * 1000), subtitle.content)
+    if args.save_segments:
+        print(f"Saving {args.save_segments} cropped .pose files")
+        save_pose_segments(tiers, tier_id=args.save_segments, input_file_path=args.pose)
+
+    if args.subtitles:
+        add_subtitle_tier(eaf, args.subtitles, "SUBTITLE")
+    if args.subtitles_corrected:
+        add_subtitle_tier(eaf, args.subtitles_corrected, "SUBTITLE_CORRECTED")
 
     print("Saving .eaf to disk ...")
     eaf.to_file(args.elan)
