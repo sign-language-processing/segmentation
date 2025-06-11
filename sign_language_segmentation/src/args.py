@@ -27,14 +27,14 @@ parser.add_argument('--device', type=str, default='gpu', help='device to use, cp
 parser.add_argument('--gpus', type=int, default=1, help='how many gpus')
 parser.add_argument('--epochs', type=int, default=100, help='how many epochs')
 parser.add_argument('--patience', type=int, default=20, help='how many epochs as the patience for early stopping')
-parser.add_argument('--batch_size', type=int, default=8, help='batch size')
+parser.add_argument('--batch_size', type=int, default=64, help='batch size')
 parser.add_argument('--batch_size_devtest', type=int, default=20,
                     help='batch size for dev and test (by default run all in one batch)')
 parser.add_argument('--learning_rate', type=float, default=1e-3, help='optimizer learning rate')
 parser.add_argument('--lr_scheduler', type=str, default='none', help='optimizer learning rate scheduler')
 
 # Data Arguments
-parser.add_argument('--dataset', choices=['dgs_corpus', 'mediapi_skel'],
+parser.add_argument('--dataset', choices=['dgs_corpus', 'mediapi_skel', 'bobsl_cslr', 'bslcp'],
                     default='dgs_corpus', help='which dataset to use?')
 parser.add_argument('--data_dir', help='which dir to store the dataset?')
 parser.add_argument('--data_dev', type=boolean_string, default=False,

@@ -78,6 +78,7 @@ def init_model(train_dataset: PoseSegmentsDataset, test_dataset: PoseSegmentsDat
     print("Model Arguments:", model_args)
 
     if args.checkpoint is not None:
+        print(args.checkpoint)
         return PoseTaggingModel.load_from_checkpoint(args.checkpoint, **model_args)
 
     return PoseTaggingModel(**model_args)
@@ -86,7 +87,7 @@ def init_model(train_dataset: PoseSegmentsDataset, test_dataset: PoseSegmentsDat
 if __name__ == '__main__':
     LOGGER = None
     if not args.no_wandb:
-        LOGGER = WandbLogger(project="pose-to-segments", log_model=False, offline=False, name=args.run_name,
+        LOGGER = WandbLogger(project="pose-to-segments-bsl", log_model=False, offline=False, name=args.run_name,
                              save_dir=args.wandb_dir)
         if LOGGER.experiment.sweep_id is None:
             LOGGER.log_hyperparams(args)
@@ -109,7 +110,7 @@ if __name__ == '__main__':
     model = init_model(train_dataset, test_dataset)
 
     callbacks = [
-        EarlyStopping(monitor='validation_frame_f1_avg', patience=args.patience, verbose=True, mode='max'),
+        EarlyStopping(monitor='validation_sign_frame_f1', patience=args.patience, verbose=True, mode='max'),
         LearningRateMonitor(logging_interval='epoch'),
     ]
 
@@ -122,7 +123,7 @@ if __name__ == '__main__':
                             verbose=True,
                             save_top_k=1,
                             save_last=True,
-                            monitor='validation_frame_f1_avg',
+                            monitor='validation_sign_frame_f1',
                             every_n_epochs=1,
                             mode='max'))
 

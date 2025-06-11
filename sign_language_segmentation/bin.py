@@ -132,7 +132,7 @@ def get_args():
     return parser.parse_args()
 
 
-def segment_pose(pose: Pose, model: str = DEFAULT_MODEL, verbose=True):
+def segment_pose(pose: Pose, model: str = DEFAULT_MODEL, verbose=True, sign_b_threshold=60, sign_o_threshold=50):
     if "E4" in model:
         pose = process_pose(pose, optical_flow=True, hand_normalization=True)
     else:
@@ -147,7 +147,7 @@ def segment_pose(pose: Pose, model: str = DEFAULT_MODEL, verbose=True):
         print("Estimating segments ...")
     probs = predict(model, pose)
 
-    sign_segments = probs_to_segments(probs["sign"], 60, 50)
+    sign_segments = probs_to_segments(probs["sign"], sign_b_threshold, sign_o_threshold)
     sentence_segments = probs_to_segments(probs["sentence"], 90, 90)
 
     if verbose:
@@ -182,7 +182,7 @@ def main():
     with open(args.pose, "rb") as f:
         pose = Pose.read(f.read())
 
-    eaf, tiers = segment_pose(pose, model=args.model)
+    eaf, tiers = segment_pose(pose, model=args.model, sign_b_threshold=args.sign_b_threshold, sign_o_threshold=args.sign_o_threshold)
 
     if args.video is not None:
         mimetype = None  # pympi is not familiar with mp4 files
@@ -192,14 +192,6 @@ def main():
 
     if not args.no_pose_link:
         eaf.add_linked_file(args.pose, mimetype="application/pose")
-
-    for tier_id, segments in tiers.items():
-        eaf.add_tier(tier_id)
-        for segment in segments:
-            # convert frame numbers to millisecond timestamps, for Elan
-            start_time_ms = int(segment["start"] / fps * 1000)
-            end_time_ms = int(segment["end"] / fps * 1000)
-            eaf.add_annotation(tier_id, start_time_ms, end_time_ms)
 
     if args.save_segments:
         print(f"Saving {args.save_segments} cropped .pose files")

@@ -65,7 +65,7 @@ def build_bio(identifier: str, timestamps: torch.Tensor, segments: List[Segment]
 
 class PoseSegmentsDataset(Dataset):
     def __init__(self, data: List[PoseSegmentsDatum], hand_normalization=False,
-                 optical_flow=False, only_optical_flow=False, classes="bio"):
+                 optical_flow=False, only_optical_flow=False, classes="bio", build_classes_vectors_fn=None):
         self.data = data
         self.cached_data: List[Any] = [None] * len(data)
 
@@ -73,11 +73,14 @@ class PoseSegmentsDataset(Dataset):
         self.optical_flow = optical_flow
         self.only_optical_flow = only_optical_flow
         self.classes = classes
+        self.build_classes_vectors_fn = build_classes_vectors_fn
 
     def __len__(self):
         return len(self.data)
 
     def build_classes_vectors(self, datum) -> Tuple[SegmentsDict, BIODict]:
+        if self.build_classes_vectors_fn:
+            return self.build_classes_vectors_fn(datum)
         pose = datum["pose"]
         pose_length = len(pose.body.data)
         timestamps = torch.div(torch.arange(0, pose_length), pose.body.fps)
@@ -145,7 +148,7 @@ class PoseSegmentsDataset(Dataset):
         for item in tqdm(iter(self), total=len(self), desc="Calculating inverse classes ratio"):
             counter += Counter(item["bio"][kind].numpy().tolist())
         sum_counter = sum(counter.values())
-        return [sum_counter / counter[i] for c, i in BIO.items()]
+        return [sum_counter / counter[i] if counter[i] > 0 else 0 for c, i in BIO.items()]
 
 
 def process_datum_dgs_corpus(datum: ProcessedPoseDatum) -> Iterable[PoseSegmentsDatum]:
@@ -239,18 +242,51 @@ def get_dataset(name="dgs_corpus",
                 optical_flow=False,
                 only_optical_flow=False,
                 classes="bio"):
-    data = get_tfds_dataset(name=name, poses=poses, fps=fps, split=split,
-                            components=components,
-                            reduce_face=reduce_face,
-                            data_dir=data_dir,
-                            filter_func=filter_dataset)
-    print(f"Dataset({split}) size: {len(data)}")
-    data = list(chain.from_iterable([PROCESS_DATUM[name](d) for d in tqdm(data, desc="Processing dataset")]))
-    print(f"Dataset({split}) videos: {len(data)}")
-    dataset_statistics(data)
-
-    return PoseSegmentsDataset(data,
-                               hand_normalization=hand_normalization,
-                               optical_flow=optical_flow,
-                               only_optical_flow=only_optical_flow,
-                               classes=classes)
+    if name == "bobsl_cslr":
+        # Hard-code the paths as in evaluate.py.
+        # Both evaluate.py and data.csv are in the ./bobsl/ folder.
+        data_path = "./sign_language_segmentation/src/bobsl/data.csv"
+        pose_path = "/scratch/shared/beegfs/zifan/bobsl/video_features/mediapipe_v2_refine_face_complexity_2"
+        from .bobsl.evaluate import read_dataset, build_classes_vectors_cslr
+        split = 'val' if split == 'validation' else split
+        dataset_list = read_dataset(data_path, pose_path, split=split, fps=fps)
+        print(f"Loaded {len(dataset_list)} data items from {data_path} split={split}.")
+        return PoseSegmentsDataset(dataset_list,
+                                   hand_normalization=hand_normalization,
+                                   optical_flow=optical_flow,
+                                   only_optical_flow=only_optical_flow,
+                                   classes=classes,
+                                   build_classes_vectors_fn=build_classes_vectors_cslr)
+    elif name == "bslcp":
+        # Hard-code the paths as in evaluate.py.
+        # Both evaluate.py and data.csv are in the ./bslcp/ folder.
+        data_path = "./sign_language_segmentation/src/bslcp/data_merged.csv"
+        pose_path = "/scratch/shared/beegfs/zifan/bsl-corpus/mediapipe"
+        from .bslcp.evaluate import read_dataset, read_dataset_segmented, build_classes_vectors
+        split = 'val' if split == 'validation' else split
+        # dataset_list = read_dataset(data_path, pose_path, split=split, fps=fps)
+        dataset_list = read_dataset_segmented(data_path, pose_path, split=split, fps=fps, augment_bobsl_negative=True, augment_pseudo_label=False)
+        print(f"Loaded {len(dataset_list)} data items from {data_path} split={split}.")
+        return PoseSegmentsDataset(dataset_list,
+                                   hand_normalization=hand_normalization,
+                                   optical_flow=optical_flow,
+                                   only_optical_flow=only_optical_flow,
+                                   classes=classes,
+                                   build_classes_vectors_fn=build_classes_vectors)
+    else:
+        from itertools import chain
+        from .tfds_dataset import get_tfds_dataset
+        data = get_tfds_dataset(name=name, poses=poses, fps=fps, split=split,
+                                components=components,
+                                reduce_face=reduce_face,
+                                data_dir=data_dir,
+                                filter_func=filter_dataset)
+        print(f"Dataset({split}) size: {len(data)}")
+        data = list(chain.from_iterable([PROCESS_DATUM[name](d) for d in tqdm(data, desc="Processing dataset")]))
+        print(f"Dataset({split}) videos: {len(data)}")
+        dataset_statistics(data)
+        return PoseSegmentsDataset(data,
+                                   hand_normalization=hand_normalization,
+                                   optical_flow=optical_flow,
+                                   only_optical_flow=only_optical_flow,
+                                   classes=classes)

@@ -1,0 +1,361 @@
+Agruments: Namespace(no_wandb=False, run_name=None, wandb_dir='.', seed=42, device='gpu', gpus=1, epochs=100, patience=20, batch_size=32, batch_size_devtest=20, learning_rate=0.001, lr_scheduler='none', dataset='bslcp', data_dir=None, data_dev=False, fps=25, pose='holistic', pose_components=['POSE_LANDMARKS', 'LEFT_HAND_LANDMARKS', 'RIGHT_HAND_LANDMARKS'], pose_reduce_face=False, hand_normalization=True, optical_flow=True, only_optical_flow=False, classes='bio', pose_projection_dim=256, hidden_dim=256, encoder_depth=4, encoder_bidirectional=True, encoder_autoregressive=False, weighted_loss=True, b_threshold=50, o_threshold=50, threshold_likeliest=False, train=True, test=True, save_jit=False, checkpoint='./models/E4s-1/best.ckpt', pred_output=None, ffmpeg_path=None)
+Loaded 149 data items from ./sign_language_segmentation/src/bslcp/data_merged.csv split=train.
+Loaded 557 data items from ./sign_language_segmentation/src/bslcp/data_merged.csv split=val.
+Loaded 675 data items from ./sign_language_segmentation/src/bslcp/data_merged.csv split=test.
+Calculating inverse classes ratio for sign...
+Calculating inverse classes ratio for sentence...
+Model Arguments: {'pose_dims': (117, 4), 'pose_projection_dim': 256, 'hidden_dim': 256, 'encoder_depth': 4, 'encoder_bidirectional': True, 'encoder_autoregressive': False, 'learning_rate': 0.001, 'lr_scheduler': 'none', 'b_threshold': 50, 'o_threshold': 50, 'threshold_likeliest': False, 'sign_class_weights': [7.879494115742989, 11.699945070035705, 1.269651326108257], 'sentence_class_weights': [1.0, 0, 0]}
+./models/E4s-1/best.ckpt
+Sanity Checking: |          | 0/? [00:00<?, ?it/s]Sanity Checking:   0%|          | 0/2 [00:00<?, ?it/s]Sanity Checking DataLoader 0:   0%|          | 0/2 [00:00<?, ?it/s]Sanity Checking DataLoader 0:  50%|█████     | 1/2 [00:00<00:00,  2.91it/s]Sanity Checking DataLoader 0: 100%|██████████| 2/2 [00:00<00:00,  2.90it/s]                                                                           Training: |          | 0/? [00:00<?, ?it/s]Training:   0%|          | 0/5 [00:00<?, ?it/s]Epoch 0:   0%|          | 0/5 [00:00<?, ?it/s] Epoch 0:  20%|██        | 1/5 [00:04<00:18,  0.22it/s]Epoch 0:  20%|██        | 1/5 [00:04<00:18,  0.22it/s, v_num=w6eg]Epoch 0:  40%|████      | 2/5 [00:11<00:17,  0.17it/s, v_num=w6eg]Epoch 0:  40%|████      | 2/5 [00:11<00:17,  0.17it/s, v_num=w6eg]Epoch 0:  60%|██████    | 3/5 [00:16<00:10,  0.18it/s, v_num=w6eg]Epoch 0:  60%|██████    | 3/5 [00:16<00:10,  0.18it/s, v_num=w6eg]Epoch 0:  80%|████████  | 4/5 [00:21<00:05,  0.19it/s, v_num=w6eg]Epoch 0:  80%|████████  | 4/5 [00:21<00:05,  0.19it/s, v_num=w6eg]Epoch 0: 100%|██████████| 5/5 [00:25<00:00,  0.20it/s, v_num=w6eg]Epoch 0: 100%|██████████| 5/5 [00:25<00:00,  0.20it/s, v_num=w6eg]
+Validation: |          | 0/? [00:00<?, ?it/s][A
+Validation:   0%|          | 0/28 [00:00<?, ?it/s][A
+Validation DataLoader 0:   0%|          | 0/28 [00:00<?, ?it/s][A
+Validation DataLoader 0:   4%|▎         | 1/28 [00:00<00:05,  4.92it/s][A
+Validation DataLoader 0:   7%|▋         | 2/28 [00:00<00:05,  4.83it/s][A
+Validation DataLoader 0:  11%|█         | 3/28 [00:00<00:06,  3.99it/s][A
+Validation DataLoader 0:  14%|█▍        | 4/28 [00:01<00:06,  3.77it/s][A
+Validation DataLoader 0:  18%|█▊        | 5/28 [00:01<00:06,  3.61it/s][A
+Validation DataLoader 0:  21%|██▏       | 6/28 [00:01<00:06,  3.53it/s][A
+Validation DataLoader 0:  25%|██▌       | 7/28 [00:02<00:06,  3.47it/s][A
+Validation DataLoader 0:  29%|██▊       | 8/28 [00:02<00:05,  3.41it/s][A
+Validation DataLoader 0:  32%|███▏      | 9/28 [00:02<00:05,  3.35it/s][A
+Validation DataLoader 0:  36%|███▌      | 10/28 [00:03<00:05,  3.30it/s][A
+Validation DataLoader 0:  39%|███▉      | 11/28 [00:03<00:05,  3.29it/s][A
+Validation DataLoader 0:  43%|████▎     | 12/28 [00:03<00:04,  3.27it/s][A
+Validation DataLoader 0:  46%|████▋     | 13/28 [00:03<00:04,  3.26it/s][A
+Validation DataLoader 0:  50%|█████     | 14/28 [00:04<00:04,  3.26it/s][A
+Validation DataLoader 0:  54%|█████▎    | 15/28 [00:04<00:04,  3.24it/s][A
+Validation DataLoader 0:  57%|█████▋    | 16/28 [00:04<00:03,  3.22it/s][A
+Validation DataLoader 0:  61%|██████    | 17/28 [00:05<00:03,  3.21it/s][A
+Validation DataLoader 0:  64%|██████▍   | 18/28 [00:05<00:03,  3.20it/s][A
+Validation DataLoader 0:  68%|██████▊   | 19/28 [00:05<00:02,  3.18it/s][A
+Validation DataLoader 0:  71%|███████▏  | 20/28 [00:06<00:02,  3.16it/s][A
+Validation DataLoader 0:  75%|███████▌  | 21/28 [00:06<00:02,  3.17it/s][A
+Validation DataLoader 0:  79%|███████▊  | 22/28 [00:06<00:01,  3.18it/s][A
+Validation DataLoader 0:  82%|████████▏ | 23/28 [00:07<00:01,  3.16it/s][A
+Validation DataLoader 0:  86%|████████▌ | 24/28 [00:07<00:01,  3.15it/s][A
+Validation DataLoader 0:  89%|████████▉ | 25/28 [00:07<00:00,  3.14it/s][A
+Validation DataLoader 0:  93%|█████████▎| 26/28 [00:08<00:00,  3.12it/s][A
+Validation DataLoader 0:  96%|█████████▋| 27/28 [00:08<00:00,  3.11it/s][A
+Validation DataLoader 0: 100%|██████████| 28/28 [00:08<00:00,  3.12it/s][A
+                                                                        [AEpoch 0: 100%|██████████| 5/5 [00:34<00:00,  0.15it/s, v_num=w6eg]Epoch 0: 100%|██████████| 5/5 [00:34<00:00,  0.15it/s, v_num=w6eg]Epoch 0:   0%|          | 0/5 [00:00<?, ?it/s, v_num=w6eg]        Epoch 1:   0%|          | 0/5 [00:00<?, ?it/s, v_num=w6eg]Epoch 1:  20%|██        | 1/5 [00:05<00:20,  0.20it/s, v_num=w6eg]Epoch 1:  20%|██        | 1/5 [00:05<00:20,  0.20it/s, v_num=w6eg]Epoch 1:  40%|████      | 2/5 [00:07<00:11,  0.27it/s, v_num=w6eg]Epoch 1:  40%|████      | 2/5 [00:07<00:11,  0.27it/s, v_num=w6eg]Epoch 1:  60%|██████    | 3/5 [00:08<00:05,  0.34it/s, v_num=w6eg]Epoch 1:  60%|██████    | 3/5 [00:08<00:05,  0.34it/s, v_num=w6eg]Epoch 1:  80%|████████  | 4/5 [00:09<00:02,  0.40it/s, v_num=w6eg]Epoch 1:  80%|████████  | 4/5 [00:09<00:02,  0.40it/s, v_num=w6eg]Epoch 1: 100%|██████████| 5/5 [00:10<00:00,  0.46it/s, v_num=w6eg]Epoch 1: 100%|██████████| 5/5 [00:10<00:00,  0.46it/s, v_num=w6eg]
+Validation: |          | 0/? [00:00<?, ?it/s][A
+Validation:   0%|          | 0/28 [00:00<?, ?it/s][A
+Validation DataLoader 0:   0%|          | 0/28 [00:00<?, ?it/s][A
+Validation DataLoader 0:   4%|▎         | 1/28 [00:00<00:05,  4.91it/s][A
+Validation DataLoader 0:   7%|▋         | 2/28 [00:00<00:05,  4.87it/s][A
+Validation DataLoader 0:  11%|█         | 3/28 [00:00<00:05,  4.86it/s][A
+Validation DataLoader 0:  14%|█▍        | 4/28 [00:00<00:04,  4.86it/s][A
+Validation DataLoader 0:  18%|█▊        | 5/28 [00:01<00:04,  4.86it/s][A
+Validation DataLoader 0:  21%|██▏       | 6/28 [00:01<00:04,  4.87it/s][A
+Validation DataLoader 0:  25%|██▌       | 7/28 [00:01<00:04,  4.87it/s][A
+Validation DataLoader 0:  29%|██▊       | 8/28 [00:01<00:04,  4.87it/s][A
+Validation DataLoader 0:  32%|███▏      | 9/28 [00:01<00:03,  4.86it/s][A
+Validation DataLoader 0:  36%|███▌      | 10/28 [00:02<00:03,  4.86it/s][A
+Validation DataLoader 0:  39%|███▉      | 11/28 [00:02<00:03,  4.86it/s][A
+Validation DataLoader 0:  43%|████▎     | 12/28 [00:02<00:03,  4.86it/s][A
+Validation DataLoader 0:  46%|████▋     | 13/28 [00:02<00:03,  4.86it/s][A
+Validation DataLoader 0:  50%|█████     | 14/28 [00:02<00:02,  4.86it/s][A
+Validation DataLoader 0:  54%|█████▎    | 15/28 [00:03<00:02,  4.86it/s][A
+Validation DataLoader 0:  57%|█████▋    | 16/28 [00:03<00:02,  4.86it/s][A
+Validation DataLoader 0:  61%|██████    | 17/28 [00:03<00:02,  4.85it/s][A
+Validation DataLoader 0:  64%|██████▍   | 18/28 [00:03<00:02,  4.85it/s][A
+Validation DataLoader 0:  68%|██████▊   | 19/28 [00:03<00:01,  4.85it/s][A
+Validation DataLoader 0:  71%|███████▏  | 20/28 [00:04<00:01,  4.84it/s][A
+Validation DataLoader 0:  75%|███████▌  | 21/28 [00:04<00:01,  4.84it/s][A
+Validation DataLoader 0:  79%|███████▊  | 22/28 [00:04<00:01,  4.85it/s][A
+Validation DataLoader 0:  82%|████████▏ | 23/28 [00:04<00:01,  4.84it/s][A
+Validation DataLoader 0:  86%|████████▌ | 24/28 [00:04<00:00,  4.84it/s][A
+Validation DataLoader 0:  89%|████████▉ | 25/28 [00:05<00:00,  4.84it/s][A
+Validation DataLoader 0:  93%|█████████▎| 26/28 [00:05<00:00,  4.83it/s][A
+Validation DataLoader 0:  96%|█████████▋| 27/28 [00:05<00:00,  4.83it/s][A
+Validation DataLoader 0: 100%|██████████| 28/28 [00:05<00:00,  4.85it/s][A
+                                                                        [AEpoch 1: 100%|██████████| 5/5 [00:16<00:00,  0.30it/s, v_num=w6eg]Epoch 1: 100%|██████████| 5/5 [00:16<00:00,  0.30it/s, v_num=w6eg]Epoch 1:   0%|          | 0/5 [00:00<?, ?it/s, v_num=w6eg]        Epoch 2:   0%|          | 0/5 [00:00<?, ?it/s, v_num=w6eg]Epoch 2:  20%|██        | 1/5 [00:01<00:04,  0.86it/s, v_num=w6eg]Epoch 2:  20%|██        | 1/5 [00:01<00:04,  0.86it/s, v_num=w6eg]Epoch 2:  40%|████      | 2/5 [00:02<00:04,  0.70it/s, v_num=w6eg]Epoch 2:  40%|████      | 2/5 [00:02<00:04,  0.70it/s, v_num=w6eg]Epoch 2:  60%|██████    | 3/5 [00:04<00:02,  0.69it/s, v_num=w6eg]Epoch 2:  60%|██████    | 3/5 [00:04<00:02,  0.69it/s, v_num=w6eg]Epoch 2:  80%|████████  | 4/5 [00:06<00:01,  0.63it/s, v_num=w6eg]Epoch 2:  80%|████████  | 4/5 [00:06<00:01,  0.63it/s, v_num=w6eg]Epoch 2: 100%|██████████| 5/5 [00:07<00:00,  0.69it/s, v_num=w6eg]Epoch 2: 100%|██████████| 5/5 [00:07<00:00,  0.69it/s, v_num=w6eg]
+Validation: |          | 0/? [00:00<?, ?it/s][A
+Validation:   0%|          | 0/28 [00:00<?, ?it/s][A
+Validation DataLoader 0:   0%|          | 0/28 [00:00<?, ?it/s][A
+Validation DataLoader 0:   4%|▎         | 1/28 [00:00<00:05,  4.95it/s][A
+Validation DataLoader 0:   7%|▋         | 2/28 [00:00<00:05,  4.89it/s][A
+Validation DataLoader 0:  11%|█         | 3/28 [00:00<00:05,  4.87it/s][A
+Validation DataLoader 0:  14%|█▍        | 4/28 [00:00<00:04,  4.88it/s][A
+Validation DataLoader 0:  18%|█▊        | 5/28 [00:01<00:04,  4.87it/s][A
+Validation DataLoader 0:  21%|██▏       | 6/28 [00:01<00:04,  4.86it/s][A
+Validation DataLoader 0:  25%|██▌       | 7/28 [00:01<00:04,  4.86it/s][A
+Validation DataLoader 0:  29%|██▊       | 8/28 [00:01<00:04,  4.85it/s][A
+Validation DataLoader 0:  32%|███▏      | 9/28 [00:01<00:03,  4.85it/s][A
+Validation DataLoader 0:  36%|███▌      | 10/28 [00:02<00:03,  4.84it/s][A
+Validation DataLoader 0:  39%|███▉      | 11/28 [00:02<00:03,  4.84it/s][A
+Validation DataLoader 0:  43%|████▎     | 12/28 [00:02<00:03,  4.84it/s][A
+Validation DataLoader 0:  46%|████▋     | 13/28 [00:02<00:03,  4.84it/s][A
+Validation DataLoader 0:  50%|█████     | 14/28 [00:02<00:02,  4.84it/s][A
+Validation DataLoader 0:  54%|█████▎    | 15/28 [00:03<00:02,  4.84it/s][A
+Validation DataLoader 0:  57%|█████▋    | 16/28 [00:03<00:02,  4.83it/s][A
+Validation DataLoader 0:  61%|██████    | 17/28 [00:03<00:02,  4.83it/s][A
+Validation DataLoader 0:  64%|██████▍   | 18/28 [00:03<00:02,  4.83it/s][A
+Validation DataLoader 0:  68%|██████▊   | 19/28 [00:03<00:01,  4.83it/s][A
+Validation DataLoader 0:  71%|███████▏  | 20/28 [00:04<00:01,  4.82it/s][A
+Validation DataLoader 0:  75%|███████▌  | 21/28 [00:04<00:01,  4.83it/s][A
+Validation DataLoader 0:  79%|███████▊  | 22/28 [00:04<00:01,  4.83it/s][A
+Validation DataLoader 0:  82%|████████▏ | 23/28 [00:04<00:01,  4.83it/s][A
+Validation DataLoader 0:  86%|████████▌ | 24/28 [00:04<00:00,  4.82it/s][A
+Validation DataLoader 0:  89%|████████▉ | 25/28 [00:05<00:00,  4.82it/s][A
+Validation DataLoader 0:  93%|█████████▎| 26/28 [00:05<00:00,  4.82it/s][A
+Validation DataLoader 0:  96%|█████████▋| 27/28 [00:05<00:00,  4.81it/s][A
+Validation DataLoader 0: 100%|██████████| 28/28 [00:05<00:00,  4.84it/s][A
+                                                                        [AEpoch 2: 100%|██████████| 5/5 [00:13<00:00,  0.38it/s, v_num=w6eg]Epoch 2: 100%|██████████| 5/5 [00:13<00:00,  0.38it/s, v_num=w6eg]Epoch 2:   0%|          | 0/5 [00:00<?, ?it/s, v_num=w6eg]        Epoch 3:   0%|          | 0/5 [00:00<?, ?it/s, v_num=w6eg]Epoch 3:  20%|██        | 1/5 [00:00<00:03,  1.06it/s, v_num=w6eg]Epoch 3:  20%|██        | 1/5 [00:00<00:03,  1.06it/s, v_num=w6eg]Epoch 3:  40%|████      | 2/5 [00:01<00:02,  1.06it/s, v_num=w6eg]Epoch 3:  40%|████      | 2/5 [00:01<00:02,  1.06it/s, v_num=w6eg]Epoch 3:  60%|██████    | 3/5 [00:02<00:01,  1.08it/s, v_num=w6eg]Epoch 3:  60%|██████    | 3/5 [00:02<00:01,  1.08it/s, v_num=w6eg]Epoch 3:  80%|████████  | 4/5 [00:03<00:00,  1.09it/s, v_num=w6eg]Epoch 3:  80%|████████  | 4/5 [00:03<00:00,  1.09it/s, v_num=w6eg]Epoch 3: 100%|██████████| 5/5 [00:04<00:00,  1.15it/s, v_num=w6eg]Epoch 3: 100%|██████████| 5/5 [00:04<00:00,  1.15it/s, v_num=w6eg]
+Validation: |          | 0/? [00:00<?, ?it/s][A
+Validation:   0%|          | 0/28 [00:00<?, ?it/s][A
+Validation DataLoader 0:   0%|          | 0/28 [00:00<?, ?it/s][A
+Validation DataLoader 0:   4%|▎         | 1/28 [00:00<00:05,  4.91it/s][A
+Validation DataLoader 0:   7%|▋         | 2/28 [00:00<00:05,  4.86it/s][A
+Validation DataLoader 0:  11%|█         | 3/28 [00:00<00:05,  4.85it/s][A
+Validation DataLoader 0:  14%|█▍        | 4/28 [00:00<00:04,  4.86it/s][A
+Validation DataLoader 0:  18%|█▊        | 5/28 [00:01<00:04,  4.86it/s][A
+Validation DataLoader 0:  21%|██▏       | 6/28 [00:01<00:04,  4.86it/s][A
+Validation DataLoader 0:  25%|██▌       | 7/28 [00:01<00:04,  4.86it/s][A
+Validation DataLoader 0:  29%|██▊       | 8/28 [00:01<00:04,  4.85it/s][A
+Validation DataLoader 0:  32%|███▏      | 9/28 [00:01<00:03,  4.85it/s][A
+Validation DataLoader 0:  36%|███▌      | 10/28 [00:02<00:03,  4.84it/s][A
+Validation DataLoader 0:  39%|███▉      | 11/28 [00:02<00:03,  4.84it/s][A
+Validation DataLoader 0:  43%|████▎     | 12/28 [00:02<00:03,  4.84it/s][A
+Validation DataLoader 0:  46%|████▋     | 13/28 [00:02<00:03,  4.83it/s][A
+Validation DataLoader 0:  50%|█████     | 14/28 [00:02<00:02,  4.84it/s][A
+Validation DataLoader 0:  54%|█████▎    | 15/28 [00:03<00:02,  4.84it/s][A
+Validation DataLoader 0:  57%|█████▋    | 16/28 [00:03<00:02,  4.83it/s][A
+Validation DataLoader 0:  61%|██████    | 17/28 [00:03<00:02,  4.83it/s][A
+Validation DataLoader 0:  64%|██████▍   | 18/28 [00:03<00:02,  4.83it/s][A
+Validation DataLoader 0:  68%|██████▊   | 19/28 [00:03<00:01,  4.83it/s][A
+Validation DataLoader 0:  71%|███████▏  | 20/28 [00:04<00:01,  4.82it/s][A
+Validation DataLoader 0:  75%|███████▌  | 21/28 [00:04<00:01,  4.82it/s][A
+Validation DataLoader 0:  79%|███████▊  | 22/28 [00:04<00:01,  4.83it/s][A
+Validation DataLoader 0:  82%|████████▏ | 23/28 [00:04<00:01,  4.82it/s][A
+Validation DataLoader 0:  86%|████████▌ | 24/28 [00:04<00:00,  4.82it/s][A
+Validation DataLoader 0:  89%|████████▉ | 25/28 [00:05<00:00,  4.75it/s][A
+Validation DataLoader 0:  93%|█████████▎| 26/28 [00:05<00:00,  4.75it/s][A
+Validation DataLoader 0:  96%|█████████▋| 27/28 [00:05<00:00,  4.75it/s][A
+Validation DataLoader 0: 100%|██████████| 28/28 [00:05<00:00,  4.78it/s][A
+                                                                        [AEpoch 3: 100%|██████████| 5/5 [00:10<00:00,  0.48it/s, v_num=w6eg]Epoch 3: 100%|██████████| 5/5 [00:10<00:00,  0.48it/s, v_num=w6eg]Epoch 3:   0%|          | 0/5 [00:00<?, ?it/s, v_num=w6eg]        Epoch 4:   0%|          | 0/5 [00:00<?, ?it/s, v_num=w6eg]Epoch 4:  20%|██        | 1/5 [00:01<00:04,  0.90it/s, v_num=w6eg]Epoch 4:  20%|██        | 1/5 [00:01<00:04,  0.90it/s, v_num=w6eg]Epoch 4:  40%|████      | 2/5 [00:02<00:03,  0.94it/s, v_num=w6eg]Epoch 4:  40%|████      | 2/5 [00:02<00:03,  0.94it/s, v_num=w6eg]Epoch 4:  60%|██████    | 3/5 [00:03<00:02,  0.98it/s, v_num=w6eg]Epoch 4:  60%|██████    | 3/5 [00:03<00:02,  0.98it/s, v_num=w6eg]Epoch 4:  80%|████████  | 4/5 [00:03<00:00,  1.02it/s, v_num=w6eg]Epoch 4:  80%|████████  | 4/5 [00:03<00:00,  1.02it/s, v_num=w6eg]Epoch 4: 100%|██████████| 5/5 [00:04<00:00,  1.10it/s, v_num=w6eg]Epoch 4: 100%|██████████| 5/5 [00:04<00:00,  1.10it/s, v_num=w6eg]
+Validation: |          | 0/? [00:00<?, ?it/s][A
+Validation:   0%|          | 0/28 [00:00<?, ?it/s][A
+Validation DataLoader 0:   0%|          | 0/28 [00:00<?, ?it/s][A
+Validation DataLoader 0:   4%|▎         | 1/28 [00:00<00:05,  4.87it/s][A
+Validation DataLoader 0:   7%|▋         | 2/28 [00:00<00:05,  4.82it/s][A
+Validation DataLoader 0:  11%|█         | 3/28 [00:00<00:05,  4.80it/s][A
+Validation DataLoader 0:  14%|█▍        | 4/28 [00:00<00:04,  4.81it/s][A
+Validation DataLoader 0:  18%|█▊        | 5/28 [00:01<00:04,  4.81it/s][A
+Validation DataLoader 0:  21%|██▏       | 6/28 [00:01<00:04,  4.81it/s][A
+Validation DataLoader 0:  25%|██▌       | 7/28 [00:01<00:04,  4.81it/s][A
+Validation DataLoader 0:  29%|██▊       | 8/28 [00:01<00:04,  4.81it/s][A
+Validation DataLoader 0:  32%|███▏      | 9/28 [00:01<00:03,  4.81it/s][A
+Validation DataLoader 0:  36%|███▌      | 10/28 [00:02<00:03,  4.80it/s][A
+Validation DataLoader 0:  39%|███▉      | 11/28 [00:02<00:03,  4.80it/s][A
+Validation DataLoader 0:  43%|████▎     | 12/28 [00:02<00:03,  4.80it/s][A
+Validation DataLoader 0:  46%|████▋     | 13/28 [00:02<00:03,  4.80it/s][A
+Validation DataLoader 0:  50%|█████     | 14/28 [00:02<00:02,  4.80it/s][A
+Validation DataLoader 0:  54%|█████▎    | 15/28 [00:03<00:02,  4.70it/s][A
+Validation DataLoader 0:  57%|█████▋    | 16/28 [00:03<00:02,  4.71it/s][A
+Validation DataLoader 0:  61%|██████    | 17/28 [00:03<00:02,  4.71it/s][A
+Validation DataLoader 0:  64%|██████▍   | 18/28 [00:03<00:02,  4.71it/s][A
+Validation DataLoader 0:  68%|██████▊   | 19/28 [00:04<00:01,  4.71it/s][A
+Validation DataLoader 0:  71%|███████▏  | 20/28 [00:04<00:01,  4.71it/s][A
+Validation DataLoader 0:  75%|███████▌  | 21/28 [00:04<00:01,  4.72it/s][A
+Validation DataLoader 0:  79%|███████▊  | 22/28 [00:04<00:01,  4.72it/s][A
+Validation DataLoader 0:  82%|████████▏ | 23/28 [00:04<00:01,  4.72it/s][A
+Validation DataLoader 0:  86%|████████▌ | 24/28 [00:05<00:00,  4.72it/s][A
+Validation DataLoader 0:  89%|████████▉ | 25/28 [00:05<00:00,  4.73it/s][A
+Validation DataLoader 0:  93%|█████████▎| 26/28 [00:05<00:00,  4.72it/s][A
+Validation DataLoader 0:  96%|█████████▋| 27/28 [00:05<00:00,  4.72it/s][A
+Validation DataLoader 0: 100%|██████████| 28/28 [00:05<00:00,  4.75it/s][A
+                                                                        [AEpoch 4: 100%|██████████| 5/5 [00:10<00:00,  0.47it/s, v_num=w6eg]Epoch 4: 100%|██████████| 5/5 [00:10<00:00,  0.47it/s, v_num=w6eg]Epoch 4:   0%|          | 0/5 [00:00<?, ?it/s, v_num=w6eg]        Epoch 5:   0%|          | 0/5 [00:00<?, ?it/s, v_num=w6eg]Epoch 5:  20%|██        | 1/5 [00:00<00:03,  1.07it/s, v_num=w6eg]Epoch 5:  20%|██        | 1/5 [00:00<00:03,  1.07it/s, v_num=w6eg]Epoch 5:  40%|████      | 2/5 [00:01<00:02,  1.09it/s, v_num=w6eg]Epoch 5:  40%|████      | 2/5 [00:01<00:02,  1.09it/s, v_num=w6eg]Epoch 5:  60%|██████    | 3/5 [00:02<00:01,  1.08it/s, v_num=w6eg]Epoch 5:  60%|██████    | 3/5 [00:02<00:01,  1.07it/s, v_num=w6eg]Epoch 5:  80%|████████  | 4/5 [00:03<00:00,  1.07it/s, v_num=w6eg]Epoch 5:  80%|████████  | 4/5 [00:03<00:00,  1.07it/s, v_num=w6eg]Epoch 5: 100%|██████████| 5/5 [00:04<00:00,  1.13it/s, v_num=w6eg]Epoch 5: 100%|██████████| 5/5 [00:04<00:00,  1.13it/s, v_num=w6eg]
+Validation: |          | 0/? [00:00<?, ?it/s][A
+Validation:   0%|          | 0/28 [00:00<?, ?it/s][A
+Validation DataLoader 0:   0%|          | 0/28 [00:00<?, ?it/s][A
+Validation DataLoader 0:   4%|▎         | 1/28 [00:00<00:05,  4.86it/s][A
+Validation DataLoader 0:   7%|▋         | 2/28 [00:00<00:05,  4.81it/s][A
+Validation DataLoader 0:  11%|█         | 3/28 [00:00<00:05,  4.80it/s][A
+Validation DataLoader 0:  14%|█▍        | 4/28 [00:00<00:04,  4.80it/s][A
+Validation DataLoader 0:  18%|█▊        | 5/28 [00:01<00:04,  4.81it/s][A
+Validation DataLoader 0:  21%|██▏       | 6/28 [00:01<00:04,  4.80it/s][A
+Validation DataLoader 0:  25%|██▌       | 7/28 [00:01<00:04,  4.80it/s][A
+Validation DataLoader 0:  29%|██▊       | 8/28 [00:01<00:04,  4.80it/s][A
+Validation DataLoader 0:  32%|███▏      | 9/28 [00:01<00:03,  4.79it/s][A
+Validation DataLoader 0:  36%|███▌      | 10/28 [00:02<00:03,  4.78it/s][A
+Validation DataLoader 0:  39%|███▉      | 11/28 [00:02<00:03,  4.78it/s][A
+Validation DataLoader 0:  43%|████▎     | 12/28 [00:02<00:03,  4.79it/s][A
+Validation DataLoader 0:  46%|████▋     | 13/28 [00:02<00:03,  4.79it/s][A
+Validation DataLoader 0:  50%|█████     | 14/28 [00:03<00:03,  4.30it/s][A
+Validation DataLoader 0:  54%|█████▎    | 15/28 [00:03<00:03,  3.82it/s][A
+Validation DataLoader 0:  57%|█████▋    | 16/28 [00:04<00:03,  3.34it/s][A
+Validation DataLoader 0:  61%|██████    | 17/28 [00:05<00:03,  3.40it/s][A
+Validation DataLoader 0:  64%|██████▍   | 18/28 [00:05<00:02,  3.45it/s][A
+Validation DataLoader 0:  68%|██████▊   | 19/28 [00:05<00:02,  3.50it/s][A
+Validation DataLoader 0:  71%|███████▏  | 20/28 [00:05<00:02,  3.55it/s][A
+Validation DataLoader 0:  75%|███████▌  | 21/28 [00:05<00:01,  3.60it/s][A
+Validation DataLoader 0:  79%|███████▊  | 22/28 [00:06<00:01,  3.64it/s][A
+Validation DataLoader 0:  82%|████████▏ | 23/28 [00:06<00:01,  3.68it/s][A
+Validation DataLoader 0:  86%|████████▌ | 24/28 [00:06<00:01,  3.72it/s][A
+Validation DataLoader 0:  89%|████████▉ | 25/28 [00:06<00:00,  3.75it/s][A
+Validation DataLoader 0:  93%|█████████▎| 26/28 [00:06<00:00,  3.79it/s][A
+Validation DataLoader 0:  96%|█████████▋| 27/28 [00:07<00:00,  3.81it/s][A
+Validation DataLoader 0: 100%|██████████| 28/28 [00:07<00:00,  3.86it/s][A
+                                                                        [AEpoch 5: 100%|██████████| 5/5 [00:11<00:00,  0.42it/s, v_num=w6eg]Epoch 5: 100%|██████████| 5/5 [00:11<00:00,  0.42it/s, v_num=w6eg]Epoch 5:   0%|          | 0/5 [00:00<?, ?it/s, v_num=w6eg]        Epoch 6:   0%|          | 0/5 [00:00<?, ?it/s, v_num=w6eg]Epoch 6:  20%|██        | 1/5 [00:00<00:03,  1.04it/s, v_num=w6eg]Epoch 6:  20%|██        | 1/5 [00:00<00:03,  1.04it/s, v_num=w6eg]Epoch 6:  40%|████      | 2/5 [00:01<00:02,  1.03it/s, v_num=w6eg]Epoch 6:  40%|████      | 2/5 [00:01<00:02,  1.03it/s, v_num=w6eg]Epoch 6:  60%|██████    | 3/5 [00:02<00:01,  1.04it/s, v_num=w6eg]Epoch 6:  60%|██████    | 3/5 [00:02<00:01,  1.04it/s, v_num=w6eg]Epoch 6:  80%|████████  | 4/5 [00:03<00:00,  1.07it/s, v_num=w6eg]Epoch 6:  80%|████████  | 4/5 [00:03<00:00,  1.07it/s, v_num=w6eg]Epoch 6: 100%|██████████| 5/5 [00:04<00:00,  1.13it/s, v_num=w6eg]Epoch 6: 100%|██████████| 5/5 [00:04<00:00,  1.13it/s, v_num=w6eg]
+Validation: |          | 0/? [00:00<?, ?it/s][A
+Validation:   0%|          | 0/28 [00:00<?, ?it/s][A
+Validation DataLoader 0:   0%|          | 0/28 [00:00<?, ?it/s][A
+Validation DataLoader 0:   4%|▎         | 1/28 [00:00<00:05,  4.93it/s][A
+Validation DataLoader 0:   7%|▋         | 2/28 [00:00<00:05,  4.89it/s][A
+Validation DataLoader 0:  11%|█         | 3/28 [00:00<00:05,  4.86it/s][A
+Validation DataLoader 0:  14%|█▍        | 4/28 [00:00<00:04,  4.87it/s][A
+Validation DataLoader 0:  18%|█▊        | 5/28 [00:01<00:04,  4.87it/s][A
+Validation DataLoader 0:  21%|██▏       | 6/28 [00:01<00:04,  4.85it/s][A
+Validation DataLoader 0:  25%|██▌       | 7/28 [00:01<00:04,  4.85it/s][A
+Validation DataLoader 0:  29%|██▊       | 8/28 [00:01<00:04,  4.85it/s][A
+Validation DataLoader 0:  32%|███▏      | 9/28 [00:01<00:03,  4.84it/s][A
+Validation DataLoader 0:  36%|███▌      | 10/28 [00:02<00:03,  4.84it/s][A
+Validation DataLoader 0:  39%|███▉      | 11/28 [00:02<00:03,  4.84it/s][A
+Validation DataLoader 0:  43%|████▎     | 12/28 [00:02<00:03,  4.84it/s][A
+Validation DataLoader 0:  46%|████▋     | 13/28 [00:02<00:03,  4.84it/s][A
+Validation DataLoader 0:  50%|█████     | 14/28 [00:02<00:02,  4.84it/s][A
+Validation DataLoader 0:  54%|█████▎    | 15/28 [00:03<00:02,  4.83it/s][A
+Validation DataLoader 0:  57%|█████▋    | 16/28 [00:03<00:02,  4.83it/s][A
+Validation DataLoader 0:  61%|██████    | 17/28 [00:03<00:02,  4.83it/s][A
+Validation DataLoader 0:  64%|██████▍   | 18/28 [00:03<00:02,  4.82it/s][A
+Validation DataLoader 0:  68%|██████▊   | 19/28 [00:03<00:01,  4.82it/s][A
+Validation DataLoader 0:  71%|███████▏  | 20/28 [00:04<00:01,  4.81it/s][A
+Validation DataLoader 0:  75%|███████▌  | 21/28 [00:04<00:01,  4.82it/s][A
+Validation DataLoader 0:  79%|███████▊  | 22/28 [00:04<00:01,  4.82it/s][A
+Validation DataLoader 0:  82%|████████▏ | 23/28 [00:04<00:01,  4.82it/s][A
+Validation DataLoader 0:  86%|████████▌ | 24/28 [00:04<00:00,  4.81it/s][A
+Validation DataLoader 0:  89%|████████▉ | 25/28 [00:05<00:00,  4.81it/s][A
+Validation DataLoader 0:  93%|█████████▎| 26/28 [00:05<00:00,  4.81it/s][A
+Validation DataLoader 0:  96%|█████████▋| 27/28 [00:05<00:00,  4.81it/s][A
+Validation DataLoader 0: 100%|██████████| 28/28 [00:05<00:00,  4.83it/s][A
+                                                                        [AEpoch 6: 100%|██████████| 5/5 [00:10<00:00,  0.49it/s, v_num=w6eg]Epoch 6: 100%|██████████| 5/5 [00:10<00:00,  0.49it/s, v_num=w6eg]Epoch 6:   0%|          | 0/5 [00:00<?, ?it/s, v_num=w6eg]        Epoch 7:   0%|          | 0/5 [00:00<?, ?it/s, v_num=w6eg]Epoch 7:  20%|██        | 1/5 [00:00<00:03,  1.09it/s, v_num=w6eg]Epoch 7:  20%|██        | 1/5 [00:00<00:03,  1.09it/s, v_num=w6eg]Epoch 7:  40%|████      | 2/5 [00:01<00:02,  1.06it/s, v_num=w6eg]Epoch 7:  40%|████      | 2/5 [00:01<00:02,  1.06it/s, v_num=w6eg]Epoch 7:  60%|██████    | 3/5 [00:02<00:01,  1.05it/s, v_num=w6eg]Epoch 7:  60%|██████    | 3/5 [00:02<00:01,  1.05it/s, v_num=w6eg]Epoch 7:  80%|████████  | 4/5 [00:03<00:00,  1.06it/s, v_num=w6eg]Epoch 7:  80%|████████  | 4/5 [00:03<00:00,  1.06it/s, v_num=w6eg]Epoch 7: 100%|██████████| 5/5 [00:04<00:00,  1.12it/s, v_num=w6eg]Epoch 7: 100%|██████████| 5/5 [00:04<00:00,  1.12it/s, v_num=w6eg]
+Validation: |          | 0/? [00:00<?, ?it/s][A
+Validation:   0%|          | 0/28 [00:00<?, ?it/s][A
+Validation DataLoader 0:   0%|          | 0/28 [00:00<?, ?it/s][A
+Validation DataLoader 0:   4%|▎         | 1/28 [00:00<00:05,  4.88it/s][A
+Validation DataLoader 0:   7%|▋         | 2/28 [00:00<00:05,  4.84it/s][A
+Validation DataLoader 0:  11%|█         | 3/28 [00:00<00:05,  4.83it/s][A
+Validation DataLoader 0:  14%|█▍        | 4/28 [00:00<00:04,  4.84it/s][A
+Validation DataLoader 0:  18%|█▊        | 5/28 [00:01<00:04,  4.84it/s][A
+Validation DataLoader 0:  21%|██▏       | 6/28 [00:01<00:04,  4.83it/s][A
+Validation DataLoader 0:  25%|██▌       | 7/28 [00:01<00:04,  4.84it/s][A
+Validation DataLoader 0:  29%|██▊       | 8/28 [00:01<00:04,  4.83it/s][A
+Validation DataLoader 0:  32%|███▏      | 9/28 [00:01<00:03,  4.83it/s][A
+Validation DataLoader 0:  36%|███▌      | 10/28 [00:02<00:03,  4.82it/s][A
+Validation DataLoader 0:  39%|███▉      | 11/28 [00:02<00:03,  4.82it/s][A
+Validation DataLoader 0:  43%|████▎     | 12/28 [00:02<00:03,  4.82it/s][A
+Validation DataLoader 0:  46%|████▋     | 13/28 [00:02<00:03,  4.82it/s][A
+Validation DataLoader 0:  50%|█████     | 14/28 [00:02<00:02,  4.83it/s][A
+Validation DataLoader 0:  54%|█████▎    | 15/28 [00:03<00:02,  4.82it/s][A
+Validation DataLoader 0:  57%|█████▋    | 16/28 [00:03<00:02,  4.82it/s][A
+Validation DataLoader 0:  61%|██████    | 17/28 [00:03<00:02,  4.82it/s][A
+Validation DataLoader 0:  64%|██████▍   | 18/28 [00:03<00:02,  4.83it/s][A
+Validation DataLoader 0:  68%|██████▊   | 19/28 [00:03<00:01,  4.82it/s][A
+Validation DataLoader 0:  71%|███████▏  | 20/28 [00:04<00:01,  4.82it/s][A
+Validation DataLoader 0:  75%|███████▌  | 21/28 [00:04<00:01,  4.82it/s][A
+Validation DataLoader 0:  79%|███████▊  | 22/28 [00:04<00:01,  4.83it/s][A
+Validation DataLoader 0:  82%|████████▏ | 23/28 [00:04<00:01,  4.83it/s][A
+Validation DataLoader 0:  86%|████████▌ | 24/28 [00:04<00:00,  4.83it/s][A
+Validation DataLoader 0:  89%|████████▉ | 25/28 [00:05<00:00,  4.83it/s][A
+Validation DataLoader 0:  93%|█████████▎| 26/28 [00:05<00:00,  4.82it/s][A
+Validation DataLoader 0:  96%|█████████▋| 27/28 [00:05<00:00,  4.82it/s][A
+Validation DataLoader 0: 100%|██████████| 28/28 [00:05<00:00,  4.84it/s][A
+                                                                        [AEpoch 7: 100%|██████████| 5/5 [00:10<00:00,  0.48it/s, v_num=w6eg]Epoch 7: 100%|██████████| 5/5 [00:10<00:00,  0.48it/s, v_num=w6eg]Epoch 7:   0%|          | 0/5 [00:00<?, ?it/s, v_num=w6eg]        Epoch 8:   0%|          | 0/5 [00:00<?, ?it/s, v_num=w6eg]Epoch 8:  20%|██        | 1/5 [00:00<00:03,  1.19it/s, v_num=w6eg]Epoch 8:  20%|██        | 1/5 [00:00<00:03,  1.19it/s, v_num=w6eg]Epoch 8:  40%|████      | 2/5 [00:01<00:02,  1.08it/s, v_num=w6eg]Epoch 8:  40%|████      | 2/5 [00:01<00:02,  1.08it/s, v_num=w6eg]Epoch 8:  60%|██████    | 3/5 [00:02<00:01,  1.04it/s, v_num=w6eg]Epoch 8:  60%|██████    | 3/5 [00:02<00:01,  1.04it/s, v_num=w6eg]Epoch 8:  80%|████████  | 4/5 [00:03<00:00,  1.06it/s, v_num=w6eg]Epoch 8:  80%|████████  | 4/5 [00:03<00:00,  1.06it/s, v_num=w6eg]Epoch 8: 100%|██████████| 5/5 [00:04<00:00,  1.13it/s, v_num=w6eg]Epoch 8: 100%|██████████| 5/5 [00:04<00:00,  1.13it/s, v_num=w6eg]
+Validation: |          | 0/? [00:00<?, ?it/s][A
+Validation:   0%|          | 0/28 [00:00<?, ?it/s][A
+Validation DataLoader 0:   0%|          | 0/28 [00:00<?, ?it/s][A
+Validation DataLoader 0:   4%|▎         | 1/28 [00:00<00:05,  4.93it/s][A
+Validation DataLoader 0:   7%|▋         | 2/28 [00:00<00:05,  4.87it/s][A
+Validation DataLoader 0:  11%|█         | 3/28 [00:00<00:05,  4.84it/s][A
+Validation DataLoader 0:  14%|█▍        | 4/28 [00:00<00:04,  4.86it/s][A
+Validation DataLoader 0:  18%|█▊        | 5/28 [00:01<00:04,  4.85it/s][A
+Validation DataLoader 0:  21%|██▏       | 6/28 [00:01<00:04,  4.85it/s][A
+Validation DataLoader 0:  25%|██▌       | 7/28 [00:01<00:04,  4.85it/s][A
+Validation DataLoader 0:  29%|██▊       | 8/28 [00:01<00:04,  4.84it/s][A
+Validation DataLoader 0:  32%|███▏      | 9/28 [00:01<00:03,  4.84it/s][A
+Validation DataLoader 0:  36%|███▌      | 10/28 [00:02<00:03,  4.83it/s][A
+Validation DataLoader 0:  39%|███▉      | 11/28 [00:02<00:03,  4.83it/s][A
+Validation DataLoader 0:  43%|████▎     | 12/28 [00:02<00:03,  4.83it/s][A
+Validation DataLoader 0:  46%|████▋     | 13/28 [00:02<00:03,  4.83it/s][A
+Validation DataLoader 0:  50%|█████     | 14/28 [00:02<00:02,  4.83it/s][A
+Validation DataLoader 0:  54%|█████▎    | 15/28 [00:03<00:02,  4.82it/s][A
+Validation DataLoader 0:  57%|█████▋    | 16/28 [00:03<00:02,  4.82it/s][A
+Validation DataLoader 0:  61%|██████    | 17/28 [00:03<00:02,  4.82it/s][A
+Validation DataLoader 0:  64%|██████▍   | 18/28 [00:03<00:02,  4.81it/s][A
+Validation DataLoader 0:  68%|██████▊   | 19/28 [00:03<00:01,  4.81it/s][A
+Validation DataLoader 0:  71%|███████▏  | 20/28 [00:04<00:01,  4.80it/s][A
+Validation DataLoader 0:  75%|███████▌  | 21/28 [00:04<00:01,  4.80it/s][A
+Validation DataLoader 0:  79%|███████▊  | 22/28 [00:04<00:01,  4.81it/s][A
+Validation DataLoader 0:  82%|████████▏ | 23/28 [00:04<00:01,  4.80it/s][A
+Validation DataLoader 0:  86%|████████▌ | 24/28 [00:04<00:00,  4.80it/s][A
+Validation DataLoader 0:  89%|████████▉ | 25/28 [00:05<00:00,  4.80it/s][A
+Validation DataLoader 0:  93%|█████████▎| 26/28 [00:05<00:00,  4.80it/s][A
+Validation DataLoader 0:  96%|█████████▋| 27/28 [00:05<00:00,  4.79it/s][A
+Validation DataLoader 0: 100%|██████████| 28/28 [00:05<00:00,  4.82it/s][A
+                                                                        [AEpoch 8: 100%|██████████| 5/5 [00:10<00:00,  0.48it/s, v_num=w6eg]Epoch 8: 100%|██████████| 5/5 [00:10<00:00,  0.48it/s, v_num=w6eg]Epoch 8:   0%|          | 0/5 [00:00<?, ?it/s, v_num=w6eg]        Epoch 9:   0%|          | 0/5 [00:00<?, ?it/s, v_num=w6eg]Epoch 9:  20%|██        | 1/5 [00:00<00:03,  1.07it/s, v_num=w6eg]Epoch 9:  20%|██        | 1/5 [00:00<00:03,  1.07it/s, v_num=w6eg]Epoch 9:  40%|████      | 2/5 [00:01<00:02,  1.06it/s, v_num=w6eg]Epoch 9:  40%|████      | 2/5 [00:01<00:02,  1.06it/s, v_num=w6eg]Epoch 9:  60%|██████    | 3/5 [00:02<00:01,  1.08it/s, v_num=w6eg]Epoch 9:  60%|██████    | 3/5 [00:02<00:01,  1.08it/s, v_num=w6eg]Epoch 9:  80%|████████  | 4/5 [00:03<00:00,  1.07it/s, v_num=w6eg]Epoch 9:  80%|████████  | 4/5 [00:03<00:00,  1.07it/s, v_num=w6eg]Epoch 9: 100%|██████████| 5/5 [00:04<00:00,  1.12it/s, v_num=w6eg]Epoch 9: 100%|██████████| 5/5 [00:04<00:00,  1.12it/s, v_num=w6eg]
+Validation: |          | 0/? [00:00<?, ?it/s][A
+Validation:   0%|          | 0/28 [00:00<?, ?it/s][A
+Validation DataLoader 0:   0%|          | 0/28 [00:00<?, ?it/s][A
+Validation DataLoader 0:   4%|▎         | 1/28 [00:00<00:05,  4.94it/s][A
+Validation DataLoader 0:   7%|▋         | 2/28 [00:00<00:05,  4.87it/s][A
+Validation DataLoader 0:  11%|█         | 3/28 [00:00<00:05,  4.84it/s][A
+Validation DataLoader 0:  14%|█▍        | 4/28 [00:00<00:04,  4.84it/s][A
+Validation DataLoader 0:  18%|█▊        | 5/28 [00:01<00:04,  4.84it/s][A
+Validation DataLoader 0:  21%|██▏       | 6/28 [00:01<00:04,  4.84it/s][A
+Validation DataLoader 0:  25%|██▌       | 7/28 [00:01<00:04,  4.84it/s][A
+Validation DataLoader 0:  29%|██▊       | 8/28 [00:01<00:04,  4.83it/s][A
+Validation DataLoader 0:  32%|███▏      | 9/28 [00:01<00:03,  4.83it/s][A
+Validation DataLoader 0:  36%|███▌      | 10/28 [00:02<00:03,  4.83it/s][A
+Validation DataLoader 0:  39%|███▉      | 11/28 [00:02<00:03,  4.83it/s][A
+Validation DataLoader 0:  43%|████▎     | 12/28 [00:02<00:03,  4.83it/s][A
+Validation DataLoader 0:  46%|████▋     | 13/28 [00:02<00:03,  4.83it/s][A
+Validation DataLoader 0:  50%|█████     | 14/28 [00:02<00:02,  4.83it/s][A
+Validation DataLoader 0:  54%|█████▎    | 15/28 [00:03<00:02,  4.83it/s][A
+Validation DataLoader 0:  57%|█████▋    | 16/28 [00:03<00:02,  4.83it/s][A
+Validation DataLoader 0:  61%|██████    | 17/28 [00:03<00:02,  4.83it/s][A
+Validation DataLoader 0:  64%|██████▍   | 18/28 [00:03<00:02,  4.83it/s][A
+Validation DataLoader 0:  68%|██████▊   | 19/28 [00:03<00:01,  4.82it/s][A
+Validation DataLoader 0:  71%|███████▏  | 20/28 [00:04<00:01,  4.82it/s][A
+Validation DataLoader 0:  75%|███████▌  | 21/28 [00:04<00:01,  4.82it/s][A
+Validation DataLoader 0:  79%|███████▊  | 22/28 [00:04<00:01,  4.82it/s][A
+Validation DataLoader 0:  82%|████████▏ | 23/28 [00:04<00:01,  4.82it/s][A
+Validation DataLoader 0:  86%|████████▌ | 24/28 [00:04<00:00,  4.81it/s][A
+Validation DataLoader 0:  89%|████████▉ | 25/28 [00:05<00:00,  4.81it/s][A
+Validation DataLoader 0:  93%|█████████▎| 26/28 [00:05<00:00,  4.81it/s][A
+Validation DataLoader 0:  96%|█████████▋| 27/28 [00:05<00:00,  4.80it/s][A
+Validation DataLoader 0: 100%|██████████| 28/28 [00:05<00:00,  4.83it/s][A
+                                                                        [AEpoch 9: 100%|██████████| 5/5 [00:10<00:00,  0.48it/s, v_num=w6eg]Epoch 9: 100%|██████████| 5/5 [00:10<00:00,  0.48it/s, v_num=w6eg]Epoch 9:   0%|          | 0/5 [00:00<?, ?it/s, v_num=w6eg]        Epoch 10:   0%|          | 0/5 [00:00<?, ?it/s, v_num=w6eg]Epoch 10:  20%|██        | 1/5 [00:00<00:03,  1.06it/s, v_num=w6eg]Epoch 10:  20%|██        | 1/5 [00:00<00:03,  1.06it/s, v_num=w6eg]Epoch 10:  40%|████      | 2/5 [00:01<00:02,  1.09it/s, v_num=w6eg]Epoch 10:  40%|████      | 2/5 [00:01<00:02,  1.09it/s, v_num=w6eg]Epoch 10:  60%|██████    | 3/5 [00:02<00:01,  1.09it/s, v_num=w6eg]Epoch 10:  60%|██████    | 3/5 [00:02<00:01,  1.09it/s, v_num=w6eg]Epoch 10:  80%|████████  | 4/5 [00:03<00:00,  1.09it/s, v_num=w6eg]Epoch 10:  80%|████████  | 4/5 [00:03<00:00,  1.09it/s, v_num=w6eg]Epoch 10: 100%|██████████| 5/5 [00:04<00:00,  1.13it/s, v_num=w6eg]Epoch 10: 100%|██████████| 5/5 [00:04<00:00,  1.13it/s, v_num=w6eg]
+Validation: |          | 0/? [00:00<?, ?it/s][A
+Validation:   0%|          | 0/28 [00:00<?, ?it/s][A
+Validation DataLoader 0:   0%|          | 0/28 [00:00<?, ?it/s][A
+Validation DataLoader 0:   4%|▎         | 1/28 [00:00<00:05,  4.97it/s][A
+Validation DataLoader 0:   7%|▋         | 2/28 [00:00<00:05,  4.91it/s][A
+Validation DataLoader 0:  11%|█         | 3/28 [00:00<00:05,  4.87it/s][A
+Validation DataLoader 0:  14%|█▍        | 4/28 [00:00<00:04,  4.86it/s][A
+Validation DataLoader 0:  18%|█▊        | 5/28 [00:01<00:04,  4.85it/s][A
+Validation DataLoader 0:  21%|██▏       | 6/28 [00:01<00:04,  4.85it/s][A
+Validation DataLoader 0:  25%|██▌       | 7/28 [00:01<00:04,  4.85it/s][A
+Validation DataLoader 0:  29%|██▊       | 8/28 [00:01<00:04,  4.85it/s][A
+Validation DataLoader 0:  32%|███▏      | 9/28 [00:01<00:03,  4.84it/s][A
+Validation DataLoader 0:  36%|███▌      | 10/28 [00:02<00:03,  4.84it/s][A
+Validation DataLoader 0:  39%|███▉      | 11/28 [00:02<00:03,  4.84it/s][A
+Validation DataLoader 0:  43%|████▎     | 12/28 [00:02<00:03,  4.84it/s][A
+Validation DataLoader 0:  46%|████▋     | 13/28 [00:02<00:03,  4.84it/s][A
+Validation DataLoader 0:  50%|█████     | 14/28 [00:02<00:02,  4.85it/s][A
+Validation DataLoader 0:  54%|█████▎    | 15/28 [00:03<00:02,  4.84it/s][A
+Validation DataLoader 0:  57%|█████▋    | 16/28 [00:03<00:02,  4.84it/s][A
+Validation DataLoader 0:  61%|██████    | 17/28 [00:03<00:02,  4.84it/s][A
+Validation DataLoader 0:  64%|██████▍   | 18/28 [00:03<00:02,  4.84it/s][A
+Validation DataLoader 0:  68%|██████▊   | 19/28 [00:03<00:01,  4.83it/s][A
+Validation DataLoader 0:  71%|███████▏  | 20/28 [00:04<00:01,  4.83it/s][A
+Validation DataLoader 0:  75%|███████▌  | 21/28 [00:04<00:01,  4.83it/s][A
+Validation DataLoader 0:  79%|███████▊  | 22/28 [00:04<00:01,  4.83it/s][A
+Validation DataLoader 0:  82%|████████▏ | 23/28 [00:04<00:01,  4.83it/s][A
+Validation DataLoader 0:  86%|████████▌ | 24/28 [00:04<00:00,  4.83it/s][A
+Validation DataLoader 0:  89%|████████▉ | 25/28 [00:05<00:00,  4.82it/s][A
+Validation DataLoader 0:  93%|█████████▎| 26/28 [00:05<00:00,  4.82it/s][A
+Validation DataLoader 0:  96%|█████████▋| 27/28 [00:05<00:00,  4.82it/s][A
+Validation DataLoader 0: 100%|██████████| 28/28 [00:05<00:00,  4.84it/s][A
+                                                                        [AEpoch 10: 100%|██████████| 5/5 [00:10<00:00,  0.49it/s, v_num=w6eg]Epoch 10: 100%|██████████| 5/5 [00:10<00:00,  0.49it/s, v_num=w6eg]Epoch 10:   0%|          | 0/5 [00:00<?, ?it/s, v_num=w6eg]        Epoch 11:   0%|          | 0/5 [00:00<?, ?it/s, v_num=w6eg]Epoch 11:  20%|██        | 1/5 [00:00<00:03,  1.06it/s, v_num=w6eg]Epoch 11:  20%|██        | 1/5 [00:00<00:03,  1.06it/s, v_num=w6eg]Epoch 11:  40%|████      | 2/5 [00:01<00:02,  1.07it/s, v_num=w6eg]Epoch 11:  40%|████      | 2/5 [00:01<00:02,  1.07it/s, v_num=w6eg]
