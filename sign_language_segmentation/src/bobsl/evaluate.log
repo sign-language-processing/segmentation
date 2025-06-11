@@ -1,0 +1,452 @@
+Loaded 110 data items from ./sign_language_segmentation/src/bsl/data.csv.
+model RecursiveScriptModule(
+  original_name=PoseTaggingModel
+  (pose_projection): RecursiveScriptModule(original_name=Linear)
+  (encoder): RecursiveScriptModule(original_name=LSTM)
+  (sign_bio_head): RecursiveScriptModule(original_name=Linear)
+  (sentence_bio_head): RecursiveScriptModule(original_name=Linear)
+  (sign_loss_function): RecursiveScriptModule(original_name=NLLLoss)
+  (sentence_loss_function): RecursiveScriptModule(original_name=NLLLoss)
+)
+---------------
+Evaluating datum 5172231547180314349_0
+Current metrics for sentence: {'frame_f1_sentence': 0.5204552605846203, 'frame_f1_O_sentence': 0.6071741032370953, 'frame_precision_O_sentence': 0.46143617021276595, 'frame_recall_O_sentence': 0.887468030690537, 'frame_roc_auc_O_sentence': 0.9481136495518924}
+Current metrics for sign: {'frame_f1_sign': 0.3482601812591632, 'frame_f1_O_sign': 0.5265418840135011, 'frame_precision_O_sign': 0.7352185089974294, 'frame_recall_O_sign': 0.4101338432122371, 'frame_roc_auc_O_sign': 0.6107230655168376}
+---------------
+Evaluating datum 5172231547180314349_1
+Current metrics for sentence: {'frame_f1_sentence': 0.5474418407843732, 'frame_f1_O_sentence': 0.7144351464435147, 'frame_precision_O_sentence': 0.6905965621840243, 'frame_recall_O_sentence': 0.7399783315276273, 'frame_roc_auc_O_sentence': 0.8716967530336343}
+Current metrics for sign: {'frame_f1_sign': 0.3627033328654757, 'frame_f1_O_sign': 0.5496513584996393, 'frame_precision_O_sign': 0.7130380536494073, 'frame_recall_O_sign': 0.4471830985915493, 'frame_roc_auc_O_sign': 0.6336684415873426}
+---------------
+Evaluating datum 5172231547180314349_2
+Current metrics for sentence: {'frame_f1_sentence': 0.3060388945752303, 'frame_f1_O_sentence': 0.0, 'frame_precision_O_sentence': 0.0, 'frame_recall_O_sentence': nan, 'frame_roc_auc_O_sentence': nan}
+Current metrics for sign: {'frame_f1_sign': 0.28748483880483816, 'frame_f1_O_sign': 0.12087912087912088, 'frame_precision_O_sign': 0.0668693009118541, 'frame_recall_O_sign': 0.6285714285714286, 'frame_roc_auc_O_sign': 0.6655970982142857}
+---------------
+Evaluating datum 5276110913861331583_0
+Current metrics for sentence: {'frame_f1_sentence': 0.5791425153137455, 'frame_f1_O_sentence': 0.7786633966891477, 'frame_precision_O_sentence': 0.6499488229273286, 'frame_recall_O_sentence': 0.9709480122324159, 'frame_roc_auc_O_sentence': 0.9838336874087613}
+Current metrics for sign: {'frame_f1_sign': 0.3514926164243568, 'frame_f1_O_sign': 0.5614837398373984, 'frame_precision_O_sign': 0.7694986072423399, 'frame_recall_O_sign': 0.442, 'frame_roc_auc_O_sign': 0.613597110754414}
+---------------
+Evaluating datum 5276110913861331583_1
+Current metrics for sentence: {'frame_f1_sentence': 0.4691411081109369, 'frame_f1_O_sentence': 0.4120982986767486, 'frame_precision_O_sentence': 0.2698019801980198, 'frame_recall_O_sentence': 0.872, 'frame_roc_auc_O_sentence': 0.9686726530612245}
+Current metrics for sign: {'frame_f1_sign': 0.29207854118228954, 'frame_f1_O_sign': 0.4233095107201759, 'frame_precision_O_sign': 0.7064220183486238, 'frame_recall_O_sign': 0.3021978021978022, 'frame_roc_auc_O_sign': 0.5412471913070955}
+---------------
+Evaluating datum 5276110913861331583_2
+Current metrics for sentence: {'frame_f1_sentence': 0.3161612471075387, 'frame_f1_O_sentence': 0.0, 'frame_precision_O_sentence': 0.0, 'frame_recall_O_sentence': 0.0, 'frame_roc_auc_O_sentence': 0.5639929870699101}
+Current metrics for sign: {'frame_f1_sign': 0.32234666685833496, 'frame_f1_O_sign': 0.2972972972972973, 'frame_precision_O_sign': 0.24444444444444444, 'frame_recall_O_sign': 0.3793103448275862, 'frame_roc_auc_O_sign': 0.5799699143716732}
+---------------
+Evaluating datum 5276110913861331583_3
+Current metrics for sentence: {'frame_f1_sentence': 0.39182630906768834, 'frame_f1_O_sentence': 0.4444444444444444, 'frame_precision_O_sentence': 0.35, 'frame_recall_O_sentence': 0.6086956521739131, 'frame_roc_auc_O_sentence': 0.7687747035573123}
+Current metrics for sign: {'frame_f1_sign': 0.34174910222008625, 'frame_f1_O_sign': 0.3142857142857143, 'frame_precision_O_sign': 0.1896551724137931, 'frame_recall_O_sign': 0.9166666666666666, 'frame_roc_auc_O_sign': 0.7584175084175084}
+---------------
+Evaluating datum 5276110913861331583_4
+Current metrics for sentence: {'frame_f1_sentence': 0.4227994227994228, 'frame_f1_O_sentence': 0.36363636363636365, 'frame_precision_O_sentence': 0.2857142857142857, 'frame_recall_O_sentence': 0.5, 'frame_roc_auc_O_sentence': 0.8333333333333333}
+Current metrics for sign: {'frame_f1_sign': 0.35846560846560843, 'frame_f1_O_sign': 0.25, 'frame_precision_O_sign': 0.18181818181818182, 'frame_recall_O_sign': 0.4, 'frame_roc_auc_O_sign': 0.6680851063829787}
+---------------
+Evaluating datum 5276110913861331583_5
+Current metrics for sentence: {'frame_f1_sentence': 0.24285714285714285, 'frame_f1_O_sentence': 0.22857142857142856, 'frame_precision_O_sentence': 0.14814814814814814, 'frame_recall_O_sentence': 0.5, 'frame_roc_auc_O_sentence': 0.4897959183673469}
+Current metrics for sign: {'frame_f1_sign': 0.37967479674796745, 'frame_f1_O_sign': 0.7, 'frame_precision_O_sign': 0.65625, 'frame_recall_O_sign': 0.75, 'frame_roc_auc_O_sign': 0.7167487684729064}
+---------------
+Evaluating datum 5276110913861331583_6
+Current metrics for sentence: {'frame_f1_sentence': 0.3684225683114906, 'frame_f1_O_sentence': 0.2, 'frame_precision_O_sentence': 0.14516129032258066, 'frame_recall_O_sentence': 0.32142857142857145, 'frame_roc_auc_O_sentence': 0.7364773090444231}
+Current metrics for sign: {'frame_f1_sign': 0.31550443992380645, 'frame_f1_O_sign': 0.26605504587155965, 'frame_precision_O_sign': 0.19931271477663232, 'frame_recall_O_sign': 0.4, 'frame_roc_auc_O_sign': 0.5879460269865068}
+---------------
+Evaluating datum 5276110913861331583_7
+Current metrics for sentence: {'frame_f1_sentence': 0.33397287785704494, 'frame_f1_O_sentence': 0.03278688524590164, 'frame_precision_O_sentence': 0.016666666666666666, 'frame_recall_O_sentence': 1.0, 'frame_roc_auc_O_sentence': 0.9516129032258065}
+Current metrics for sign: {'frame_f1_sign': 0.2935254803675857, 'frame_f1_O_sign': 0.17105263157894737, 'frame_precision_O_sign': 0.09701492537313433, 'frame_recall_O_sign': 0.7222222222222222, 'frame_roc_auc_O_sign': 0.8186228482003131}
+---------------
+Evaluating datum 5276110913861331583_8
+Current metrics for sentence: {'frame_f1_sentence': 0.2920634920634921, 'frame_f1_O_sentence': 0.0, 'frame_precision_O_sentence': 0.0, 'frame_recall_O_sentence': nan, 'frame_roc_auc_O_sentence': nan}
+Current metrics for sign: {'frame_f1_sign': 0.30691147932527246, 'frame_f1_O_sign': 0.3103448275862069, 'frame_precision_O_sign': 0.23076923076923078, 'frame_recall_O_sign': 0.47368421052631576, 'frame_roc_auc_O_sign': 0.6591974986972381}
+---------------
+Evaluating datum 5276110913861331583_9
+Current metrics for sentence: {'frame_f1_sentence': 0.1956521739130435, 'frame_f1_O_sentence': 0.0, 'frame_precision_O_sentence': 0.0, 'frame_recall_O_sentence': 0.0, 'frame_roc_auc_O_sentence': 0.4252252252252252}
+Current metrics for sign: {'frame_f1_sign': 0.2926356589147287, 'frame_f1_O_sign': 0.25, 'frame_precision_O_sign': 0.23529411764705882, 'frame_recall_O_sign': 0.26666666666666666, 'frame_roc_auc_O_sign': 0.5538461538461539}
+---------------
+Evaluating datum 5276110913861331583_10
+Current metrics for sentence: {'frame_f1_sentence': 0.3063314711359404, 'frame_f1_O_sentence': 0.0, 'frame_precision_O_sentence': 0.0, 'frame_recall_O_sentence': nan, 'frame_roc_auc_O_sentence': nan}
+Current metrics for sign: {'frame_f1_sign': 0.2844951285080735, 'frame_f1_O_sign': 0.12698412698412698, 'frame_precision_O_sign': 0.1095890410958904, 'frame_recall_O_sign': 0.1509433962264151, 'frame_roc_auc_O_sign': 0.5865390030977189}
+---------------
+Evaluating datum 5276110913861331583_11
+Current metrics for sentence: {'frame_f1_sentence': 0.31935591494143883, 'frame_f1_O_sentence': 0.0, 'frame_precision_O_sentence': 0.0, 'frame_recall_O_sentence': 0.0, 'frame_roc_auc_O_sentence': 0.6479083665338645}
+Current metrics for sign: {'frame_f1_sign': 0.2607442472170325, 'frame_f1_O_sign': 0.06493506493506493, 'frame_precision_O_sign': 0.04504504504504504, 'frame_recall_O_sign': 0.11627906976744186, 'frame_roc_auc_O_sign': 0.45627605605505045}
+---------------
+Evaluating datum 5276110913861331583_12
+Current metrics for sentence: {'frame_f1_sentence': 0.3088512241054614, 'frame_f1_O_sentence': 0.0, 'frame_precision_O_sentence': 0.0, 'frame_recall_O_sentence': 0.0, 'frame_roc_auc_O_sentence': 0.5567010309278351}
+Current metrics for sign: {'frame_f1_sign': 0.26874785001719986, 'frame_f1_O_sign': 0.08333333333333333, 'frame_precision_O_sign': 0.047619047619047616, 'frame_recall_O_sign': 0.3333333333333333, 'frame_roc_auc_O_sign': 0.6041666666666667}
+---------------
+Evaluating datum 5276110913861331583_13
+Current metrics for sentence: {'frame_f1_sentence': 0.30777066711773937, 'frame_f1_O_sentence': 0.0, 'frame_precision_O_sentence': 0.0, 'frame_recall_O_sentence': nan, 'frame_roc_auc_O_sentence': nan}
+Current metrics for sign: {'frame_f1_sign': 0.29553545853572905, 'frame_f1_O_sign': 0.43853820598006643, 'frame_precision_O_sign': 0.7021276595744681, 'frame_recall_O_sign': 0.3188405797101449, 'frame_roc_auc_O_sign': 0.5162088461041174}
+---------------
+Evaluating datum 5276110913861331583_14
+Current metrics for sentence: {'frame_f1_sentence': 0.5519401373765477, 'frame_f1_O_sentence': 0.7181008902077152, 'frame_precision_O_sentence': 0.659400544959128, 'frame_recall_O_sentence': 0.7882736156351792, 'frame_roc_auc_O_sentence': 0.8897165617129793}
+Current metrics for sign: {'frame_f1_sign': 0.324290179434127, 'frame_f1_O_sign': 0.5328667833041739, 'frame_precision_O_sign': 0.7741466957153231, 'frame_recall_O_sign': 0.40625, 'frame_roc_auc_O_sign': 0.5893108863564239}
+---------------
+Evaluating datum 5276110913861331583_15
+Current metrics for sentence: {'frame_f1_sentence': 0.4509088627665703, 'frame_f1_O_sentence': 0.39669421487603307, 'frame_precision_O_sentence': 0.2696629213483146, 'frame_recall_O_sentence': 0.75, 'frame_roc_auc_O_sentence': 0.7928259141494436}
+Current metrics for sign: {'frame_f1_sign': 0.30810058007535696, 'frame_f1_O_sign': 0.3458646616541353, 'frame_precision_O_sign': 0.3709677419354839, 'frame_recall_O_sign': 0.323943661971831, 'frame_roc_auc_O_sign': 0.536196344735077}
+---------------
+Evaluating datum 5276110913861331583_16
+Current metrics for sentence: {'frame_f1_sentence': 0.32653061224489793, 'frame_f1_O_sentence': 0.0, 'frame_precision_O_sentence': 0.0, 'frame_recall_O_sentence': 0.0, 'frame_roc_auc_O_sentence': 0.9504950495049505}
+Current metrics for sign: {'frame_f1_sign': 0.28882134414049304, 'frame_f1_O_sign': 0.17142857142857143, 'frame_precision_O_sign': 0.11538461538461539, 'frame_recall_O_sign': 0.3333333333333333, 'frame_roc_auc_O_sign': 0.6439665471923537}
+---------------
+Evaluating datum 5276110913861331583_17
+Current metrics for sentence: {'frame_f1_sentence': 0.333086807802533, 'frame_f1_O_sentence': 0.0, 'frame_precision_O_sentence': 0.0, 'frame_recall_O_sentence': 0.0, 'frame_roc_auc_O_sentence': 0.1888598781549173}
+Current metrics for sign: {'frame_f1_sign': 0.284192327588554, 'frame_f1_O_sign': 0.14285714285714285, 'frame_precision_O_sign': 0.0970873786407767, 'frame_recall_O_sign': 0.2702702702702703, 'frame_roc_auc_O_sign': 0.5220522720522721}
+---------------
+Evaluating datum 5276110913861331583_18
+Current metrics for sentence: {'frame_f1_sentence': 0.4398619823721038, 'frame_f1_O_sentence': 0.46745562130177515, 'frame_precision_O_sentence': 0.32644628099173556, 'frame_recall_O_sentence': 0.8229166666666666, 'frame_roc_auc_O_sentence': 0.8731452131569276}
+Current metrics for sign: {'frame_f1_sign': 0.38376470715229, 'frame_f1_O_sign': 0.49921507064364207, 'frame_precision_O_sign': 0.48036253776435045, 'frame_recall_O_sign': 0.5196078431372549, 'frame_roc_auc_O_sign': 0.6890243902439024}
+---------------
+Evaluating datum 5276110913861331583_19
+Current metrics for sentence: {'frame_f1_sentence': 0.3305315346477574, 'frame_f1_O_sentence': 0.08888888888888889, 'frame_precision_O_sentence': 0.053691275167785234, 'frame_recall_O_sentence': 0.25806451612903225, 'frame_roc_auc_O_sentence': 0.6328646264130136}
+Current metrics for sign: {'frame_f1_sign': 0.29938552780133715, 'frame_f1_O_sign': 0.1889763779527559, 'frame_precision_O_sign': 0.13675213675213677, 'frame_recall_O_sign': 0.3057324840764331, 'frame_roc_auc_O_sign': 0.5445432803767968}
+---------------
+Evaluating datum 5276110913861331583_20
+Current metrics for sentence: {'frame_f1_sentence': 0.30917874396135264, 'frame_f1_O_sentence': 0.0, 'frame_precision_O_sentence': 0.0, 'frame_recall_O_sentence': 0.0, 'frame_roc_auc_O_sentence': 0.5945945945945945}
+Current metrics for sign: {'frame_f1_sign': 0.2603174603174603, 'frame_f1_O_sign': 0.26666666666666666, 'frame_precision_O_sign': 0.36363636363636365, 'frame_recall_O_sign': 0.21052631578947367, 'frame_roc_auc_O_sign': 0.4681440443213296}
+---------------
+Evaluating datum 5276110913861331583_21
+Current metrics for sentence: {'frame_f1_sentence': 0.31666666666666665, 'frame_f1_O_sentence': 0.0, 'frame_precision_O_sentence': 0.0, 'frame_recall_O_sentence': 0.0, 'frame_roc_auc_O_sentence': 0.6666666666666667}
+Current metrics for sign: {'frame_f1_sign': 0.3828828828828829, 'frame_f1_O_sign': 0.5, 'frame_precision_O_sign': 0.6923076923076923, 'frame_recall_O_sign': 0.391304347826087, 'frame_roc_auc_O_sign': 0.6282608695652174}
+---------------
+Evaluating datum 5276110913861331583_22
+Current metrics for sentence: {'frame_f1_sentence': 0.34612873743308525, 'frame_f1_O_sentence': 0.2702702702702703, 'frame_precision_O_sentence': 0.7142857142857143, 'frame_recall_O_sentence': 0.16666666666666666, 'frame_roc_auc_O_sentence': 0.7064516129032258}
+Current metrics for sign: {'frame_f1_sign': 0.29093596721091175, 'frame_f1_O_sign': 0.1951219512195122, 'frame_precision_O_sign': 0.15384615384615385, 'frame_recall_O_sign': 0.26666666666666666, 'frame_roc_auc_O_sign': 0.4597402597402597}
+---------------
+Evaluating datum 5276110913861331583_23
+Current metrics for sentence: {'frame_f1_sentence': 0.5088111560754168, 'frame_f1_O_sentence': 0.7301587301587301, 'frame_precision_O_sentence': 0.5798319327731093, 'frame_recall_O_sentence': 0.9857142857142858, 'frame_roc_auc_O_sentence': 0.9727314432516745}
+Current metrics for sign: {'frame_f1_sign': 0.4655587648886234, 'frame_f1_O_sign': 0.7239819004524887, 'frame_precision_O_sign': 0.5896805896805897, 'frame_recall_O_sign': 0.9375, 'frame_roc_auc_O_sign': 0.9492930761099365}
+---------------
+Evaluating datum 5366409594815891602_0
+Current metrics for sentence: {'frame_f1_sentence': 0.27272727272727276, 'frame_f1_O_sentence': 0.0, 'frame_precision_O_sentence': 0.0, 'frame_recall_O_sentence': 0.0, 'frame_roc_auc_O_sentence': 0.3420014609203798}
+Current metrics for sign: {'frame_f1_sign': 0.25681481481481483, 'frame_f1_O_sign': 0.19444444444444445, 'frame_precision_O_sign': 0.2028985507246377, 'frame_recall_O_sign': 0.18666666666666668, 'frame_roc_auc_O_sign': 0.4884353741496599}
+---------------
+Evaluating datum 5366409594815891602_1
+Current metrics for sentence: {'frame_f1_sentence': 0.3519104769104769, 'frame_f1_O_sentence': 0.08108108108108109, 'frame_precision_O_sentence': 0.1111111111111111, 'frame_recall_O_sentence': 0.06382978723404255, 'frame_roc_auc_O_sentence': 0.5196006995045177}
+Current metrics for sign: {'frame_f1_sign': 0.3349407854492113, 'frame_f1_O_sign': 0.28402366863905326, 'frame_precision_O_sign': 0.2857142857142857, 'frame_recall_O_sign': 0.2823529411764706, 'frame_roc_auc_O_sign': 0.4609541454377027}
+---------------
+Evaluating datum 5366409594815891602_2
+Current metrics for sentence: {'frame_f1_sentence': 0.3897445588837443, 'frame_f1_O_sentence': 0.0, 'frame_precision_O_sentence': 0.0, 'frame_recall_O_sentence': 0.0, 'frame_roc_auc_O_sentence': 0.7697594501718213}
+Current metrics for sign: {'frame_f1_sign': 0.32393162393162395, 'frame_f1_O_sign': 0.2, 'frame_precision_O_sign': 0.17647058823529413, 'frame_recall_O_sign': 0.23076923076923078, 'frame_roc_auc_O_sign': 0.5993716428499037}
+---------------
+Evaluating datum 5366409594815891602_3
+Current metrics for sentence: {'frame_f1_sentence': 0.3104325699745547, 'frame_f1_O_sentence': 0.0, 'frame_precision_O_sentence': 0.0, 'frame_recall_O_sentence': 0.0, 'frame_roc_auc_O_sentence': 0.8496350364963503}
+Current metrics for sign: {'frame_f1_sign': 0.359322033898305, 'frame_f1_O_sign': 0.4, 'frame_precision_O_sign': 0.4375, 'frame_recall_O_sign': 0.3684210526315789, 'frame_roc_auc_O_sign': 0.5943825910931174}
+---------------
+Evaluating datum 5366409594815891602_4
+Current metrics for sentence: {'frame_f1_sentence': 0.5700422838226277, 'frame_f1_O_sentence': 0.7183908045977011, 'frame_precision_O_sentence': 0.6127450980392157, 'frame_recall_O_sentence': 0.8680555555555556, 'frame_roc_auc_O_sentence': 0.9551254325259517}
+Current metrics for sign: {'frame_f1_sign': 0.36633038767846443, 'frame_f1_O_sign': 0.5224564619615032, 'frame_precision_O_sign': 0.6612529002320185, 'frame_recall_O_sign': 0.4318181818181818, 'frame_roc_auc_O_sign': 0.62015625}
+---------------
+Evaluating datum 5366409594815891602_5
+Current metrics for sentence: {'frame_f1_sentence': 0.29327286470143615, 'frame_f1_O_sentence': 0.0, 'frame_precision_O_sentence': 0.0, 'frame_recall_O_sentence': 0.0, 'frame_roc_auc_O_sentence': 0.5823497854077253}
+Current metrics for sign: {'frame_f1_sign': 0.2617527894446566, 'frame_f1_O_sign': 0.18556701030927836, 'frame_precision_O_sign': 0.16363636363636364, 'frame_recall_O_sign': 0.21428571428571427, 'frame_roc_auc_O_sign': 0.4416839199447895}
+---------------
+Evaluating datum 5366409594815891602_6
+Current metrics for sentence: {'frame_f1_sentence': 0.5198272609693126, 'frame_f1_O_sentence': 0.7417218543046358, 'frame_precision_O_sentence': 0.7296416938110749, 'frame_recall_O_sentence': 0.7542087542087542, 'frame_roc_auc_O_sentence': 0.8598400108467222}
+Current metrics for sign: {'frame_f1_sign': 0.4834945642159572, 'frame_f1_O_sign': 0.7736318407960199, 'frame_precision_O_sign': 0.845108695652174, 'frame_recall_O_sign': 0.713302752293578, 'frame_roc_auc_O_sign': 0.8277359108781126}
+---------------
+Evaluating datum 5366409594815891602_7
+Current metrics for sentence: {'frame_f1_sentence': 0.5401585813956947, 'frame_f1_O_sentence': 0.5714285714285714, 'frame_precision_O_sentence': 0.5365853658536586, 'frame_recall_O_sentence': 0.6111111111111112, 'frame_roc_auc_O_sentence': 0.9507234507234508}
+Current metrics for sign: {'frame_f1_sign': 0.33424301612536905, 'frame_f1_O_sign': 0.33613445378151263, 'frame_precision_O_sign': 0.3225806451612903, 'frame_recall_O_sign': 0.3508771929824561, 'frame_roc_auc_O_sign': 0.5841465365541514}
+---------------
+Evaluating datum 5366409594815891602_8
+Current metrics for sentence: {'frame_f1_sentence': 0.28368794326241137, 'frame_f1_O_sentence': 0.0, 'frame_precision_O_sentence': 0.0, 'frame_recall_O_sentence': 0.0, 'frame_roc_auc_O_sentence': 0.7864583333333334}
+Current metrics for sign: {'frame_f1_sign': 0.512260830236171, 'frame_f1_O_sign': 0.6086956521739131, 'frame_precision_O_sign': 0.7777777777777778, 'frame_recall_O_sign': 0.5, 'frame_roc_auc_O_sign': 0.7908163265306122}
+---------------
+Evaluating datum 6111542182483565918_0
+Current metrics for sentence: {'frame_f1_sentence': 0.5601886018860188, 'frame_f1_O_sentence': 0.7666666666666667, 'frame_precision_O_sentence': 0.6939655172413793, 'frame_recall_O_sentence': 0.8563829787234043, 'frame_roc_auc_O_sentence': 0.938358997789605}
+Current metrics for sign: {'frame_f1_sign': 0.32041731776352517, 'frame_f1_O_sign': 0.5503472222222222, 'frame_precision_O_sign': 0.8602442333785617, 'frame_recall_O_sign': 0.40459476707083597, 'frame_roc_auc_O_sign': 0.6224515500621368}
+---------------
+Evaluating datum 6111542182483565918_1
+Current metrics for sentence: {'frame_f1_sentence': 0.30227743271221535, 'frame_f1_O_sentence': 0.0, 'frame_precision_O_sentence': 0.0, 'frame_recall_O_sentence': 0.0, 'frame_roc_auc_O_sentence': 0.606060606060606}
+Current metrics for sign: {'frame_f1_sign': 0.28056551174830746, 'frame_f1_O_sign': 0.14814814814814814, 'frame_precision_O_sign': 0.10526315789473684, 'frame_recall_O_sign': 0.25, 'frame_roc_auc_O_sign': 0.6234567901234568}
+---------------
+Evaluating datum 6111542182483565918_2
+Current metrics for sentence: {'frame_f1_sentence': 0.2987711213517665, 'frame_f1_O_sentence': 0.0, 'frame_precision_O_sentence': 0.0, 'frame_recall_O_sentence': 0.0, 'frame_roc_auc_O_sentence': 0.6102207977207977}
+Current metrics for sign: {'frame_f1_sign': 0.3586935944240845, 'frame_f1_O_sign': 0.41964285714285715, 'frame_precision_O_sign': 0.415929203539823, 'frame_recall_O_sign': 0.42342342342342343, 'frame_roc_auc_O_sign': 0.6831953905124637}
+---------------
+Evaluating datum 6111542182483565918_3
+Current metrics for sentence: {'frame_f1_sentence': 0.31176061238691716, 'frame_f1_O_sentence': 0.0, 'frame_precision_O_sentence': 0.0, 'frame_recall_O_sentence': 0.0, 'frame_roc_auc_O_sentence': 0.7336032388663968}
+Current metrics for sign: {'frame_f1_sign': 0.31468233306721277, 'frame_f1_O_sign': 0.28865979381443296, 'frame_precision_O_sign': 0.23333333333333334, 'frame_recall_O_sign': 0.3783783783783784, 'frame_roc_auc_O_sign': 0.5800982800982801}
+---------------
+Evaluating datum 6111542182483565918_4
+Current metrics for sentence: {'frame_f1_sentence': 0.24806201550387597, 'frame_f1_O_sentence': 0.0, 'frame_precision_O_sentence': 0.0, 'frame_recall_O_sentence': 0.0, 'frame_roc_auc_O_sentence': 0.3863636363636364}
+Current metrics for sign: {'frame_f1_sign': 0.24915824915824913, 'frame_f1_O_sign': 0.6363636363636364, 'frame_precision_O_sign': 0.7, 'frame_recall_O_sign': 0.5833333333333334, 'frame_roc_auc_O_sign': 0.6354166666666666}
+---------------
+Evaluating datum 6111542182483565918_5
+Current metrics for sentence: {'frame_f1_sentence': 0.49343913210588836, 'frame_f1_O_sentence': 0.5079365079365079, 'frame_precision_O_sentence': 0.48484848484848486, 'frame_recall_O_sentence': 0.5333333333333333, 'frame_roc_auc_O_sentence': 0.8807268449727588}
+Current metrics for sign: {'frame_f1_sign': 0.2988142935080969, 'frame_f1_O_sign': 0.39247751430907607, 'frame_precision_O_sign': 0.6091370558375635, 'frame_recall_O_sign': 0.28950542822677927, 'frame_roc_auc_O_sign': 0.5480908889490658}
+---------------
+Evaluating datum 6111542182483565918_6
+Current metrics for sentence: {'frame_f1_sentence': 0.38779956427015244, 'frame_f1_O_sentence': 0.2222222222222222, 'frame_precision_O_sentence': 0.25, 'frame_recall_O_sentence': 0.2, 'frame_roc_auc_O_sentence': 0.9091863517060368}
+Current metrics for sign: {'frame_f1_sign': 0.2516375387226326, 'frame_f1_O_sign': 0.09195402298850575, 'frame_precision_O_sign': 0.05555555555555555, 'frame_recall_O_sign': 0.26666666666666666, 'frame_roc_auc_O_sign': 0.5404199475065616}
+---------------
+Evaluating datum 6111542182483565918_7
+Current metrics for sentence: {'frame_f1_sentence': 0.319634703196347, 'frame_f1_O_sentence': 0.0, 'frame_precision_O_sentence': 0.0, 'frame_recall_O_sentence': nan, 'frame_roc_auc_O_sentence': nan}
+Current metrics for sign: {'frame_f1_sign': 0.2322253287770529, 'frame_f1_O_sign': 0.21621621621621623, 'frame_precision_O_sign': 0.5714285714285714, 'frame_recall_O_sign': 0.13333333333333333, 'frame_roc_auc_O_sign': 0.5567375886524822}
+---------------
+Evaluating datum 6111542182483565918_8
+Current metrics for sentence: {'frame_f1_sentence': 0.30701754385964913, 'frame_f1_O_sentence': 0.0, 'frame_precision_O_sentence': 0.0, 'frame_recall_O_sentence': 0.0, 'frame_roc_auc_O_sentence': 0.7777777777777778}
+Current metrics for sign: {'frame_f1_sign': 0.2206060606060606, 'frame_f1_O_sign': 0.18181818181818182, 'frame_precision_O_sign': 0.2, 'frame_recall_O_sign': 0.16666666666666666, 'frame_roc_auc_O_sign': 0.4305555555555556}
+---------------
+Evaluating datum 6111542182483565918_9
+Current metrics for sentence: {'frame_f1_sentence': 0.01092896174863388, 'frame_f1_O_sentence': 0.03278688524590164, 'frame_precision_O_sentence': 0.016666666666666666, 'frame_recall_O_sentence': 1.0, 'frame_roc_auc_O_sentence': 0.18333333333333335}
+Current metrics for sign: {'frame_f1_sign': 0.26, 'frame_f1_O_sign': 0.78, 'frame_precision_O_sign': 0.639344262295082, 'frame_recall_O_sign': 1.0, 'frame_roc_auc_O_sign': 0.4825174825174825}
+---------------
+Evaluating datum 6111542182483565918_10
+Current metrics for sentence: {'frame_f1_sentence': 0.33785310734463275, 'frame_f1_O_sentence': 0.0, 'frame_precision_O_sentence': 0.0, 'frame_recall_O_sentence': 0.0, 'frame_roc_auc_O_sentence': 0.6162790697674418}
+Current metrics for sign: {'frame_f1_sign': 0.2649277585986447, 'frame_f1_O_sign': 0.0, 'frame_precision_O_sign': 0.0, 'frame_recall_O_sign': 0.0, 'frame_roc_auc_O_sign': 0.36666666666666664}
+---------------
+Evaluating datum 6111542182483565918_11
+Current metrics for sentence: {'frame_f1_sentence': 0.2331236897274633, 'frame_f1_O_sentence': 0.13333333333333333, 'frame_precision_O_sentence': 0.16666666666666666, 'frame_recall_O_sentence': 0.1111111111111111, 'frame_roc_auc_O_sentence': 0.3055555555555555}
+Current metrics for sign: {'frame_f1_sign': 0.280970625798212, 'frame_f1_O_sign': 0.2222222222222222, 'frame_precision_O_sign': 0.13043478260869565, 'frame_recall_O_sign': 0.75, 'frame_roc_auc_O_sign': 0.630952380952381}
+---------------
+Evaluating datum 6111542182483565918_12
+Current metrics for sentence: {'frame_f1_sentence': 0.27817745803357313, 'frame_f1_O_sentence': 0.0, 'frame_precision_O_sentence': 0.0, 'frame_recall_O_sentence': 0.0, 'frame_roc_auc_O_sentence': 0.6334459459459458}
+Current metrics for sign: {'frame_f1_sign': 0.3238636363636364, 'frame_f1_O_sign': 0.45454545454545453, 'frame_precision_O_sign': 0.6818181818181818, 'frame_recall_O_sign': 0.3409090909090909, 'frame_roc_auc_O_sign': 0.5974880382775118}
+---------------
+Evaluating datum 6111542182483565918_13
+Current metrics for sentence: {'frame_f1_sentence': 0.2153846153846154, 'frame_f1_O_sentence': 0.0, 'frame_precision_O_sentence': 0.0, 'frame_recall_O_sentence': 0.0, 'frame_roc_auc_O_sentence': 0.6176470588235293}
+Current metrics for sign: {'frame_f1_sign': 0.23879890120299327, 'frame_f1_O_sign': 0.17391304347826086, 'frame_precision_O_sign': 0.1, 'frame_recall_O_sign': 0.6666666666666666, 'frame_roc_auc_O_sign': 0.6201550387596899}
+---------------
+Evaluating datum 6111542182483565918_14
+Current metrics for sentence: {'frame_f1_sentence': 0.5069727298217245, 'frame_f1_O_sentence': 0.5671361502347417, 'frame_precision_O_sentence': 0.4467455621301775, 'frame_recall_O_sentence': 0.7763496143958869, 'frame_roc_auc_O_sentence': 0.8924871147814003}
+Current metrics for sign: {'frame_f1_sign': 0.3372583639360614, 'frame_f1_O_sign': 0.550430504305043, 'frame_precision_O_sign': 0.7755632582322357, 'frame_recall_O_sign': 0.4265967588179218, 'frame_roc_auc_O_sign': 0.6406914521766762}
+---------------
+Evaluating datum 6111542182483565918_15
+Current metrics for sentence: {'frame_f1_sentence': 0.1794871794871795, 'frame_f1_O_sentence': 0.0, 'frame_precision_O_sentence': 0.0, 'frame_recall_O_sentence': 0.0, 'frame_roc_auc_O_sentence': 0.14516129032258063}
+Current metrics for sign: {'frame_f1_sign': 0.16233435270132518, 'frame_f1_O_sign': 0.08333333333333333, 'frame_precision_O_sign': 0.04477611940298507, 'frame_recall_O_sign': 0.6, 'frame_roc_auc_O_sign': 0.3977777777777778}
+---------------
+Evaluating datum 6111542182483565918_16
+Current metrics for sentence: {'frame_f1_sentence': 0.39749608763693267, 'frame_f1_O_sentence': 0.0, 'frame_precision_O_sentence': 0.0, 'frame_recall_O_sentence': nan, 'frame_roc_auc_O_sentence': nan}
+Current metrics for sign: {'frame_f1_sign': 0.2545018007202881, 'frame_f1_O_sign': 0.29411764705882354, 'frame_precision_O_sign': 0.18518518518518517, 'frame_recall_O_sign': 0.7142857142857143, 'frame_roc_auc_O_sign': 0.8152380952380951}
+---------------
+Evaluating datum 6111542182483565918_17
+Current metrics for sentence: {'frame_f1_sentence': 0.34541062801932365, 'frame_f1_O_sentence': 0.0, 'frame_precision_O_sentence': 0.0, 'frame_recall_O_sentence': nan, 'frame_roc_auc_O_sentence': nan}
+Current metrics for sign: {'frame_f1_sign': 0.3273462720736711, 'frame_f1_O_sign': 0.22641509433962265, 'frame_precision_O_sign': 0.14285714285714285, 'frame_recall_O_sign': 0.5454545454545454, 'frame_roc_auc_O_sign': 0.583771600300526}
+---------------
+Evaluating datum 6111542182483565918_18
+Current metrics for sentence: {'frame_f1_sentence': 0.31277777777777777, 'frame_f1_O_sentence': 0.125, 'frame_precision_O_sentence': 0.07407407407407407, 'frame_recall_O_sentence': 0.4, 'frame_roc_auc_O_sentence': 0.5887640449438203}
+Current metrics for sign: {'frame_f1_sign': 0.21241830065359477, 'frame_f1_O_sign': 0.43137254901960786, 'frame_precision_O_sign': 0.38596491228070173, 'frame_recall_O_sign': 0.4888888888888889, 'frame_roc_auc_O_sign': 0.34013605442176875}
+---------------
+Evaluating datum 6111542182483565918_19
+Current metrics for sentence: {'frame_f1_sentence': 0.2916850625459897, 'frame_f1_O_sentence': 0.7417218543046358, 'frame_precision_O_sentence': 0.5894736842105263, 'frame_recall_O_sentence': 1.0, 'frame_roc_auc_O_sentence': 0.9228896103896104}
+Current metrics for sign: {'frame_f1_sign': 0.061447811447811446, 'frame_f1_O_sign': 0.10101010101010101, 'frame_precision_O_sign': 0.05319148936170213, 'frame_recall_O_sign': 1.0, 'frame_roc_auc_O_sign': 0.4694736842105263}
+---------------
+Evaluating datum 6111542182483565918_20
+Current metrics for sentence: {'frame_f1_sentence': 0.4024627854415089, 'frame_f1_O_sentence': 0.0, 'frame_precision_O_sentence': 0.0, 'frame_recall_O_sentence': 0.0, 'frame_roc_auc_O_sentence': 0.6314285714285715}
+Current metrics for sign: {'frame_f1_sign': 0.25732045732045733, 'frame_f1_O_sign': 0.14285714285714285, 'frame_precision_O_sign': 0.08333333333333333, 'frame_recall_O_sign': 0.5, 'frame_roc_auc_O_sign': 0.6028901734104046}
+---------------
+Evaluating datum 6111542182483565918_21
+Current metrics for sentence: {'frame_f1_sentence': 0.3296296296296296, 'frame_f1_O_sentence': 0.0, 'frame_precision_O_sentence': 0.0, 'frame_recall_O_sentence': 0.0, 'frame_roc_auc_O_sentence': 0.48491083676268865}
+Current metrics for sign: {'frame_f1_sign': 0.33710311760804884, 'frame_f1_O_sign': 0.3508771929824561, 'frame_precision_O_sign': 0.3333333333333333, 'frame_recall_O_sign': 0.37037037037037035, 'frame_roc_auc_O_sign': 0.6557120500782473}
+---------------
+Evaluating datum 6111542182483565918_22
+Current metrics for sentence: {'frame_f1_sentence': 0.3111111111111111, 'frame_f1_O_sentence': 0.0, 'frame_precision_O_sentence': 0.0, 'frame_recall_O_sentence': 0.0, 'frame_roc_auc_O_sentence': 0.6601941747572815}
+Current metrics for sign: {'frame_f1_sign': 0.3484633308126917, 'frame_f1_O_sign': 0.33962264150943394, 'frame_precision_O_sign': 0.32142857142857145, 'frame_recall_O_sign': 0.36, 'frame_roc_auc_O_sign': 0.6075}
+---------------
+Evaluating datum 6111542182483565918_23
+Current metrics for sentence: {'frame_f1_sentence': 0.35846591601067307, 'frame_f1_O_sentence': 0.15151515151515152, 'frame_precision_O_sentence': 0.25, 'frame_recall_O_sentence': 0.10869565217391304, 'frame_roc_auc_O_sentence': 0.7143500788465871}
+Current metrics for sign: {'frame_f1_sign': 0.24573151370536991, 'frame_f1_O_sign': 0.3315508021390374, 'frame_precision_O_sign': 0.4492753623188406, 'frame_recall_O_sign': 0.2627118644067797, 'frame_roc_auc_O_sign': 0.5203810057431013}
+---------------
+Evaluating datum 6111542182483565918_24
+Current metrics for sentence: {'frame_f1_sentence': 0.4774969201028008, 'frame_f1_O_sentence': 0.5159235668789809, 'frame_precision_O_sentence': 0.37327188940092165, 'frame_recall_O_sentence': 0.8350515463917526, 'frame_roc_auc_O_sentence': 0.9340677851896773}
+Current metrics for sign: {'frame_f1_sign': 0.42245535254323724, 'frame_f1_O_sign': 0.5591397849462365, 'frame_precision_O_sign': 0.46567164179104475, 'frame_recall_O_sign': 0.6995515695067265, 'frame_roc_auc_O_sign': 0.7966764212579913}
+---------------
+Evaluating datum 6111542182483565918_25
+Current metrics for sentence: {'frame_f1_sentence': 0.2884615384615385, 'frame_f1_O_sentence': 0.0, 'frame_precision_O_sentence': 0.0, 'frame_recall_O_sentence': 0.0, 'frame_roc_auc_O_sentence': 0.7166666666666667}
+Current metrics for sign: {'frame_f1_sign': 0.5083732888610938, 'frame_f1_O_sign': 0.4444444444444444, 'frame_precision_O_sign': 0.5454545454545454, 'frame_recall_O_sign': 0.375, 'frame_roc_auc_O_sign': 0.8083333333333333}
+---------------
+Evaluating datum 6111542182483565918_26
+Current metrics for sentence: {'frame_f1_sentence': 0.4149976711690731, 'frame_f1_O_sentence': 0.3157894736842105, 'frame_precision_O_sentence': 0.75, 'frame_recall_O_sentence': 0.2, 'frame_roc_auc_O_sentence': 0.8204204204204204}
+Current metrics for sign: {'frame_f1_sign': 0.22853861613551532, 'frame_f1_O_sign': 0.09302325581395349, 'frame_precision_O_sign': 0.06666666666666667, 'frame_recall_O_sign': 0.15384615384615385, 'frame_roc_auc_O_sign': 0.5656909462219196}
+---------------
+Evaluating datum 6111542182483565918_27
+Current metrics for sentence: {'frame_f1_sentence': 0.4912286972275401, 'frame_f1_O_sentence': 0.6592427616926503, 'frame_precision_O_sentence': 0.6851851851851852, 'frame_recall_O_sentence': 0.6351931330472103, 'frame_roc_auc_O_sentence': 0.811845162784159}
+Current metrics for sign: {'frame_f1_sign': 0.39310102377256256, 'frame_f1_O_sign': 0.5746388443017657, 'frame_precision_O_sign': 0.5664556962025317, 'frame_recall_O_sign': 0.5830618892508144, 'frame_roc_auc_O_sign': 0.6980492625260769}
+---------------
+Evaluating datum 6111542182483565918_28
+Current metrics for sentence: {'frame_f1_sentence': 0.4973258973258973, 'frame_f1_O_sentence': 0.6571428571428571, 'frame_precision_O_sentence': 0.48936170212765956, 'frame_recall_O_sentence': 1.0, 'frame_roc_auc_O_sentence': 0.9628438331854482}
+Current metrics for sign: {'frame_f1_sign': 0.24273280946800133, 'frame_f1_O_sign': 0.1643835616438356, 'frame_precision_O_sign': 0.096, 'frame_recall_O_sign': 0.5714285714285714, 'frame_roc_auc_O_sign': 0.4630467571644042}
+---------------
+Evaluating datum 6111542182483565918_29
+Current metrics for sentence: {'frame_f1_sentence': 0.5820573582419236, 'frame_f1_O_sentence': 0.8375558867362146, 'frame_precision_O_sentence': 0.7242268041237113, 'frame_recall_O_sentence': 0.9929328621908127, 'frame_roc_auc_O_sentence': 0.994300966065988}
+Current metrics for sign: {'frame_f1_sign': 0.45123086737189794, 'frame_f1_O_sign': 0.6917450365726228, 'frame_precision_O_sign': 0.6268939393939394, 'frame_recall_O_sign': 0.7715617715617715, 'frame_roc_auc_O_sign': 0.8591786565924499}
+---------------
+Evaluating datum 6111542182483565918_30
+Current metrics for sentence: {'frame_f1_sentence': 0.27973582901898314, 'frame_f1_O_sentence': 0.024691358024691357, 'frame_precision_O_sentence': 0.05, 'frame_recall_O_sentence': 0.01639344262295082, 'frame_roc_auc_O_sentence': 0.4112825458052074}
+Current metrics for sign: {'frame_f1_sign': 0.31164822831489497, 'frame_f1_O_sign': 0.2878787878787879, 'frame_precision_O_sign': 0.2159090909090909, 'frame_recall_O_sign': 0.4318181818181818, 'frame_roc_auc_O_sign': 0.6214795008912656}
+---------------
+Evaluating datum 6111542182483565918_31
+Current metrics for sentence: {'frame_f1_sentence': 0.3081761006289308, 'frame_f1_O_sentence': 0.0, 'frame_precision_O_sentence': 0.0, 'frame_recall_O_sentence': 0.0, 'frame_roc_auc_O_sentence': 0.9675925925925927}
+Current metrics for sign: {'frame_f1_sign': 0.29945799457994576, 'frame_f1_O_sign': 0.16666666666666666, 'frame_precision_O_sign': 0.16666666666666666, 'frame_recall_O_sign': 0.16666666666666666, 'frame_roc_auc_O_sign': 0.5579710144927537}
+---------------
+Evaluating datum 6111542182483565918_32
+Current metrics for sentence: {'frame_f1_sentence': 0.3053763440860215, 'frame_f1_O_sentence': 0.0, 'frame_precision_O_sentence': 0.0, 'frame_recall_O_sentence': nan, 'frame_roc_auc_O_sentence': nan}
+Current metrics for sign: {'frame_f1_sign': 0.27583148558758314, 'frame_f1_O_sign': 0.2909090909090909, 'frame_precision_O_sign': 0.42105263157894735, 'frame_recall_O_sign': 0.2222222222222222, 'frame_roc_auc_O_sign': 0.5102040816326531}
+---------------
+Evaluating datum 6111542182483565918_33
+Current metrics for sentence: {'frame_f1_sentence': 0.3913817663817663, 'frame_f1_O_sentence': 0.0, 'frame_precision_O_sentence': 0.0, 'frame_recall_O_sentence': 0.0, 'frame_roc_auc_O_sentence': 0.5229357798165137}
+Current metrics for sign: {'frame_f1_sign': 0.20195143125403991, 'frame_f1_O_sign': 0.07547169811320754, 'frame_precision_O_sign': 0.06896551724137931, 'frame_recall_O_sign': 0.08333333333333333, 'frame_roc_auc_O_sign': 0.3168604651162791}
+---------------
+Evaluating datum 6144064963339075095_0
+Current metrics for sentence: {'frame_f1_sentence': 0.43177459218981706, 'frame_f1_O_sentence': 0.35428571428571426, 'frame_precision_O_sentence': 0.25203252032520324, 'frame_recall_O_sentence': 0.5961538461538461, 'frame_roc_auc_O_sentence': 0.8613444346202968}
+Current metrics for sign: {'frame_f1_sign': 0.39408357746573724, 'frame_f1_O_sign': 0.4, 'frame_precision_O_sign': 0.29850746268656714, 'frame_recall_O_sign': 0.6060606060606061, 'frame_roc_auc_O_sign': 0.7404737273158326}
+---------------
+Evaluating datum 6144064963339075095_1
+Current metrics for sentence: {'frame_f1_sentence': 0.48175386714277263, 'frame_f1_O_sentence': 0.6120033812341504, 'frame_precision_O_sentence': 0.7418032786885246, 'frame_recall_O_sentence': 0.520863309352518, 'frame_roc_auc_O_sentence': 0.7504659359760514}
+Current metrics for sign: {'frame_f1_sign': 0.4361426831546467, 'frame_f1_O_sign': 0.6654135338345865, 'frame_precision_O_sign': 0.715633423180593, 'frame_recall_O_sign': 0.6217798594847775, 'frame_roc_auc_O_sign': 0.7411979293608995}
+---------------
+Evaluating datum 6144064963339075095_2
+Current metrics for sentence: {'frame_f1_sentence': 0.39706959706959705, 'frame_f1_O_sentence': 0.0, 'frame_precision_O_sentence': 0.0, 'frame_recall_O_sentence': 0.0, 'frame_roc_auc_O_sentence': 0.2734375}
+Current metrics for sign: {'frame_f1_sign': 0.20322886989553657, 'frame_f1_O_sign': 0.0, 'frame_precision_O_sign': 0.0, 'frame_recall_O_sign': 0.0, 'frame_roc_auc_O_sign': 0.46099290780141844}
+---------------
+Evaluating datum 6144064963339075095_3
+Current metrics for sentence: {'frame_f1_sentence': 0.29534313725490197, 'frame_f1_O_sentence': 0.0625, 'frame_precision_O_sentence': 0.044444444444444446, 'frame_recall_O_sentence': 0.10526315789473684, 'frame_roc_auc_O_sentence': 0.49538131041890443}
+Current metrics for sign: {'frame_f1_sign': 0.2546768707482993, 'frame_f1_O_sign': 0.32653061224489793, 'frame_precision_O_sign': 0.36363636363636365, 'frame_recall_O_sign': 0.2962962962962963, 'frame_roc_auc_O_sign': 0.4867640075973409}
+---------------
+Evaluating datum 6144064963339075095_4
+Current metrics for sentence: {'frame_f1_sentence': 0.38726911054276786, 'frame_f1_O_sentence': 0.0, 'frame_precision_O_sentence': 0.0, 'frame_recall_O_sentence': 0.0, 'frame_roc_auc_O_sentence': 0.37582650092568104}
+Current metrics for sign: {'frame_f1_sign': 0.2652334554989422, 'frame_f1_O_sign': 0.19469026548672566, 'frame_precision_O_sign': 0.3235294117647059, 'frame_recall_O_sign': 0.13924050632911392, 'frame_roc_auc_O_sign': 0.5119752299426281}
+---------------
+Evaluating datum 6144064963339075095_5
+Current metrics for sentence: {'frame_f1_sentence': 0.3054331864904552, 'frame_f1_O_sentence': 0.0, 'frame_precision_O_sentence': 0.0, 'frame_recall_O_sentence': 0.0, 'frame_roc_auc_O_sentence': 0.6793154761904763}
+Current metrics for sign: {'frame_f1_sign': 0.3129943502824859, 'frame_f1_O_sign': 0.3389830508474576, 'frame_precision_O_sign': 0.35714285714285715, 'frame_recall_O_sign': 0.3225806451612903, 'frame_roc_auc_O_sign': 0.625043357613597}
+---------------
+Evaluating datum 6144064963339075095_6
+Current metrics for sentence: {'frame_f1_sentence': 0.23684210526315788, 'frame_f1_O_sentence': 0.0, 'frame_precision_O_sentence': 0.0, 'frame_recall_O_sentence': 0.0, 'frame_roc_auc_O_sentence': 0.014354066985645916}
+Current metrics for sign: {'frame_f1_sign': 0.04545454545454545, 'frame_f1_O_sign': 0.0, 'frame_precision_O_sign': 0.0, 'frame_recall_O_sign': 0.0, 'frame_roc_auc_O_sign': 0.21206896551724136}
+---------------
+Evaluating datum 6144064963339075095_7
+Current metrics for sentence: {'frame_f1_sentence': 0.2968669748330765, 'frame_f1_O_sentence': 0.0, 'frame_precision_O_sentence': 0.0, 'frame_recall_O_sentence': 0.0, 'frame_roc_auc_O_sentence': 0.8095858296431363}
+Current metrics for sign: {'frame_f1_sign': 0.31167894206682184, 'frame_f1_O_sign': 0.3383084577114428, 'frame_precision_O_sign': 0.2956521739130435, 'frame_recall_O_sign': 0.3953488372093023, 'frame_roc_auc_O_sign': 0.5558054659650313}
+---------------
+Evaluating datum 6144064963339075095_8
+Current metrics for sentence: {'frame_f1_sentence': 0.4259259259259259, 'frame_f1_O_sentence': 0.4444444444444444, 'frame_precision_O_sentence': 0.4, 'frame_recall_O_sentence': 0.5, 'frame_roc_auc_O_sentence': 0.33333333333333337}
+Current metrics for sign: {'frame_f1_sign': 0.08888888888888889, 'frame_f1_O_sign': 0.13333333333333333, 'frame_precision_O_sign': 0.1111111111111111, 'frame_recall_O_sign': 0.16666666666666666, 'frame_roc_auc_O_sign': 0.21212121212121207}
+---------------
+Evaluating datum 6144064963339075095_9
+Current metrics for sentence: {'frame_f1_sentence': 0.2380952380952381, 'frame_f1_O_sentence': 0.7142857142857143, 'frame_precision_O_sentence': 0.5555555555555556, 'frame_recall_O_sentence': 1.0, 'frame_roc_auc_O_sentence': 1.0}
+Current metrics for sign: {'frame_f1_sign': 0.06666666666666667, 'frame_f1_O_sign': 0.2, 'frame_precision_O_sign': 0.1111111111111111, 'frame_recall_O_sign': 1.0, 'frame_roc_auc_O_sign': 0.375}
+---------------
+Evaluating datum 6144064963339075095_10
+Current metrics for sentence: {'frame_f1_sentence': 0.2757201646090535, 'frame_f1_O_sentence': 0.0, 'frame_precision_O_sentence': 0.0, 'frame_recall_O_sentence': nan, 'frame_roc_auc_O_sentence': nan}
+Current metrics for sign: {'frame_f1_sign': 0.4504676870748299, 'frame_f1_O_sign': 0.53125, 'frame_precision_O_sign': 0.5, 'frame_recall_O_sign': 0.5666666666666667, 'frame_roc_auc_O_sign': 0.6960199004975124}
+---------------
+Evaluating datum 6144064963339075095_11
+Current metrics for sentence: {'frame_f1_sentence': 0.24806201550387597, 'frame_f1_O_sentence': 0.0, 'frame_precision_O_sentence': 0.0, 'frame_recall_O_sentence': 0.0, 'frame_roc_auc_O_sentence': 0.46373626373626364}
+Current metrics for sign: {'frame_f1_sign': 0.3685386473429952, 'frame_f1_O_sign': 0.43478260869565216, 'frame_precision_O_sign': 0.45454545454545453, 'frame_recall_O_sign': 0.4166666666666667, 'frame_roc_auc_O_sign': 0.6135752688172043}
+---------------
+Evaluating datum 6144064963339075095_12
+Current metrics for sentence: {'frame_f1_sentence': 0.6887218045112782, 'frame_f1_O_sentence': 0.4, 'frame_precision_O_sentence': 0.3333333333333333, 'frame_recall_O_sentence': 0.5, 'frame_roc_auc_O_sentence': nan}
+Current metrics for sign: {'frame_f1_sign': 0.3450573861532766, 'frame_f1_O_sign': 0.43243243243243246, 'frame_precision_O_sign': 0.5, 'frame_recall_O_sign': 0.38095238095238093, 'frame_roc_auc_O_sign': 0.5853174603174603}
+---------------
+Evaluating datum 6144064963339075095_13
+Current metrics for sentence: {'frame_f1_sentence': 0.4446666666666667, 'frame_f1_O_sentence': 0.44, 'frame_precision_O_sentence': 0.3142857142857143, 'frame_recall_O_sentence': 0.7333333333333333, 'frame_roc_auc_O_sentence': 0.8799223856209151}
+Current metrics for sign: {'frame_f1_sign': 0.4359573175362648, 'frame_f1_O_sign': 0.5714285714285714, 'frame_precision_O_sign': 0.59375, 'frame_recall_O_sign': 0.5507246376811594, 'frame_roc_auc_O_sign': 0.7401800844778308}
+---------------
+Evaluating datum 6144064963339075095_14
+Current metrics for sentence: {'frame_f1_sentence': 0.2356902356902357, 'frame_f1_O_sentence': 0.0, 'frame_precision_O_sentence': 0.0, 'frame_recall_O_sentence': 0.0, 'frame_roc_auc_O_sentence': 0.36535162950257294}
+Current metrics for sign: {'frame_f1_sign': 0.30844748858447485, 'frame_f1_O_sign': 0.35, 'frame_precision_O_sign': 0.35, 'frame_recall_O_sign': 0.35, 'frame_roc_auc_O_sign': 0.5647727272727272}
+---------------
+Evaluating datum 6144064963339075095_15
+Current metrics for sentence: {'frame_f1_sentence': 0.36030033747844903, 'frame_f1_O_sentence': 0.08583690987124463, 'frame_precision_O_sentence': 0.05181347150259067, 'frame_recall_O_sentence': 0.25, 'frame_roc_auc_O_sentence': 0.8003356539035307}
+Current metrics for sign: {'frame_f1_sign': 0.3211525692893518, 'frame_f1_O_sign': 0.3820078226857888, 'frame_precision_O_sign': 0.5613026819923371, 'frame_recall_O_sign': 0.28952569169960474, 'frame_roc_auc_O_sign': 0.5285134687883987}
+---------------
+Evaluating datum 6144064963339075095_16
+Current metrics for sentence: {'frame_f1_sentence': 0.5486426759009743, 'frame_f1_O_sentence': 0.7430293896006028, 'frame_precision_O_sentence': 0.6402597402597403, 'frame_recall_O_sentence': 0.8850987432675045, 'frame_roc_auc_O_sentence': 0.938762117938148}
+Current metrics for sign: {'frame_f1_sign': 0.3724922981220782, 'frame_f1_O_sign': 0.6505441354292624, 'frame_precision_O_sign': 0.7842565597667639, 'frame_recall_O_sign': 0.5557851239669421, 'frame_roc_auc_O_sign': 0.6716820724146043}
+---------------
+Evaluating datum 6144064963339075095_17
+Current metrics for sentence: {'frame_f1_sentence': 0.6266233766233766, 'frame_f1_O_sentence': 0.2857142857142857, 'frame_precision_O_sentence': 0.2, 'frame_recall_O_sentence': 0.5, 'frame_roc_auc_O_sentence': nan}
+Current metrics for sign: {'frame_f1_sign': 0.21564967695620962, 'frame_f1_O_sign': 0.0, 'frame_precision_O_sign': 0.0, 'frame_recall_O_sign': 0.0, 'frame_roc_auc_O_sign': 0.3837719298245614}
+---------------
+Evaluating datum 6144064963339075095_18
+Current metrics for sentence: {'frame_f1_sentence': 0.3993758805838397, 'frame_f1_O_sentence': 0.29525483304042177, 'frame_precision_O_sentence': 0.20388349514563106, 'frame_recall_O_sentence': 0.535031847133758, 'frame_roc_auc_O_sentence': 0.7658883154659029}
+Current metrics for sign: {'frame_f1_sign': 0.3545210341848481, 'frame_f1_O_sign': 0.4635645302897278, 'frame_precision_O_sign': 0.35106382978723405, 'frame_recall_O_sign': 0.6821705426356589, 'frame_roc_auc_O_sign': 0.7108123564323106}
+---------------
+Evaluating datum 6144064963339075095_19
+Current metrics for sentence: {'frame_f1_sentence': 0.3557531539747682, 'frame_f1_O_sentence': 0.0, 'frame_precision_O_sentence': 0.0, 'frame_recall_O_sentence': nan, 'frame_roc_auc_O_sentence': nan}
+Current metrics for sign: {'frame_f1_sign': 0.2799826582435278, 'frame_f1_O_sign': 0.11965811965811966, 'frame_precision_O_sign': 0.1320754716981132, 'frame_recall_O_sign': 0.109375, 'frame_roc_auc_O_sign': 0.5393989234449761}
+---------------
+Evaluating datum 6144064963339075095_20
+Current metrics for sentence: {'frame_f1_sentence': 0.5190789582583918, 'frame_f1_O_sentence': 0.7781990521327015, 'frame_precision_O_sentence': 0.7804182509505704, 'frame_recall_O_sentence': 0.775992438563327, 'frame_roc_auc_O_sentence': 0.8565018023791728}
+Current metrics for sign: {'frame_f1_sign': 0.44789421003523683, 'frame_f1_O_sign': 0.7809667673716012, 'frame_precision_O_sign': 0.7887109077040427, 'frame_recall_O_sign': 0.7733732236350037, 'frame_roc_auc_O_sign': 0.8314151218677783}
+---------------
+Evaluating datum 6144064963339075095_21
+Current metrics for sentence: {'frame_f1_sentence': 0.5190750696323018, 'frame_f1_O_sentence': 0.6256983240223464, 'frame_precision_O_sentence': 0.49851632047477745, 'frame_recall_O_sentence': 0.84, 'frame_roc_auc_O_sentence': 0.926824222668004}
+Current metrics for sign: {'frame_f1_sign': 0.3013750294711756, 'frame_f1_O_sign': 0.4806828391734052, 'frame_precision_O_sign': 0.7123834886817576, 'frame_recall_O_sign': 0.36271186440677966, 'frame_roc_auc_O_sign': 0.5609382145635416}
+---------------
+Evaluating datum 6157795114790944374_0
+Current metrics for sentence: {'frame_f1_sentence': 0.5333343399689614, 'frame_f1_O_sentence': 0.6234234234234234, 'frame_precision_O_sentence': 0.4726775956284153, 'frame_recall_O_sentence': 0.9153439153439153, 'frame_roc_auc_O_sentence': 0.957803708794088}
+Current metrics for sign: {'frame_f1_sign': 0.3362555743268952, 'frame_f1_O_sign': 0.53099173553719, 'frame_precision_O_sign': 0.7569955817378498, 'frame_recall_O_sign': 0.4089101034208433, 'frame_roc_auc_O_sign': 0.6134823813539744}
+---------------
+Evaluating datum 6157795114790944374_1
+Current metrics for sentence: {'frame_f1_sentence': 0.4603364889056368, 'frame_f1_O_sentence': 0.34532374100719426, 'frame_precision_O_sentence': 0.2608695652173913, 'frame_recall_O_sentence': 0.5106382978723404, 'frame_roc_auc_O_sentence': 0.868734222863325}
+Current metrics for sign: {'frame_f1_sign': 0.37896680591177745, 'frame_f1_O_sign': 0.47058823529411764, 'frame_precision_O_sign': 0.4293785310734463, 'frame_recall_O_sign': 0.5205479452054794, 'frame_roc_auc_O_sign': 0.7174340436326738}
+---------------
+Evaluating datum 6157795114790944374_2
+Current metrics for sentence: {'frame_f1_sentence': 0.3352936444921873, 'frame_f1_O_sentence': 0.08333333333333333, 'frame_precision_O_sentence': 0.04371584699453552, 'frame_recall_O_sentence': 0.8888888888888888, 'frame_roc_auc_O_sentence': 0.9095587614949803}
+Current metrics for sign: {'frame_f1_sign': 0.31000370642228503, 'frame_f1_O_sign': 0.2, 'frame_precision_O_sign': 0.12598425196850394, 'frame_recall_O_sign': 0.48484848484848486, 'frame_roc_auc_O_sign': 0.6385534233944992}
+---------------
+Evaluating datum 6157795114790944374_3
+Current metrics for sentence: {'frame_f1_sentence': 0.3985933937265052, 'frame_f1_O_sentence': 0.28888888888888886, 'frame_precision_O_sentence': 0.26, 'frame_recall_O_sentence': 0.325, 'frame_roc_auc_O_sentence': 0.7228346456692913}
+Current metrics for sign: {'frame_f1_sign': 0.37427290490404097, 'frame_f1_O_sign': 0.4652173913043478, 'frame_precision_O_sign': 0.4930875576036866, 'frame_recall_O_sign': 0.4403292181069959, 'frame_roc_auc_O_sign': 0.6227680128339262}
+---------------
+Evaluating datum 6157795114790944374_4
+Current metrics for sentence: {'frame_f1_sentence': 0.4764519351882883, 'frame_f1_O_sentence': 0.5276796230859835, 'frame_precision_O_sentence': 0.36012861736334406, 'frame_recall_O_sentence': 0.986784140969163, 'frame_roc_auc_O_sentence': 0.9904776338486742}
+Current metrics for sign: {'frame_f1_sign': 0.33679600517050395, 'frame_f1_O_sign': 0.5340314136125655, 'frame_precision_O_sign': 0.7299618320610687, 'frame_recall_O_sign': 0.42102366538249864, 'frame_roc_auc_O_sign': 0.5757037209592455}
+---------------
+Evaluating datum 6157795114790944374_5
+Current metrics for sentence: {'frame_f1_sentence': 0.5175698708938264, 'frame_f1_O_sentence': 0.5205479452054794, 'frame_precision_O_sentence': 0.38, 'frame_recall_O_sentence': 0.8260869565217391, 'frame_roc_auc_O_sentence': 0.8849256292906178}
+Current metrics for sign: {'frame_f1_sign': 0.39156936753144045, 'frame_f1_O_sign': 0.4372093023255814, 'frame_precision_O_sign': 0.3949579831932773, 'frame_recall_O_sign': 0.4895833333333333, 'frame_roc_auc_O_sign': 0.6845650108577633}
+---------------
+Evaluating datum 6157795114790944374_6
+Current metrics for sentence: {'frame_f1_sentence': 0.6025661816797944, 'frame_f1_O_sentence': 0.8684627575277337, 'frame_precision_O_sentence': 0.8130563798219584, 'frame_recall_O_sentence': 0.9319727891156463, 'frame_roc_auc_O_sentence': 0.9498424985757851}
+Current metrics for sign: {'frame_f1_sign': 0.5071775857100757, 'frame_f1_O_sign': 0.8326848249027238, 'frame_precision_O_sign': 0.816793893129771, 'frame_recall_O_sign': 0.8492063492063492, 'frame_roc_auc_O_sign': 0.8872703670840316}
+---------------
+Evaluating datum 6157795114790944374_7
+Current metrics for sentence: {'frame_f1_sentence': 0.490404205658443, 'frame_f1_O_sentence': 0.7351351351351352, 'frame_precision_O_sentence': 0.7953216374269005, 'frame_recall_O_sentence': 0.6834170854271356, 'frame_roc_auc_O_sentence': 0.7290288074033534}
+Current metrics for sign: {'frame_f1_sign': 0.41024076316413277, 'frame_f1_O_sign': 0.7317073170731707, 'frame_precision_O_sign': 0.782608695652174, 'frame_recall_O_sign': 0.6870229007633588, 'frame_roc_auc_O_sign': 0.7467186556098633}
+---------------
+Evaluating datum 6157795114790944374_8
+Current metrics for sentence: {'frame_f1_sentence': 0.3735467886411283, 'frame_f1_O_sentence': 0.09523809523809523, 'frame_precision_O_sentence': 0.061855670103092786, 'frame_recall_O_sentence': 0.20689655172413793, 'frame_roc_auc_O_sentence': 0.5802615933412604}
+Current metrics for sign: {'frame_f1_sign': 0.37953546489929013, 'frame_f1_O_sign': 0.4403183023872679, 'frame_precision_O_sign': 0.38967136150234744, 'frame_recall_O_sign': 0.5060975609756098, 'frame_roc_auc_O_sign': 0.6488023081026039}
+---------------
+Evaluating datum 6157795114790944374_9
+Current metrics for sentence: {'frame_f1_sentence': 0.43948494960730783, 'frame_f1_O_sentence': 0.5096774193548387, 'frame_precision_O_sentence': 0.3744075829383886, 'frame_recall_O_sentence': 0.797979797979798, 'frame_roc_auc_O_sentence': 0.8600585461050577}
+Current metrics for sign: {'frame_f1_sign': 0.42737647929120487, 'frame_f1_O_sign': 0.6386554621848739, 'frame_precision_O_sign': 0.6529209621993127, 'frame_recall_O_sign': 0.625, 'frame_roc_auc_O_sign': 0.7504460303300624}
+---------------
+Evaluating datum 6157795114790944374_10
+Current metrics for sentence: {'frame_f1_sentence': 0.2988505747126437, 'frame_f1_O_sentence': 0.0, 'frame_precision_O_sentence': 0.0, 'frame_recall_O_sentence': 0.0, 'frame_roc_auc_O_sentence': 0.75}
+Current metrics for sign: {'frame_f1_sign': 0.46296296296296297, 'frame_f1_O_sign': 0.5, 'frame_precision_O_sign': 0.5, 'frame_recall_O_sign': 0.5, 'frame_roc_auc_O_sign': 0.7666666666666666}
+---------------
+Evaluating datum 6157795114790944374_11
+Current metrics for sentence: {'frame_f1_sentence': 0.2694541231126597, 'frame_f1_O_sentence': 0.0, 'frame_precision_O_sentence': 0.0, 'frame_recall_O_sentence': nan, 'frame_roc_auc_O_sentence': nan}
+Current metrics for sign: {'frame_f1_sign': 0.3103381948682639, 'frame_f1_O_sign': 0.3865546218487395, 'frame_precision_O_sign': 0.34328358208955223, 'frame_recall_O_sign': 0.4423076923076923, 'frame_roc_auc_O_sign': 0.607120152574698}
+---------------
+Evaluating datum 6157795114790944374_12
+Current metrics for sentence: {'frame_f1_sentence': 0.29549549549549553, 'frame_f1_O_sentence': 0.0, 'frame_precision_O_sentence': 0.0, 'frame_recall_O_sentence': 0.0, 'frame_roc_auc_O_sentence': 0.7766990291262136}
+Current metrics for sign: {'frame_f1_sign': 0.30563470907252505, 'frame_f1_O_sign': 0.18181818181818182, 'frame_precision_O_sign': 0.13636363636363635, 'frame_recall_O_sign': 0.2727272727272727, 'frame_roc_auc_O_sign': 0.6109481915933529}
+---------------
+Evaluating datum 6157795114790944374_13
+Current metrics for sentence: {'frame_f1_sentence': 0.30783242258652094, 'frame_f1_O_sentence': 0.3333333333333333, 'frame_precision_O_sentence': 0.3333333333333333, 'frame_recall_O_sentence': 0.3333333333333333, 'frame_roc_auc_O_sentence': 0.6725490196078431}
+Current metrics for sign: {'frame_f1_sign': 0.3081481481481481, 'frame_f1_O_sign': 0.3333333333333333, 'frame_precision_O_sign': 0.2631578947368421, 'frame_recall_O_sign': 0.45454545454545453, 'frame_roc_auc_O_sign': 0.631578947368421}
+---------------
+Evaluating datum 6157795114790944374_14
+Current metrics for sentence: {'frame_f1_sentence': 0.5213763707823876, 'frame_f1_O_sentence': 0.6223175965665236, 'frame_precision_O_sentence': 0.46474358974358976, 'frame_recall_O_sentence': 0.9415584415584416, 'frame_roc_auc_O_sentence': 0.9554273495851644}
+Current metrics for sign: {'frame_f1_sign': 0.38099078985370777, 'frame_f1_O_sign': 0.5433422698838248, 'frame_precision_O_sign': 0.5507246376811594, 'frame_recall_O_sign': 0.5361552028218695, 'frame_roc_auc_O_sign': 0.6841396513588042}
+---------------
+Evaluating datum 6157795114790944374_15
+Current metrics for sentence: {'frame_f1_sentence': 0.2531194295900178, 'frame_f1_O_sentence': 0.0, 'frame_precision_O_sentence': 0.0, 'frame_recall_O_sentence': nan, 'frame_roc_auc_O_sentence': nan}
+Current metrics for sign: {'frame_f1_sign': 0.41534476028247985, 'frame_f1_O_sign': 0.6666666666666666, 'frame_precision_O_sign': 0.6071428571428571, 'frame_recall_O_sign': 0.7391304347826086, 'frame_roc_auc_O_sign': 0.722902633190447}
+---------------
+Evaluating datum 6157795114790944374_16
+Current metrics for sentence: {'frame_f1_sentence': 0.4220190728811419, 'frame_f1_O_sentence': 0.4945054945054945, 'frame_precision_O_sentence': 0.38461538461538464, 'frame_recall_O_sentence': 0.6923076923076923, 'frame_roc_auc_O_sentence': 0.754407636159461}
+Current metrics for sign: {'frame_f1_sign': 0.3969583109679728, 'frame_f1_O_sign': 0.6550724637681159, 'frame_precision_O_sign': 0.6726190476190477, 'frame_recall_O_sign': 0.6384180790960452, 'frame_roc_auc_O_sign': 0.7087605496268397}
+---------------
+Evaluating datum 6157795114790944374_17
+Current metrics for sentence: {'frame_f1_sentence': 0.5666520087692465, 'frame_f1_O_sentence': 0.8115631691648822, 'frame_precision_O_sentence': 0.6878402903811253, 'frame_recall_O_sentence': 0.9895561357702349, 'frame_roc_auc_O_sentence': 0.9876130427250888}
+Current metrics for sign: {'frame_f1_sign': 0.4809139286928632, 'frame_f1_O_sign': 0.7491013659237958, 'frame_precision_O_sign': 0.7098092643051771, 'frame_recall_O_sign': 0.7929984779299848, 'frame_roc_auc_O_sign': 0.8772373416587604}
+Final metrics:
+{'frame_f1_sentence': 0.3793668558655636, 'frame_f1_O_sentence': 0.2502304334007343, 'frame_precision_O_sentence': 0.2214933974538515, 'frame_recall_O_sentence': 0.39700310136200234, 'frame_roc_auc_O_sentence': 0.718242430563751, 'frame_f1_sign': 0.3195670445348034, 'frame_f1_O_sign': 0.36704264528808084, 'frame_precision_O_sign': 0.38685550093304194, 'frame_recall_O_sign': 0.43706104514292426, 'frame_roc_auc_O_sign': 0.6054661362804347}
