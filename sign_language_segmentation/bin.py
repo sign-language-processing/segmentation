@@ -65,13 +65,13 @@ def predict(model, pose: Pose):
 def save_pose_segments(tiers: dict, tier_id: str, input_file_path: Path) -> None:
     # reload it without any of the processing, so we get all the original points and such.
     with input_file_path.open("rb") as f:
-        pose = Pose.read(f.read())
+        pose = Pose.read(f)
 
     for i, segment in enumerate(tiers[tier_id]):
         out_path = input_file_path.parent / f"{input_file_path.stem}_{tier_id}_{i}.pose"
         start_frame = int(segment["start"])
         end_frame = int(segment["end"])
-        cropped_pose = Pose(header=pose.header, body=pose.body[start_frame:end_frame])
+        cropped_pose = Pose(header=pose.header, body=pose.body[start_frame:end_frame+1])
 
         print(f"Saving cropped pose with start {start_frame} and end {end_frame} to {out_path}")
         with out_path.open("wb") as f:
@@ -141,7 +141,7 @@ def main():
 
     print("Loading pose ...")
     with open(args.pose, "rb") as f:
-        pose = Pose.read(f.read())
+        pose = Pose.read(f)
 
     eaf, tiers = segment_pose(pose, model=args.model)
 
@@ -167,6 +167,10 @@ def main():
                 end = subtitle.end.total_seconds()
                 eaf.add_annotation("SUBTITLE", int(start * 1000), int(end * 1000), subtitle.content)
 
+    if args.save_segments:
+        print(f"Saving {args.save_segments} cropped .pose files")
+        save_pose_segments(tiers, tier_id=args.save_segments, input_file_path=args.pose)
+    
     print("Saving .eaf to disk ...")
     eaf.to_file(args.elan)
 
