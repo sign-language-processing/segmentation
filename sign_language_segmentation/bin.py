@@ -112,6 +112,9 @@ def add_subtitle_tier(eaf, subtitle_path, tier_name):
             for subtitle in srt.parse(infile):
                 start = subtitle.start.total_seconds()
                 end = subtitle.end.total_seconds()
+                # HACK: avoid zero or negative length annotation
+                if start >= end:
+                    end = start + 1
                 eaf.add_annotation(tier_name, int(start * 1000), int(end * 1000), subtitle.content)
 
 def get_args():
