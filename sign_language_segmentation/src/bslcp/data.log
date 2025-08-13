@@ -1,0 +1,263 @@
+Total videos in metadata: 239
+Videos found: 189  (missing 50)
+Missing org_names:
+ - data/BSLCP/videos/Narrative/Newcastle/29+30/N30n.mov
+ - data/BSLCP/videos/Conversation/Bristol/5+6/BL5c.mov
+ - data/BSLCP/videos/Narrative/Newcastle/25+26/N25n.mov
+ - data/BSLCP/videos/Narrative/Newcastle/9+10/N10n.mov
+ - data/BSLCP/videos/Narrative/Belfast/7+8/BF7n.mov
+ - data/BSLCP/videos/Narrative/Newcastle/13+14/N13n.mov
+ - data/BSLCP/videos/Conversation/London/13+14/L14c.mov
+ - data/BSLCP/videos/Narrative/Manchester/21+22/M21n.mov
+ - data/BSLCP/videos/Narrative/Newcastle/11+12/N11n.mov
+ - data/BSLCP/videos/Conversation/Bristol/29+30/BL30c.mov
+ - data/BSLCP/videos/Conversation/Bristol/31+32/BL31c.mov
+ - data/BSLCP/videos/Narrative/Newcastle/15+16/N15n.mov
+ - data/BSLCP/videos/Conversation/London/11+12/L11c.mov
+ - data/BSLCP/videos/Conversation/Bristol/3+4/BL3c.mov
+ - data/BSLCP/videos/Conversation/London/15+16/L15c.mov
+ - data/BSLCP/videos/Narrative/Newcastle/9+10/N9n.mov
+ - data/BSLCP/videos/Narrative/Newcastle/29+30/N29n.mov
+ - data/BSLCP/videos/Conversation/Cardiff/21+22/CF21c.mov
+ - data/BSLCP/videos/Conversation/Bristol/7+8/BL8c.mov
+ - data/BSLCP/videos/Narrative/Newcastle/13+14/N14n.mov
+ - data/BSLCP/videos/Conversation/Bristol/5+6/BL6c.mov
+ - data/BSLCP/videos/Conversation/Bristol/1+2/BL2nc.mov
+ - data/BSLCP/videos/Narrative/Newcastle/5+6/N5n.mov
+ - data/BSLCP/videos/Narrative/Newcastle/7+8/N8n.mov
+ - data/BSLCP/videos/Conversation/Bristol/9+10/BL10c.mov
+ - data/BSLCP/videos/Conversation/Bristol/3+4/BL4c.mov
+ - data/BSLCP/videos/Narrative/Newcastle/15+16/N16n.mov
+ - data/BSLCP/videos/Narrative/Newcastle/3+4/N4n.mov
+ - data/BSLCP/videos/Narrative/Newcastle/17+18/N18n.mov
+ - data/BSLCP/videos/Narrative/Newcastle/21+22/N22n.mov
+ - data/BSLCP/videos/Narrative/Newcastle/21+22/N21n.mov
+ - data/BSLCP/videos/Narrative/Birmingham/3+4/BM4n.mov
+ - data/BSLCP/videos/Conversation/Cardiff/21+22/CF22c.mov
+ - data/BSLCP/videos/Narrative/Newcastle/5+6/N6n.mov
+ - data/BSLCP/videos/Narrative/Newcastle/23+24/N24n.mov
+ - data/BSLCP/videos/Narrative/Manchester/7+8/M7n.mov
+ - data/BSLCP/videos/Narrative/Newcastle/11+12/N12n.mov
+ - data/BSLCP/videos/Narrative/Newcastle/25+26/N26n.mov
+ - data/BSLCP/videos/Conversation/Bristol/31+32/BL32c.mov
+ - data/BSLCP/videos/Conversation/Bristol/29+30/BL29c.mov
+ - data/BSLCP/videos/Narrative/Newcastle/7+8/N7n.mov
+ - data/BSLCP/videos/Conversation/Bristol/27+28/BL28c.mov
+ - data/BSLCP/videos/Narrative/Newcastle/3+4/N3n.mov
+ - data/BSLCP/videos/Conversation/Bristol/7+8/BL7c.mov
+ - data/BSLCP/videos/Narrative/Newcastle/19+20/N19n.mov
+ - data/BSLCP/videos/Narrative/Newcastle/23+24/N23n.mov
+ - data/BSLCP/videos/Conversation/Bristol/9+10/BL9c.mov
+ - data/BSLCP/videos/Narrative/Newcastle/1+2/N1n.mov
+ - data/BSLCP/videos/Narrative/Birmingham/17+18/BM18n.mov
+ - data/BSLCP/videos/Conversation/Bristol/21+22/BL22c.mov
+
+Checking well-formedness of video files...
+Well-formed: 188  Broken: 1
+Broken files:
+ - /users/zifan/BSL-Corpus/raw/conversation/L12c.mov
+
+Videos after filtering broken: 188
+
+Saved 37633 annotations to /athenahomes/zifan/segmentation/sign_language_segmentation/src/bslcp/data.csv
+
+Summary Statistics:
+
+|                       | train           | val             | test            |
+|-----------------------|-----------------|-----------------|-----------------|
+| Avg frames per sign   | 10.2 ± 8.3      | 9.6 ± 7.2       | 10.3 ± 8.2      |
+| Avg frames per video  | 1997.0 ± 1401.3 | 2224.1 ± 1329.7 | 2144.3 ± 1516.6 |
+| Avg glosses per video | 81.1 ± 43.2     | 94.1 ± 45.6     | 87.2 ± 49.5     |
+| Total videos          | 149             | 17              | 22              |
+| Total signers         | 157             | 20              | 21              |
+| Total glosses         | 956             | 586             | 606             |
+
+Saving ELAN files to /users/zifan/BSL-Corpus/derivatives/annotation
+ - BF17n: /users/zifan/BSL-Corpus/derivatives/annotation/BF17n.eaf
+ - BF17c: /users/zifan/BSL-Corpus/derivatives/annotation/BF17c.eaf
+ - G16n: /users/zifan/BSL-Corpus/derivatives/annotation/G16n.eaf
+ - G19n: /users/zifan/BSL-Corpus/derivatives/annotation/G19n.eaf
+ - G15n: /users/zifan/BSL-Corpus/derivatives/annotation/G15n.eaf
+ - BM21c: /users/zifan/BSL-Corpus/derivatives/annotation/BM21c.eaf
+ - BF8n: /users/zifan/BSL-Corpus/derivatives/annotation/BF8n.eaf
+ - BM6c: /users/zifan/BSL-Corpus/derivatives/annotation/BM6c.eaf
+ - BF14n: /users/zifan/BSL-Corpus/derivatives/annotation/BF14n.eaf
+ - M29c: /users/zifan/BSL-Corpus/derivatives/annotation/M29c.eaf
+ - CF3n: /users/zifan/BSL-Corpus/derivatives/annotation/CF3n.eaf
+ - CF3c: /users/zifan/BSL-Corpus/derivatives/annotation/CF3c.eaf
+ - L36c: /users/zifan/BSL-Corpus/derivatives/annotation/L36c.eaf
+ - M17c: /users/zifan/BSL-Corpus/derivatives/annotation/M17c.eaf
+ - M11c: /users/zifan/BSL-Corpus/derivatives/annotation/M11c.eaf
+ - M6c: /users/zifan/BSL-Corpus/derivatives/annotation/M6c.eaf
+ - BF15n: /users/zifan/BSL-Corpus/derivatives/annotation/BF15n.eaf
+ - BL12c: /users/zifan/BSL-Corpus/derivatives/annotation/BL12c.eaf
+ - CF5n: /users/zifan/BSL-Corpus/derivatives/annotation/CF5n.eaf
+ - CF5c: /users/zifan/BSL-Corpus/derivatives/annotation/CF5c.eaf
+ - CF6n: /users/zifan/BSL-Corpus/derivatives/annotation/CF6n.eaf
+ - CF6c: /users/zifan/BSL-Corpus/derivatives/annotation/CF6c.eaf
+ - G17n: /users/zifan/BSL-Corpus/derivatives/annotation/G17n.eaf
+ - G17c: /users/zifan/BSL-Corpus/derivatives/annotation/G17c.eaf
+ - CF19n: /users/zifan/BSL-Corpus/derivatives/annotation/CF19n.eaf
+ - N8c: /users/zifan/BSL-Corpus/derivatives/annotation/N8c.eaf
+ - L3c: /users/zifan/BSL-Corpus/derivatives/annotation/L3c.eaf
+ - N12c: /users/zifan/BSL-Corpus/derivatives/annotation/N12c.eaf
+ - L10c: /users/zifan/BSL-Corpus/derivatives/annotation/L10c.eaf
+ - CF17n: /users/zifan/BSL-Corpus/derivatives/annotation/CF17n.eaf
+ - CF11n: /users/zifan/BSL-Corpus/derivatives/annotation/CF11n.eaf
+ - BF2n: /users/zifan/BSL-Corpus/derivatives/annotation/BF2n.eaf
+ - BF2c: /users/zifan/BSL-Corpus/derivatives/annotation/BF2c.eaf
+ - CF20n: /users/zifan/BSL-Corpus/derivatives/annotation/CF20n.eaf
+ - BF10n: /users/zifan/BSL-Corpus/derivatives/annotation/BF10n.eaf
+ - BF10c: /users/zifan/BSL-Corpus/derivatives/annotation/BF10c.eaf
+ - M27c: /users/zifan/BSL-Corpus/derivatives/annotation/M27c.eaf
+ - BM13c: /users/zifan/BSL-Corpus/derivatives/annotation/BM13c.eaf
+ - CF2n: /users/zifan/BSL-Corpus/derivatives/annotation/CF2n.eaf
+ - CF2c: /users/zifan/BSL-Corpus/derivatives/annotation/CF2c.eaf
+ - G21n: /users/zifan/BSL-Corpus/derivatives/annotation/G21n.eaf
+ - M25c: /users/zifan/BSL-Corpus/derivatives/annotation/M25c.eaf
+ - BM14c: /users/zifan/BSL-Corpus/derivatives/annotation/BM14c.eaf
+ - BF20n: /users/zifan/BSL-Corpus/derivatives/annotation/BF20n.eaf
+ - N29c: /users/zifan/BSL-Corpus/derivatives/annotation/N29c.eaf
+ - L35c: /users/zifan/BSL-Corpus/derivatives/annotation/L35c.eaf
+ - BL23c: /users/zifan/BSL-Corpus/derivatives/annotation/BL23c.eaf
+ - L19c: /users/zifan/BSL-Corpus/derivatives/annotation/L19c.eaf
+ - BF13n: /users/zifan/BSL-Corpus/derivatives/annotation/BF13n.eaf
+ - G9n: /users/zifan/BSL-Corpus/derivatives/annotation/G9n.eaf
+ - G9c: /users/zifan/BSL-Corpus/derivatives/annotation/G9c.eaf
+ - BM5c: /users/zifan/BSL-Corpus/derivatives/annotation/BM5c.eaf
+ - G12n: /users/zifan/BSL-Corpus/derivatives/annotation/G12n.eaf
+ - G12c: /users/zifan/BSL-Corpus/derivatives/annotation/G12c.eaf
+ - CF21n: /users/zifan/BSL-Corpus/derivatives/annotation/CF21n.eaf
+ - BM10n: /users/zifan/BSL-Corpus/derivatives/annotation/BM10n.eaf
+ - BM29c: /users/zifan/BSL-Corpus/derivatives/annotation/BM29c.eaf
+ - BF12n: /users/zifan/BSL-Corpus/derivatives/annotation/BF12n.eaf
+ - BF12c: /users/zifan/BSL-Corpus/derivatives/annotation/BF12c.eaf
+ - M18c: /users/zifan/BSL-Corpus/derivatives/annotation/M18c.eaf
+ - CF4n: /users/zifan/BSL-Corpus/derivatives/annotation/CF4n.eaf
+ - CF4c: /users/zifan/BSL-Corpus/derivatives/annotation/CF4c.eaf
+ - M9c: /users/zifan/BSL-Corpus/derivatives/annotation/M9c.eaf
+ - CF18n: /users/zifan/BSL-Corpus/derivatives/annotation/CF18n.eaf
+ - L29c: /users/zifan/BSL-Corpus/derivatives/annotation/L29c.eaf
+ - L23c: /users/zifan/BSL-Corpus/derivatives/annotation/L23c.eaf
+ - BM22c: /users/zifan/BSL-Corpus/derivatives/annotation/BM22c.eaf
+ - BM1c: /users/zifan/BSL-Corpus/derivatives/annotation/BM1c.eaf
+ - BL17c: /users/zifan/BSL-Corpus/derivatives/annotation/BL17c.eaf
+ - BM28c: /users/zifan/BSL-Corpus/derivatives/annotation/BM28c.eaf
+ - BF16n: /users/zifan/BSL-Corpus/derivatives/annotation/BF16n.eaf
+ - G22n: /users/zifan/BSL-Corpus/derivatives/annotation/G22n.eaf
+ - L6c: /users/zifan/BSL-Corpus/derivatives/annotation/L6c.eaf
+ - G13n: /users/zifan/BSL-Corpus/derivatives/annotation/G13n.eaf
+ - L4c: /users/zifan/BSL-Corpus/derivatives/annotation/L4c.eaf
+ - CF14n: /users/zifan/BSL-Corpus/derivatives/annotation/CF14n.eaf
+ - BF19n: /users/zifan/BSL-Corpus/derivatives/annotation/BF19n.eaf
+ - CF27n: /users/zifan/BSL-Corpus/derivatives/annotation/CF27n.eaf
+ - M12c: /users/zifan/BSL-Corpus/derivatives/annotation/M12c.eaf
+ - BL15c: /users/zifan/BSL-Corpus/derivatives/annotation/BL15c.eaf
+ - G24n: /users/zifan/BSL-Corpus/derivatives/annotation/G24n.eaf
+ - BF23n: /users/zifan/BSL-Corpus/derivatives/annotation/BF23n.eaf
+ - BM7c: /users/zifan/BSL-Corpus/derivatives/annotation/BM7c.eaf
+ - CF24n: /users/zifan/BSL-Corpus/derivatives/annotation/CF24n.eaf
+ - L26c: /users/zifan/BSL-Corpus/derivatives/annotation/L26c.eaf
+ - BF9n: /users/zifan/BSL-Corpus/derivatives/annotation/BF9n.eaf
+ - BF9c: /users/zifan/BSL-Corpus/derivatives/annotation/BF9c.eaf
+ - M20c: /users/zifan/BSL-Corpus/derivatives/annotation/M20c.eaf
+ - M15c: /users/zifan/BSL-Corpus/derivatives/annotation/M15c.eaf
+ - L27c: /users/zifan/BSL-Corpus/derivatives/annotation/L27c.eaf
+ - G1n: /users/zifan/BSL-Corpus/derivatives/annotation/G1n.eaf
+ - G1c: /users/zifan/BSL-Corpus/derivatives/annotation/G1c.eaf
+ - BL10n: /users/zifan/BSL-Corpus/derivatives/annotation/BL10n.eaf
+ - BM8c: /users/zifan/BSL-Corpus/derivatives/annotation/BM8c.eaf
+ - N11c: /users/zifan/BSL-Corpus/derivatives/annotation/N11c.eaf
+ - CF1n: /users/zifan/BSL-Corpus/derivatives/annotation/CF1n.eaf
+ - CF1c: /users/zifan/BSL-Corpus/derivatives/annotation/CF1c.eaf
+ - BL21c: /users/zifan/BSL-Corpus/derivatives/annotation/BL21c.eaf
+ - G4n: /users/zifan/BSL-Corpus/derivatives/annotation/G4n.eaf
+ - G4c: /users/zifan/BSL-Corpus/derivatives/annotation/G4c.eaf
+ - CF23n: /users/zifan/BSL-Corpus/derivatives/annotation/CF23n.eaf
+ - G11n: /users/zifan/BSL-Corpus/derivatives/annotation/G11n.eaf
+ - G11c: /users/zifan/BSL-Corpus/derivatives/annotation/G11c.eaf
+ - G6n: /users/zifan/BSL-Corpus/derivatives/annotation/G6n.eaf
+ - L20c: /users/zifan/BSL-Corpus/derivatives/annotation/L20c.eaf
+ - BF6n: /users/zifan/BSL-Corpus/derivatives/annotation/BF6n.eaf
+ - BF6c: /users/zifan/BSL-Corpus/derivatives/annotation/BF6c.eaf
+ - M1c: /users/zifan/BSL-Corpus/derivatives/annotation/M1c.eaf
+ - BF1n: /users/zifan/BSL-Corpus/derivatives/annotation/BF1n.eaf
+ - BF1c: /users/zifan/BSL-Corpus/derivatives/annotation/BF1c.eaf
+ - L22c: /users/zifan/BSL-Corpus/derivatives/annotation/L22c.eaf
+ - BL11c: /users/zifan/BSL-Corpus/derivatives/annotation/BL11c.eaf
+ - BF18n: /users/zifan/BSL-Corpus/derivatives/annotation/BF18n.eaf
+ - BF18c: /users/zifan/BSL-Corpus/derivatives/annotation/BF18c.eaf
+ - BF5n: /users/zifan/BSL-Corpus/derivatives/annotation/BF5n.eaf
+ - BF5c: /users/zifan/BSL-Corpus/derivatives/annotation/BF5c.eaf
+ - CF7n: /users/zifan/BSL-Corpus/derivatives/annotation/CF7n.eaf
+ - N6c: /users/zifan/BSL-Corpus/derivatives/annotation/N6c.eaf
+ - L21c: /users/zifan/BSL-Corpus/derivatives/annotation/L21c.eaf
+ - BF3n: /users/zifan/BSL-Corpus/derivatives/annotation/BF3n.eaf
+ - CF25n: /users/zifan/BSL-Corpus/derivatives/annotation/CF25n.eaf
+ - N25c: /users/zifan/BSL-Corpus/derivatives/annotation/N25c.eaf
+ - BM16c: /users/zifan/BSL-Corpus/derivatives/annotation/BM16c.eaf
+ - M26c: /users/zifan/BSL-Corpus/derivatives/annotation/M26c.eaf
+ - M30c: /users/zifan/BSL-Corpus/derivatives/annotation/M30c.eaf
+ - M10c: /users/zifan/BSL-Corpus/derivatives/annotation/M10c.eaf
+ - N5c: /users/zifan/BSL-Corpus/derivatives/annotation/N5c.eaf
+ - L5c: /users/zifan/BSL-Corpus/derivatives/annotation/L5c.eaf
+ - BF21n: /users/zifan/BSL-Corpus/derivatives/annotation/BF21n.eaf
+ - BM20c: /users/zifan/BSL-Corpus/derivatives/annotation/BM20c.eaf
+ - BM24c: /users/zifan/BSL-Corpus/derivatives/annotation/BM24c.eaf
+ - G20n: /users/zifan/BSL-Corpus/derivatives/annotation/G20n.eaf
+ - CF8n: /users/zifan/BSL-Corpus/derivatives/annotation/CF8n.eaf
+ - CF13n: /users/zifan/BSL-Corpus/derivatives/annotation/CF13n.eaf
+ - BF11n: /users/zifan/BSL-Corpus/derivatives/annotation/BF11n.eaf
+ - BF11c: /users/zifan/BSL-Corpus/derivatives/annotation/BF11c.eaf
+ - M16c: /users/zifan/BSL-Corpus/derivatives/annotation/M16c.eaf
+ - G8n: /users/zifan/BSL-Corpus/derivatives/annotation/G8n.eaf
+ - BM2c: /users/zifan/BSL-Corpus/derivatives/annotation/BM2c.eaf
+ - BL1nc: /users/zifan/BSL-Corpus/derivatives/annotation/BL1nc.eaf
+ - M2c: /users/zifan/BSL-Corpus/derivatives/annotation/M2c.eaf
+ - BF4n: /users/zifan/BSL-Corpus/derivatives/annotation/BF4n.eaf
+ - G25n: /users/zifan/BSL-Corpus/derivatives/annotation/G25n.eaf
+ - CF22n: /users/zifan/BSL-Corpus/derivatives/annotation/CF22n.eaf
+ - M19c: /users/zifan/BSL-Corpus/derivatives/annotation/M19c.eaf
+ - BL13c: /users/zifan/BSL-Corpus/derivatives/annotation/BL13c.eaf
+ - G5n: /users/zifan/BSL-Corpus/derivatives/annotation/G5n.eaf
+ - G7n: /users/zifan/BSL-Corpus/derivatives/annotation/G7n.eaf
+ - BM17n: /users/zifan/BSL-Corpus/derivatives/annotation/BM17n.eaf
+ - G23n: /users/zifan/BSL-Corpus/derivatives/annotation/G23n.eaf
+ - BM23c: /users/zifan/BSL-Corpus/derivatives/annotation/BM23c.eaf
+ - L24c: /users/zifan/BSL-Corpus/derivatives/annotation/L24c.eaf
+ - G18n: /users/zifan/BSL-Corpus/derivatives/annotation/G18n.eaf
+ - G18c: /users/zifan/BSL-Corpus/derivatives/annotation/G18c.eaf
+ - M3c: /users/zifan/BSL-Corpus/derivatives/annotation/M3c.eaf
+ - BL24c: /users/zifan/BSL-Corpus/derivatives/annotation/BL24c.eaf
+ - M23c: /users/zifan/BSL-Corpus/derivatives/annotation/M23c.eaf
+ - G3n: /users/zifan/BSL-Corpus/derivatives/annotation/G3n.eaf
+ - G3c: /users/zifan/BSL-Corpus/derivatives/annotation/G3c.eaf
+ - N26c: /users/zifan/BSL-Corpus/derivatives/annotation/N26c.eaf
+ - BM19c: /users/zifan/BSL-Corpus/derivatives/annotation/BM19c.eaf
+ - L9c: /users/zifan/BSL-Corpus/derivatives/annotation/L9c.eaf
+ - CF9n: /users/zifan/BSL-Corpus/derivatives/annotation/CF9n.eaf
+ - CF9c: /users/zifan/BSL-Corpus/derivatives/annotation/CF9c.eaf
+ - N7c: /users/zifan/BSL-Corpus/derivatives/annotation/N7c.eaf
+ - BF25n: /users/zifan/BSL-Corpus/derivatives/annotation/BF25n.eaf
+ - M28c: /users/zifan/BSL-Corpus/derivatives/annotation/M28c.eaf
+ - N30c: /users/zifan/BSL-Corpus/derivatives/annotation/N30c.eaf
+ - L25c: /users/zifan/BSL-Corpus/derivatives/annotation/L25c.eaf
+ - M13c: /users/zifan/BSL-Corpus/derivatives/annotation/M13c.eaf
+ - L18c: /users/zifan/BSL-Corpus/derivatives/annotation/L18c.eaf
+ - G14n: /users/zifan/BSL-Corpus/derivatives/annotation/G14n.eaf
+ - CF12n: /users/zifan/BSL-Corpus/derivatives/annotation/CF12n.eaf
+ - BL16c: /users/zifan/BSL-Corpus/derivatives/annotation/BL16c.eaf
+ - CF10n: /users/zifan/BSL-Corpus/derivatives/annotation/CF10n.eaf
+ - CF10c: /users/zifan/BSL-Corpus/derivatives/annotation/CF10c.eaf
+ - G2n: /users/zifan/BSL-Corpus/derivatives/annotation/G2n.eaf
+ - G2c: /users/zifan/BSL-Corpus/derivatives/annotation/G2c.eaf
+ - BF22n: /users/zifan/BSL-Corpus/derivatives/annotation/BF22n.eaf
+ - BF24n: /users/zifan/BSL-Corpus/derivatives/annotation/BF24n.eaf
+ - BM15c: /users/zifan/BSL-Corpus/derivatives/annotation/BM15c.eaf
+ - L8c: /users/zifan/BSL-Corpus/derivatives/annotation/L8c.eaf
+ - CF28n: /users/zifan/BSL-Corpus/derivatives/annotation/CF28n.eaf
+ - L33c: /users/zifan/BSL-Corpus/derivatives/annotation/L33c.eaf
+ - BM11n: /users/zifan/BSL-Corpus/derivatives/annotation/BM11n.eaf
+ - G10n: /users/zifan/BSL-Corpus/derivatives/annotation/G10n.eaf
+ - G10c: /users/zifan/BSL-Corpus/derivatives/annotation/G10c.eaf
+ - M24c: /users/zifan/BSL-Corpus/derivatives/annotation/M24c.eaf

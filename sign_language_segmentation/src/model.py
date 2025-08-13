@@ -11,7 +11,7 @@ from torch import nn
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 
 from .utils.metrics import frame_accuracy, frame_f1, frame_precision, frame_recall, frame_roc_auc, segment_percentage, \
-    segment_IoU, segment_boundary_f1
+    segment_IoU, segment_boundary_f1, segment_mF1S
 from .utils.probs_to_segments import probs_to_segments
 
 
@@ -87,6 +87,7 @@ class PoseTaggingModel(pl.LightningModule):
         flat_pose_data = pose_data.reshape(batch_size, seq_length, -1)
 
         pose_projection = self.pose_projection(flat_pose_data)
+        pose_projection = self._make_contiguous(pose_projection)
 
         if self.encoder_autoregressive:
             # adapted from https://github.com/J22Melody/sed_great_ape/blob/main/model.py
@@ -142,11 +143,21 @@ class PoseTaggingModel(pl.LightningModule):
                     sign_bio_logits[:, i] = sign_bio_logit
                     sentence_bio_logits[:, i] = sentence_bio_logit
         else:
+            # print('pose_projection shape:', pose_projection.shape)
+            # print('pose_projection dtype:', pose_projection.dtype)
+            # print('pose_projection device:', pose_projection.device)
+            # print('is contiguous:', pose_projection.is_contiguous())
+
             pose_encoding, _ = self.encoder(pose_projection)
             sign_bio_logits = self.sign_bio_head(pose_encoding)
             sentence_bio_logits = self.sentence_bio_head(pose_encoding)
 
         return {"sign": F.log_softmax(sign_bio_logits, dim=-1), "sentence": F.log_softmax(sentence_bio_logits, dim=-1)}
+
+    def _make_contiguous(self, tensor):
+        if not tensor.is_contiguous():
+            tensor = tensor.contiguous()
+        return tensor
 
     def training_step(self, batch, *unused_args):
         return self.step(batch, *unused_args, name="train")
@@ -170,6 +181,7 @@ class PoseTaggingModel(pl.LightningModule):
             'segment_percentage': [],
             'segment_IoU': [],
             'segment_boundary_f1': [],
+            'segment_mF1S': [],
         }
         data = {
             'gold': [],
@@ -226,6 +238,9 @@ class PoseTaggingModel(pl.LightningModule):
             metrics['segment_IoU'].append(segment_IoU(segments, segments_gold, max_len=gold.shape[0]))
 
             metrics['segment_boundary_f1'].append(segment_boundary_f1(segments, segments_gold))
+
+            # from Katrin et al.
+            metrics['segment_mF1S'].append(segment_mF1S(segments, segments_gold))
 
             if advanced_plot:
                 # probs plot
@@ -300,7 +315,11 @@ class PoseTaggingModel(pl.LightningModule):
         # print('\n')
 
         for key, value in metrics.items():
-            metrics[key] = sum(value) / len(value)
+            if key == 'loss':
+                metrics[key] = sum(value) / len(value)
+            else:
+                arr = np.array(value)
+                metrics[key] = float(np.nanmean(arr))
 
         return metrics
 
@@ -314,6 +333,7 @@ class PoseTaggingModel(pl.LightningModule):
 
         advanced_plot = (wandb.run is not None) and (name == 'validation') and (
                     self.current_epoch == 0 or self.current_epoch % 10 == 9)
+        advanced_plot = False
         sign_metrics = self.evaluate('sign', fps, batch["bio"]["sign"], log_probs["sign"], batch["segments"]["sign"],
                                      mask, batch['id'], advanced_plot)
         sentence_metrics = self.evaluate('sentence', fps, batch["bio"]["sentence"], log_probs["sentence"],
@@ -340,6 +360,7 @@ class PoseTaggingModel(pl.LightningModule):
                 "lr_scheduler": {
                     "scheduler": ReduceLROnPlateau(optimizer, mode='max', patience=10, factor=0.7),
                     "monitor": "validation_frame_f1_avg",
+                    # "monitor": "validation_sign_frame_f1",
                 },
             }
         else:

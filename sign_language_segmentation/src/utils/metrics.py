@@ -3,6 +3,7 @@ from typing import List
 import numpy as np
 import torch
 from sklearn.metrics import f1_score, precision_score, recall_score, roc_auc_score
+from scipy.optimize import linear_sum_assignment
 
 
 def frame_accuracy(probs: torch.Tensor, gold: torch.Tensor) -> float:
@@ -26,7 +27,7 @@ def frame_precision(probs: torch.Tensor, gold: torch.Tensor, **kwargs) -> float:
     probs: [sequence_length x number_of_classes(3)]
     gold: [sequence_length]
     """
-    return precision_score(gold.numpy(), probs.argmax(dim=1).numpy(), **kwargs)
+    return precision_score(gold.numpy(), probs.argmax(dim=1).numpy(), zero_division=np.nan, **kwargs)
 
 
 def frame_recall(probs: torch.Tensor, gold: torch.Tensor, **kwargs) -> float:
@@ -34,7 +35,7 @@ def frame_recall(probs: torch.Tensor, gold: torch.Tensor, **kwargs) -> float:
     probs: [sequence_length x number_of_classes(3)]
     gold: [sequence_length]
     """
-    return recall_score(gold.numpy(), probs.argmax(dim=1).numpy(), **kwargs)
+    return recall_score(gold.numpy(), probs.argmax(dim=1).numpy(), zero_division=np.nan, **kwargs)
 
 
 def frame_roc_auc(probs: torch.Tensor, gold: torch.Tensor, **kwargs) -> float:
@@ -42,6 +43,9 @@ def frame_roc_auc(probs: torch.Tensor, gold: torch.Tensor, **kwargs) -> float:
     probs: [sequence_length x number_of_classes(3)]
     gold: [sequence_length]
     """
+    gold_np = gold.numpy()
+    if len(np.unique(gold_np)) < 3:
+        return [np.nan]
     return roc_auc_score(gold.numpy(), np.exp(probs.numpy()), **kwargs)
 
 
@@ -130,3 +134,61 @@ def segment_recall(segments: List[dict], segments_gold: List[dict]) -> float:
                 segments]):
             hit = hit + 1
     return hit / len(segments_gold)
+
+def segment_mF1S(pred_segments, gt_segments, thresholds=None):
+    """
+    Compute the mean sign‐level F1 (mF1S) over a range of IoU thresholds.
+
+    Args:
+        pred_segments (List[Dict]): predicted segments, each with 'start' and 'end'
+        gt_segments   (List[Dict]): ground‐truth segments, same format
+        thresholds    (List[float], optional): IoU thresholds to evaluate.
+                         Defaults to [0.40, 0.45, …, 0.75].
+
+    Returns:
+        float: the mean F1 score across all thresholds.
+    """
+    if thresholds is None:
+        thresholds = [round(0.4 + i * 0.05, 2)
+                      for i in range(int((0.75 - 0.4) / 0.05) + 1)]
+
+    def _iou_matrix(gt, pred):
+        if not gt or not pred:
+            # shape (len(gt), len(pred))
+            return np.zeros((len(gt), len(pred)))
+        gt_arr   = np.array([[s['start'], s['end']] for s in gt])
+        pred_arr = np.array([[s['start'], s['end']] for s in pred])
+        # intersection
+        istart = np.maximum(gt_arr[:, 0][:, None], pred_arr[:, 0][None, :])
+        iend   = np.minimum(gt_arr[:, 1][:, None], pred_arr[:, 1][None, :])
+        intersect = np.maximum(0, iend - istart)
+        # union
+        ustart = np.minimum(gt_arr[:, 0][:, None], pred_arr[:, 0][None, :])
+        uend   = np.maximum(gt_arr[:, 1][:, None], pred_arr[:, 1][None, :])
+        union = uend - ustart
+        return intersect / union
+
+    def _tp_fp_fn(gt, pred, thr):
+        if not gt:
+            # all preds are false positives
+            return 0, len(pred), 0
+        if not pred:
+            # all gts are false negatives
+            return 0, 0, len(gt)
+        iou_m = _iou_matrix(gt, pred)
+        # match to maximize total IoU = minimize negative IoU
+        row_ind, col_ind = linear_sum_assignment(-iou_m)
+        tp = sum(1 for r, c in zip(row_ind, col_ind) if iou_m[r, c] >= thr)
+        fp = len(pred) - tp
+        fn = len(gt)   - tp
+        return tp, fp, fn
+
+    f1_scores = []
+    for thr in thresholds:
+        tp, fp, fn = _tp_fp_fn(gt_segments, pred_segments, thr)
+        prec = tp / (tp + fp) if (tp + fp) > 0 else 0.0
+        rec  = tp / (tp + fn) if (tp + fn) > 0 else 0.0
+        f1   = 2 * prec * rec / (prec + rec) if (prec + rec) > 0 else 0.0
+        f1_scores.append(f1)
+
+    return float(np.mean(f1_scores))

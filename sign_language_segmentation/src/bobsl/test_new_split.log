@@ -1,0 +1,61 @@
+Agruments: Namespace(no_wandb=False, run_name=None, wandb_dir='.', seed=42, device='gpu', gpus=1, epochs=100, patience=20, batch_size=64, batch_size_devtest=20, learning_rate=0.001, lr_scheduler='none', dataset='bobsl_cslr', data_dir=None, data_dev=False, fps=25, pose='holistic', pose_components=['POSE_LANDMARKS', 'LEFT_HAND_LANDMARKS', 'RIGHT_HAND_LANDMARKS'], pose_reduce_face=False, hand_normalization=True, optical_flow=True, only_optical_flow=False, classes='bio', pose_projection_dim=256, hidden_dim=256, encoder_depth=4, encoder_bidirectional=True, encoder_autoregressive=False, weighted_loss=True, b_threshold=50, o_threshold=50, threshold_likeliest=False, train=False, test=True, save_jit=True, checkpoint='./models/proud-bird-21/best.ckpt', pred_output=None, ffmpeg_path=None)
+Loaded 75 data items from ./sign_language_segmentation/src/bsl/data.csv split=val.
+Loaded 110 data items from ./sign_language_segmentation/src/bsl/data.csv split=test.
+Model Arguments: {'pose_dims': (117, 4), 'pose_projection_dim': 256, 'hidden_dim': 256, 'encoder_depth': 4, 'encoder_bidirectional': True, 'encoder_autoregressive': False, 'learning_rate': 0.001, 'lr_scheduler': 'none', 'b_threshold': 50, 'o_threshold': 50, 'threshold_likeliest': False}
+./models/proud-bird-21/best.ckpt
+Validation: |          | 0/? [00:00<?, ?it/s]Validation:   0%|          | 0/4 [00:00<?, ?it/s]Validation DataLoader 0:   0%|          | 0/4 [00:00<?, ?it/s]Validation DataLoader 0:  25%|██▌       | 1/4 [00:00<00:01,  1.66it/s]Validation DataLoader 0:  50%|█████     | 2/4 [00:01<00:01,  1.35it/s]Validation DataLoader 0:  75%|███████▌  | 3/4 [00:04<00:01,  0.62it/s]Validation DataLoader 0: 100%|██████████| 4/4 [00:07<00:00,  0.56it/s]Validation DataLoader 0: 100%|██████████| 4/4 [00:07<00:00,  0.56it/s]
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃             Validate metric             ┃              DataLoader 0               ┃
+┡━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┩
+│         validation_frame_f1_avg         │           0.5169188380241394            │
+│             validation_loss             │            4.764815330505371            │
+│   validation_sentence_frame_accuracy    │           0.8850706815719604            │
+│      validation_sentence_frame_f1       │           0.5698652863502502            │
+│     validation_sentence_frame_f1_O      │           0.4488157033920288            │
+│  validation_sentence_frame_precision_O  │           0.6417601108551025            │
+│   validation_sentence_frame_recall_O    │           0.4533182680606842            │
+│   validation_sentence_frame_roc_auc_O   │           0.8508782982826233            │
+│        validation_sentence_loss         │            3.545093536376953            │
+│     validation_sentence_segment_IoU     │           0.8672946095466614            │
+│ validation_sentence_segment_boundary_f1 │           0.06532749533653259           │
+│ validation_sentence_segment_percentage  │           0.6057364344596863            │
+│     validation_sign_frame_accuracy      │           0.6362952589988708            │
+│        validation_sign_frame_f1         │           0.46397241950035095           │
+│       validation_sign_frame_f1_O        │           0.5435196161270142            │
+│    validation_sign_frame_precision_O    │           0.7470027804374695            │
+│     validation_sign_frame_recall_O      │           0.4873403012752533            │
+│     validation_sign_frame_roc_auc_O     │           0.7629278302192688            │
+│          validation_sign_loss           │           1.2197214365005493            │
+│       validation_sign_segment_IoU       │           0.6996866464614868            │
+│   validation_sign_segment_boundary_f1   │            0.336494505405426            │
+│   validation_sign_segment_percentage    │           1.2633647918701172            │
+└─────────────────────────────────────────┴─────────────────────────────────────────┘
+Testing: |          | 0/? [00:00<?, ?it/s]Testing:   0%|          | 0/6 [00:00<?, ?it/s]Testing DataLoader 0:   0%|          | 0/6 [00:00<?, ?it/s]Testing DataLoader 0:  17%|█▋        | 1/6 [00:01<00:05,  0.90it/s]Testing DataLoader 0:  33%|███▎      | 2/6 [00:02<00:04,  0.84it/s]Testing DataLoader 0:  50%|█████     | 3/6 [00:03<00:03,  0.86it/s]Testing DataLoader 0:  67%|██████▋   | 4/6 [00:04<00:02,  0.88it/s]Testing DataLoader 0:  83%|████████▎ | 5/6 [00:06<00:01,  0.73it/s]Testing DataLoader 0: 100%|██████████| 6/6 [00:07<00:00,  0.80it/s]Testing DataLoader 0: 100%|██████████| 6/6 [00:07<00:00,  0.80it/s]
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃            Test metric            ┃           DataLoader 0            ┃
+┡━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┩
+│         test_frame_f1_avg         │        0.5252431035041809         │
+│             test_loss             │         4.100414276123047         │
+│   test_sentence_frame_accuracy    │        0.8722742199897766         │
+│      test_sentence_frame_f1       │        0.5624778270721436         │
+│     test_sentence_frame_f1_O      │        0.46594512462615967        │
+│  test_sentence_frame_precision_O  │        0.6384634971618652         │
+│   test_sentence_frame_recall_O    │        0.5732808709144592         │
+│   test_sentence_frame_roc_auc_O   │         0.917961597442627         │
+│        test_sentence_loss         │         3.059056520462036         │
+│     test_sentence_segment_IoU     │        0.8717620968818665         │
+│ test_sentence_segment_boundary_f1 │        0.04177912324666977        │
+│ test_sentence_segment_percentage  │        0.6297997832298279         │
+│     test_sign_frame_accuracy      │         0.67693030834198          │
+│        test_sign_frame_f1         │        0.48800840973854065        │
+│       test_sign_frame_f1_O        │         0.50762540102005          │
+│    test_sign_frame_precision_O    │        0.7536293864250183         │
+│     test_sign_frame_recall_O      │        0.45655742287635803        │
+│     test_sign_frame_roc_auc_O     │        0.7610312104225159         │
+│          test_sign_loss           │         1.041357398033142         │
+│       test_sign_segment_IoU       │        0.7458469271659851         │
+│   test_sign_segment_boundary_f1   │        0.39127039909362793        │
+│   test_sign_segment_percentage    │        1.1914818286895752         │
+└───────────────────────────────────┴───────────────────────────────────┘
+[1;34mwandb[0m: 
+[1;34mwandb[0m: 🚀 View run [33msleek-deluge-23[0m at: [34mhttps://wandb.ai/zifanjiang/pose-to-segments-bsl/runs/hjvpscsi[0m
