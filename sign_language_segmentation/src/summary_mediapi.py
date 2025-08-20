@@ -15,8 +15,8 @@ def find_value_from_line(lines, pattern, strict_start=False):
     ][0]
 
 
-def flatten(l):
-    return [item for sublist in l for item in sublist]
+def flatten(list_of_lists):
+    return [item for sublist in list_of_lists for item in sublist]
 
 
 parser = ArgumentParser()

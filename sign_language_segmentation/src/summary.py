@@ -1,11 +1,8 @@
 import datetime
 import json
 import os
-import re
 import subprocess
 from argparse import ArgumentParser
-from pprint import pprint
-from statistics import mean, stdev
 
 import pandas as pd
 
@@ -14,8 +11,8 @@ def find_value_from_line(lines, pattern):
     return [line.replace(pattern, '').replace(' ', '') for line in lines if (pattern in line)][0]
 
 
-def flatten(l):
-    return [item for sublist in l for item in sublist]
+def flatten(list_of_lists):
+    return [item for sublist in list_of_lists for item in sublist]
 
 
 parser = ArgumentParser()

@@ -232,7 +232,6 @@ class PoseTaggingModel(pl.LightningModule):
                 title = f"{level} probs curve #{idx}"
                 probs = np.exp(probs.numpy().squeeze()) * 100
                 x = range(probs.shape[0])
-                y_threshold = [50.0] * probs.shape[0]
                 y_B_probs = probs[:, 1].squeeze()
                 y_I_probs = probs[:, 2].squeeze()
                 y_O_probs = probs[:, 0].squeeze()

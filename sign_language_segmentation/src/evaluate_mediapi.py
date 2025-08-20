@@ -3,7 +3,7 @@ import csv
 import io
 import zipfile
 from functools import lru_cache
-from typing import Any, Dict, Iterable, List, Optional, Tuple, TypedDict
+from typing import List, Optional, Tuple, TypedDict
 
 import numpy as np
 import torch
@@ -14,8 +14,7 @@ from pose_format.pose_header import PoseHeaderDimensions
 from tqdm import tqdm
 
 from sign_language_segmentation.bin import load_model, process_pose, predict
-from .utils.metrics import frame_accuracy, frame_f1, frame_precision, frame_recall, frame_roc_auc, segment_percentage, \
-    segment_IoU
+from .utils.metrics import frame_f1, frame_precision, frame_recall, frame_roc_auc
 
 
 def read_pose_tsv_file(pose_tsv: bytes, num_keypoints: int = 33):
@@ -82,7 +81,8 @@ def read_mediapi_set(mediapi_path: str, pose_path: str = None, split='test'):
 
             print("Sample test data:", test_data[0])
 
-        name_number = lambda name: int(name.split('/')[-1].split('.')[0]) if not name.endswith('/') else -1
+        def name_number(name: str):
+            return int(name.split('/')[-1].split('.')[0]) if not name.endswith('/') else -1
 
         # Open the subtitles zip and extract the subtitles for every test datum
         subtitle_info = root_zip.getinfo(subtitle_zips)
