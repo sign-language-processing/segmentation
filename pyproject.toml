@@ -27,6 +27,12 @@ dev = [
     "pandas"
 ]
 
+server = [
+    "Flask",
+    "Werkzeug",
+    "gunicorn",
+]
+
 [tool.yapf]
 based_on_style = "google"
 column_limit = 120

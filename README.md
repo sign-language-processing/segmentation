@@ -18,6 +18,20 @@ To create an ELAN file with sign and sentence segments:
 pose_to_segments --pose="sign.pose" --elan="sign.eaf" [--video="sign.mp4"]
 ```
 
+### Web Server on Docker
+
+```bash
+docker build -t segmentation .
+
+docker run --rm -p 9876:8080 -e PORT=8080 \
+  -v $(pwd)/sign_language_segmentation/tests:/mnt/examples \
+  segmentation
+
+curl -X POST http://localhost:9876/ \
+    -H "Content-Type: application/json" \
+    -d '{"input": "/mnt/examples/example.pose", "output": "/mnt/examples/example.eaf"}'
+```
+
 ---
 
 ## Main Idea
