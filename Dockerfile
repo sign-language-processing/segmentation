@@ -6,10 +6,13 @@ ENV PYTHONUNBUFFERED True
 # Setup local workdir and dependencies
 WORKDIR /app
 
-# Install python dependencies.
+# Install torch for CPU only, since the model runs faster on CPU, and this results in and smaller docker image
+RUN pip install --no-cache-dir torch --index-url https://download.pytorch.org/whl/cpu
+# TODO: use executorch https://docs.pytorch.org/executorch/stable/getting-started.html for even smaller image size
+
+# Install other python dependencies.
 ADD ./pyproject.toml ./pyproject.toml
-RUN mkdir -p sign_language_segmentation/src/utils
-RUN touch README.md
+RUN mkdir -p sign_language_segmentation/src/utils && touch README.md
 RUN pip install --no-cache-dir ".[server]"
 
 # Copy local code to the container image.
