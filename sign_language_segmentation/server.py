@@ -1,5 +1,6 @@
 import os
 import traceback
+from datetime import datetime, UTC
 from pathlib import Path
 
 from flask import Flask, request, abort, make_response, jsonify
@@ -25,6 +26,16 @@ def handle_exception(e):
     print("HTTP exception", code, message)
 
     return make_response(jsonify(message=message, code=code), code)
+
+
+@app.route('/health', methods=['GET'])
+def health_check():
+    body = {
+        'status': 'healthy',
+        'timestamp': datetime.now(tz=UTC).isoformat(),
+        'service': 'segmentation',
+    }
+    return make_response(jsonify(body), 200)
 
 
 @app.route("/", methods=['POST'])
