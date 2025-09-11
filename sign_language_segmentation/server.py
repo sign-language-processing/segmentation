@@ -59,6 +59,11 @@ def pose_segmentation():
     with pose_file_path.open("rb") as f:
         pose = Pose.read(f)
 
+    if len(pose.body.data) == 1:
+        # Otherwise, segment_pose gives an error:
+        # > too many indices for array: array is 1-dimensional, but 2 were indexed
+        return make_response(jsonify(message="Pose has only one frame, no segmentation needed", path=body["output"]), 200)
+
     eaf, tiers = segment_pose(pose)
 
     output_file_path.parent.mkdir(parents=True, exist_ok=True)
