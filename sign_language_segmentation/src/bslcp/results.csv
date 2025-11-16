@@ -1,0 +1,7 @@
+experiment,validation_sign_frame_f1,validation_sign_segment_mF1S,test_sign_frame_f1,test_sign_segment_mF1S
+"Katrin et al., 2021",,,,47.71
+"Low et al., 2025",,,,50.18
+"Zero-shot (Moryossef & Jiang, 2023)",30.20,29.82,31.13,33.32
+Fine-tuned,48.52,48.01,51.46,55.46
+Fine-tuned + pseudo label,35.57,32.92,37.04,37.10
+Fine-tuned + negative sampling,48.74,48.82,52.09,56.04

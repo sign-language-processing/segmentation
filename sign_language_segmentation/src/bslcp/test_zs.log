@@ -1,0 +1,401 @@
+(segmentation) zifan@c1-g4-01:~/segmentation$ python -m sign_language_segmentation.src.train --dataset=bslcp --pose=holistic --fps=25 --hidden_dim=256 --encoder_depth=4 --encoder_bidirectional=true  --optical_flow=true --hand_normalization=true --train=false --checkpoint=./models/E4s-1/best.ckpt --no_wandb=true
+Agruments: Namespace(no_wandb=True, run_name=None, wandb_dir='.', seed=42, device='gpu', gpus=1, epochs=100, patience=20, batch_size=64, batch_size_devtest=20, learning_rate=0.001, lr_scheduler='none', dataset='bslcp', data_dir=None, data_dev=False, fps=25, pose='holistic', pose_components=['POSE_LANDMARKS', 'LEFT_HAND_LANDMARKS', 'RIGHT_HAND_LANDMARKS'], pose_reduce_face=False, hand_normalization=True, optical_flow=True, only_optical_flow=False, classes='bio', pose_projection_dim=256, hidden_dim=256, encoder_depth=4, encoder_bidirectional=True, encoder_autoregressive=False, weighted_loss=True, b_threshold=50, o_threshold=50, threshold_likeliest=False, train=False, test=True, save_jit=False, checkpoint='./models/E4s-1/best.ckpt', pred_output=None, ffmpeg_path=None)
+2025-05-01 10:37:06.060958: E external/local_xla/xla/stream_executor/cuda/cuda_fft.cc:467] Unable to register cuFFT factory: Attempting to register factory for plugin cuFFT when one has already been registered
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+E0000 00:00:1746092226.081112 3636563 cuda_dnn.cc:8579] Unable to register cuDNN factory: Attempting to register factory for plugin cuDNN when one has already been registered
+E0000 00:00:1746092226.087475 3636563 cuda_blas.cc:1407] Unable to register cuBLAS factory: Attempting to register factory for plugin cuBLAS when one has already been registered
+W0000 00:00:1746092226.104912 3636563 computation_placer.cc:177] computation placer already registered. Please check linkage and avoid linking the same target more than once.
+W0000 00:00:1746092226.104934 3636563 computation_placer.cc:177] computation placer already registered. Please check linkage and avoid linking the same target more than once.
+W0000 00:00:1746092226.104937 3636563 computation_placer.cc:177] computation placer already registered. Please check linkage and avoid linking the same target more than once.
+W0000 00:00:1746092226.104941 3636563 computation_placer.cc:177] computation placer already registered. Please check linkage and avoid linking the same target more than once.
+2025-05-01 10:37:06.109592: I tensorflow/core/platform/cpu_feature_guard.cc:210] This TensorFlow binary is optimized to use available CPU instructions in performance-critical operations.
+To enable the following instructions: AVX2 FMA, in other operations, rebuild TensorFlow with the appropriate compiler flags.
+/athenahomes/zifan/segmentation/sign_language_segmentation/src/bslcp/evaluate.py:176: DtypeWarning: Columns (6) have mixed types. Specify dtype option on import or set low_memory=False.
+  df = pd.read_csv(data_path)
+Sentences: 100%|████████████████████████████████████████████████████████████████████████████████████| 17/17 [00:03<00:00,  5.40video/s]
+Loaded 557 data items from ./sign_language_segmentation/src/bslcp/data_merged.csv split=val.
+/athenahomes/zifan/segmentation/sign_language_segmentation/src/bslcp/evaluate.py:176: DtypeWarning: Columns (6) have mixed types. Specify dtype option on import or set low_memory=False.
+  df = pd.read_csv(data_path)
+Sentences: 100%|████████████████████████████████████████████████████████████████████████████████████| 22/22 [00:03<00:00,  6.22video/s]
+Loaded 675 data items from ./sign_language_segmentation/src/bslcp/data_merged.csv split=test.
+/users/zifan/anaconda3/envs/segmentation/lib/python3.10/site-packages/pose_format/utils/normalization_3d.py:98: RuntimeWarning: invalid value encountered in divide
+  normal /= np.linalg.norm(normal, axis=-1, keepdims=True)
+Model Arguments: {'pose_dims': (117, 4), 'pose_projection_dim': 256, 'hidden_dim': 256, 'encoder_depth': 4, 'encoder_bidirectional': True, 'encoder_autoregressive': False, 'learning_rate': 0.001, 'lr_scheduler': 'none', 'b_threshold': 50, 'o_threshold': 50, 'threshold_likeliest': False}
+./models/E4s-1/best.ckpt
+/users/zifan/anaconda3/envs/segmentation/lib/python3.10/site-packages/lightning_fabric/plugins/environments/slurm.py:204: The `srun` command is available on your system but is not used. HINT: If your intention is to run Lightning on SLURM, prepend your python command with `srun` like so: srun python /athenahomes/zifan/segmentation/sign_language_segmen ...
+You are using the plain ModelCheckpoint callback. Consider using LitModelCheckpoint which with seamless uploading to Model registry.
+GPU available: True (cuda), used: True
+TPU available: False, using: 0 TPU cores
+HPU available: False, using: 0 HPUs
+You are using a CUDA device ('NVIDIA RTX A6000') that has Tensor Cores. To properly utilize them, you should set `torch.set_float32_matmul_precision('medium' | 'high')` which will trade-off precision for performance. For more details, read https://pytorch.org/docs/stable/generated/torch.set_float32_matmul_precision.html#torch.set_float32_matmul_precision
+LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
+/users/zifan/anaconda3/envs/segmentation/lib/python3.10/site-packages/pytorch_lightning/trainer/connectors/data_connector.py:425: The 'val_dataloader' does not have many workers which may be a bottleneck. Consider increasing the value of the `num_workers` argument` to `num_workers=31` in the `DataLoader` to improve performance.
+Validation DataLoader 0:   0%|                                                                                  | 0/28 [00:00<?, ?it/s]
+/athenahomes/zifan/segmentation/sign_language_segmentation/src/model.py:322: RuntimeWarning: Mean of empty slice
+  metrics[key] = float(np.nanmean(arr))
+Validation DataLoader 0:   4%|██▋                                                                       | 1/28 [00:00<00:10,  2.57it/s]
+/users/zifan/anaconda3/envs/segmentation/lib/python3.10/site-packages/pose_format/utils/normalization_3d.py:98: RuntimeWarning: invalid value encountered in divide
+  normal /= np.linalg.norm(normal, axis=-1, keepdims=True)
+/athenahomes/zifan/segmentation/sign_language_segmentation/src/model.py:322: RuntimeWarning: Mean of empty slice
+  metrics[key] = float(np.nanmean(arr))
+Validation DataLoader 0:   7%|█████▎                                                                    | 2/28 [00:00<00:09,  2.75it/s]
+/users/zifan/anaconda3/envs/segmentation/lib/python3.10/site-packages/pose_format/utils/normalization_3d.py:98: RuntimeWarning: invalid value encountered in divide
+  normal /= np.linalg.norm(normal, axis=-1, keepdims=True)
+/athenahomes/zifan/segmentation/sign_language_segmentation/src/model.py:322: RuntimeWarning: Mean of empty slice
+  metrics[key] = float(np.nanmean(arr))
+Validation DataLoader 0:  11%|███████▉                                                                  | 3/28 [00:01<00:08,  2.82it/s]
+/users/zifan/anaconda3/envs/segmentation/lib/python3.10/site-packages/pose_format/utils/normalization_3d.py:98: RuntimeWarning: invalid value encountered in divide
+  normal /= np.linalg.norm(normal, axis=-1, keepdims=True)
+/athenahomes/zifan/segmentation/sign_language_segmentation/src/model.py:322: RuntimeWarning: Mean of empty slice
+  metrics[key] = float(np.nanmean(arr))
+Validation DataLoader 0:  14%|██████████▌                                                               | 4/28 [00:01<00:08,  2.71it/s]
+/users/zifan/anaconda3/envs/segmentation/lib/python3.10/site-packages/pose_format/utils/normalization_3d.py:98: RuntimeWarning: invalid value encountered in divide
+  normal /= np.linalg.norm(normal, axis=-1, keepdims=True)
+/athenahomes/zifan/segmentation/sign_language_segmentation/src/model.py:322: RuntimeWarning: Mean of empty slice
+  metrics[key] = float(np.nanmean(arr))
+Validation DataLoader 0:  18%|█████████████▏                                                            | 5/28 [00:01<00:08,  2.78it/s]
+/users/zifan/anaconda3/envs/segmentation/lib/python3.10/site-packages/pose_format/utils/normalization_3d.py:98: RuntimeWarning: invalid value encountered in divide
+  normal /= np.linalg.norm(normal, axis=-1, keepdims=True)
+/athenahomes/zifan/segmentation/sign_language_segmentation/src/model.py:322: RuntimeWarning: Mean of empty slice
+  metrics[key] = float(np.nanmean(arr))
+Validation DataLoader 0:  21%|███████████████▊                                                          | 6/28 [00:02<00:07,  2.84it/s]
+/users/zifan/anaconda3/envs/segmentation/lib/python3.10/site-packages/pose_format/utils/normalization_3d.py:98: RuntimeWarning: invalid value encountered in divide
+  normal /= np.linalg.norm(normal, axis=-1, keepdims=True)
+/athenahomes/zifan/segmentation/sign_language_segmentation/src/model.py:322: RuntimeWarning: Mean of empty slice
+  metrics[key] = float(np.nanmean(arr))
+Validation DataLoader 0:  25%|██████████████████▌                                                       | 7/28 [00:02<00:07,  2.88it/s]
+/users/zifan/anaconda3/envs/segmentation/lib/python3.10/site-packages/pose_format/utils/normalization_3d.py:98: RuntimeWarning: invalid value encountered in divide
+  normal /= np.linalg.norm(normal, axis=-1, keepdims=True)
+/athenahomes/zifan/segmentation/sign_language_segmentation/src/model.py:322: RuntimeWarning: Mean of empty slice
+  metrics[key] = float(np.nanmean(arr))
+Validation DataLoader 0:  29%|█████████████████████▏                                                    | 8/28 [00:02<00:06,  2.90it/s]
+/users/zifan/anaconda3/envs/segmentation/lib/python3.10/site-packages/pose_format/utils/normalization_3d.py:98: RuntimeWarning: invalid value encountered in divide
+  normal /= np.linalg.norm(normal, axis=-1, keepdims=True)
+/athenahomes/zifan/segmentation/sign_language_segmentation/src/model.py:322: RuntimeWarning: Mean of empty slice
+  metrics[key] = float(np.nanmean(arr))
+Validation DataLoader 0:  32%|███████████████████████▊                                                  | 9/28 [00:03<00:06,  2.91it/s]
+/users/zifan/anaconda3/envs/segmentation/lib/python3.10/site-packages/pose_format/utils/normalization_3d.py:98: RuntimeWarning: invalid value encountered in divide
+  normal /= np.linalg.norm(normal, axis=-1, keepdims=True)
+/athenahomes/zifan/segmentation/sign_language_segmentation/src/model.py:322: RuntimeWarning: Mean of empty slice
+  metrics[key] = float(np.nanmean(arr))
+Validation DataLoader 0:  36%|██████████████████████████                                               | 10/28 [00:03<00:06,  2.91it/s]
+/users/zifan/anaconda3/envs/segmentation/lib/python3.10/site-packages/pose_format/utils/normalization_3d.py:98: RuntimeWarning: invalid value encountered in divide
+  normal /= np.linalg.norm(normal, axis=-1, keepdims=True)
+/athenahomes/zifan/segmentation/sign_language_segmentation/src/model.py:322: RuntimeWarning: Mean of empty slice
+  metrics[key] = float(np.nanmean(arr))
+Validation DataLoader 0:  39%|████████████████████████████▋                                            | 11/28 [00:03<00:05,  2.94it/s]
+/users/zifan/anaconda3/envs/segmentation/lib/python3.10/site-packages/pose_format/utils/normalization_3d.py:98: RuntimeWarning: invalid value encountered in divide
+  normal /= np.linalg.norm(normal, axis=-1, keepdims=True)
+/athenahomes/zifan/segmentation/sign_language_segmentation/src/model.py:322: RuntimeWarning: Mean of empty slice
+  metrics[key] = float(np.nanmean(arr))
+Validation DataLoader 0:  43%|███████████████████████████████▎                                         | 12/28 [00:04<00:05,  2.95it/s]
+/users/zifan/anaconda3/envs/segmentation/lib/python3.10/site-packages/pose_format/utils/normalization_3d.py:98: RuntimeWarning: invalid value encountered in divide
+  normal /= np.linalg.norm(normal, axis=-1, keepdims=True)
+/athenahomes/zifan/segmentation/sign_language_segmentation/src/model.py:322: RuntimeWarning: Mean of empty slice
+  metrics[key] = float(np.nanmean(arr))
+Validation DataLoader 0:  46%|█████████████████████████████████▉                                       | 13/28 [00:04<00:05,  2.97it/s]
+/users/zifan/anaconda3/envs/segmentation/lib/python3.10/site-packages/pose_format/utils/normalization_3d.py:98: RuntimeWarning: invalid value encountered in divide
+  normal /= np.linalg.norm(normal, axis=-1, keepdims=True)
+/athenahomes/zifan/segmentation/sign_language_segmentation/src/model.py:322: RuntimeWarning: Mean of empty slice
+  metrics[key] = float(np.nanmean(arr))
+Validation DataLoader 0:  50%|████████████████████████████████████▌                                    | 14/28 [00:04<00:04,  2.99it/s]
+/users/zifan/anaconda3/envs/segmentation/lib/python3.10/site-packages/pose_format/utils/normalization_3d.py:98: RuntimeWarning: invalid value encountered in divide
+  normal /= np.linalg.norm(normal, axis=-1, keepdims=True)
+/athenahomes/zifan/segmentation/sign_language_segmentation/src/model.py:322: RuntimeWarning: Mean of empty slice
+  metrics[key] = float(np.nanmean(arr))
+Validation DataLoader 0:  54%|███████████████████████████████████████                                  | 15/28 [00:05<00:04,  2.99it/s]
+/users/zifan/anaconda3/envs/segmentation/lib/python3.10/site-packages/pose_format/utils/normalization_3d.py:98: RuntimeWarning: invalid value encountered in divide
+  normal /= np.linalg.norm(normal, axis=-1, keepdims=True)
+/athenahomes/zifan/segmentation/sign_language_segmentation/src/model.py:322: RuntimeWarning: Mean of empty slice
+  metrics[key] = float(np.nanmean(arr))
+Validation DataLoader 0:  57%|█████████████████████████████████████████▋                               | 16/28 [00:05<00:04,  2.99it/s]
+/users/zifan/anaconda3/envs/segmentation/lib/python3.10/site-packages/pose_format/utils/normalization_3d.py:98: RuntimeWarning: invalid value encountered in divide
+  normal /= np.linalg.norm(normal, axis=-1, keepdims=True)
+/athenahomes/zifan/segmentation/sign_language_segmentation/src/model.py:322: RuntimeWarning: Mean of empty slice
+  metrics[key] = float(np.nanmean(arr))
+Validation DataLoader 0:  61%|████████████████████████████████████████████▎                            | 17/28 [00:05<00:03,  2.99it/s]
+/users/zifan/anaconda3/envs/segmentation/lib/python3.10/site-packages/pose_format/utils/normalization_3d.py:98: RuntimeWarning: invalid value encountered in divide
+  normal /= np.linalg.norm(normal, axis=-1, keepdims=True)
+/athenahomes/zifan/segmentation/sign_language_segmentation/src/model.py:322: RuntimeWarning: Mean of empty slice
+  metrics[key] = float(np.nanmean(arr))
+Validation DataLoader 0:  64%|██████████████████████████████████████████████▉                          | 18/28 [00:06<00:03,  2.99it/s]/users/zifan/anaconda3/envs/segmentation/lib/python3.10/site-packages/pose_format/utils/normalization_3d.py:98: RuntimeWarning: invalid value encountered in divide
+  normal /= np.linalg.norm(normal, axis=-1, keepdims=True)
+/athenahomes/zifan/segmentation/sign_language_segmentation/src/model.py:322: RuntimeWarning: Mean of empty slice
+  metrics[key] = float(np.nanmean(arr))
+Validation DataLoader 0:  68%|█████████████████████████████████████████████████▌                       | 19/28 [00:06<00:03,  2.99it/s]
+/users/zifan/anaconda3/envs/segmentation/lib/python3.10/site-packages/pose_format/utils/normalization_3d.py:98: RuntimeWarning: invalid value encountered in divide
+  normal /= np.linalg.norm(normal, axis=-1, keepdims=True)
+/athenahomes/zifan/segmentation/sign_language_segmentation/src/model.py:322: RuntimeWarning: Mean of empty slice
+  metrics[key] = float(np.nanmean(arr))
+Validation DataLoader 0:  71%|████████████████████████████████████████████████████▏                    | 20/28 [00:06<00:02,  2.99it/s]
+/users/zifan/anaconda3/envs/segmentation/lib/python3.10/site-packages/pose_format/utils/normalization_3d.py:98: RuntimeWarning: invalid value encountered in divide
+  normal /= np.linalg.norm(normal, axis=-1, keepdims=True)
+/athenahomes/zifan/segmentation/sign_language_segmentation/src/model.py:322: RuntimeWarning: Mean of empty slice
+  metrics[key] = float(np.nanmean(arr))
+Validation DataLoader 0:  75%|██████████████████████████████████████████████████████▊                  | 21/28 [00:07<00:02,  3.00it/s]
+/users/zifan/anaconda3/envs/segmentation/lib/python3.10/site-packages/pose_format/utils/normalization_3d.py:98: RuntimeWarning: invalid value encountered in divide
+  normal /= np.linalg.norm(normal, axis=-1, keepdims=True)
+/athenahomes/zifan/segmentation/sign_language_segmentation/src/model.py:322: RuntimeWarning: Mean of empty slice
+  metrics[key] = float(np.nanmean(arr))
+Validation DataLoader 0:  79%|█████████████████████████████████████████████████████████▎               | 22/28 [00:07<00:01,  3.02it/s]
+/users/zifan/anaconda3/envs/segmentation/lib/python3.10/site-packages/pose_format/utils/normalization_3d.py:98: RuntimeWarning: invalid value encountered in divide
+  normal /= np.linalg.norm(normal, axis=-1, keepdims=True)
+/athenahomes/zifan/segmentation/sign_language_segmentation/src/model.py:322: RuntimeWarning: Mean of empty slice
+  metrics[key] = float(np.nanmean(arr))
+Validation DataLoader 0:  82%|███████████████████████████████████████████████████████████▉             | 23/28 [00:07<00:01,  3.01it/s]
+/users/zifan/anaconda3/envs/segmentation/lib/python3.10/site-packages/pose_format/utils/normalization_3d.py:98: RuntimeWarning: invalid value encountered in divide
+  normal /= np.linalg.norm(normal, axis=-1, keepdims=True)
+/athenahomes/zifan/segmentation/sign_language_segmentation/src/model.py:322: RuntimeWarning: Mean of empty slice
+  metrics[key] = float(np.nanmean(arr))
+Validation DataLoader 0:  86%|██████████████████████████████████████████████████████████████▌          | 24/28 [00:07<00:01,  3.01it/s]
+/users/zifan/anaconda3/envs/segmentation/lib/python3.10/site-packages/pose_format/utils/normalization_3d.py:98: RuntimeWarning: invalid value encountered in divide
+  normal /= np.linalg.norm(normal, axis=-1, keepdims=True)
+/athenahomes/zifan/segmentation/sign_language_segmentation/src/model.py:322: RuntimeWarning: Mean of empty slice
+  metrics[key] = float(np.nanmean(arr))
+Validation DataLoader 0:  89%|█████████████████████████████████████████████████████████████████▏       | 25/28 [00:08<00:00,  3.00it/s]
+/users/zifan/anaconda3/envs/segmentation/lib/python3.10/site-packages/pose_format/utils/normalization_3d.py:98: RuntimeWarning: invalid value encountered in divide
+  normal /= np.linalg.norm(normal, axis=-1, keepdims=True)
+/athenahomes/zifan/segmentation/sign_language_segmentation/src/model.py:322: RuntimeWarning: Mean of empty slice
+  metrics[key] = float(np.nanmean(arr))
+Validation DataLoader 0:  93%|███████████████████████████████████████████████████████████████████▊     | 26/28 [00:08<00:00,  2.99it/s]
+/users/zifan/anaconda3/envs/segmentation/lib/python3.10/site-packages/pose_format/utils/normalization_3d.py:98: RuntimeWarning: invalid value encountered in divide
+  normal /= np.linalg.norm(normal, axis=-1, keepdims=True)
+/athenahomes/zifan/segmentation/sign_language_segmentation/src/model.py:322: RuntimeWarning: Mean of empty slice
+  metrics[key] = float(np.nanmean(arr))
+Validation DataLoader 0:  96%|██████████████████████████████████████████████████████████████████████▍  | 27/28 [00:09<00:00,  2.99it/s]
+/users/zifan/anaconda3/envs/segmentation/lib/python3.10/site-packages/pose_format/utils/normalization_3d.py:98: RuntimeWarning: invalid value encountered in divide
+  normal /= np.linalg.norm(normal, axis=-1, keepdims=True)
+/athenahomes/zifan/segmentation/sign_language_segmentation/src/model.py:322: RuntimeWarning: Mean of empty slice
+  metrics[key] = float(np.nanmean(arr))
+Validation DataLoader 0: 100%|█████████████████████████████████████████████████████████████████████████| 28/28 [00:09<00:00,  3.00it/s]
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃             Validate metric             ┃              DataLoader 0               ┃
+┡━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┩
+│         validation_frame_f1_avg         │            0.195275217294693            │
+│             validation_loss             │           12.781994819641113            │
+│   validation_sentence_frame_accuracy    │           0.16286741197109222           │
+│      validation_sentence_frame_f1       │           0.08857258409261703           │
+│     validation_sentence_frame_f1_O      │                   nan                   │
+│  validation_sentence_frame_precision_O  │                   nan                   │
+│   validation_sentence_frame_recall_O    │                   nan                   │
+│   validation_sentence_frame_roc_auc_O   │                   nan                   │
+│        validation_sentence_loss         │            6.019819736480713            │
+│     validation_sentence_segment_IoU     │          0.0017953321803361177          │
+│ validation_sentence_segment_boundary_f1 │           0.39317774772644043           │
+│    validation_sentence_segment_mF1S     │                   0.0                   │
+│ validation_sentence_segment_percentage  │           1.9640933275222778            │
+│     validation_sign_frame_accuracy      │           0.39028361439704895           │
+│        validation_sign_frame_f1         │           0.30197784304618835           │
+│       validation_sign_frame_f1_O        │           0.27280670404434204           │
+│    validation_sign_frame_precision_O    │           0.22576017677783966           │
+│     validation_sign_frame_recall_O      │           0.41008296608924866           │
+│     validation_sign_frame_roc_auc_O     │           0.5878887176513672            │
+│          validation_sign_loss           │            6.762176036834717            │
+│       validation_sign_segment_IoU       │           0.6655359268188477            │
+│   validation_sign_segment_boundary_f1   │           0.4892510771751404            │
+│      validation_sign_segment_mF1S       │           0.2982470989227295            │
+│   validation_sign_segment_percentage    │           0.9855276346206665            │
+└─────────────────────────────────────────┴─────────────────────────────────────────┘
+/users/zifan/anaconda3/envs/segmentation/lib/python3.10/site-packages/lightning_fabric/plugins/environments/slurm.py:204: The `srun` command is available on your system but is not used. HINT: If your intention is to run Lightning on SLURM, prepend your python command with `srun` like so: srun python /athenahomes/zifan/segmentation/sign_language_segmen ...
+LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
+/users/zifan/anaconda3/envs/segmentation/lib/python3.10/site-packages/pytorch_lightning/trainer/connectors/data_connector.py:425: The 'test_dataloader' does not have many workers which may be a bottleneck. Consider increasing the value of the `num_workers` argument` to `num_workers=31` in the `DataLoader` to improve performance.
+Testing: |                                                                                                       | 0/? [00:00<?, ?it/s]
+/users/zifan/anaconda3/envs/segmentation/lib/python3.10/site-packages/pose_format/utils/normalization_3d.py:98: RuntimeWarning: invalid value encountered in divide
+  normal /= np.linalg.norm(normal, axis=-1, keepdims=True)
+Testing DataLoader 0:   0%|                                                                                     | 0/34 [00:00<?, ?it/s]
+/athenahomes/zifan/segmentation/sign_language_segmentation/src/model.py:322: RuntimeWarning: Mean of empty slice
+  metrics[key] = float(np.nanmean(arr))
+Testing DataLoader 0:   3%|██▎                                                                          | 1/34 [00:00<00:06,  4.74it/s]
+/users/zifan/anaconda3/envs/segmentation/lib/python3.10/site-packages/pose_format/utils/normalization_3d.py:98: RuntimeWarning: invalid value encountered in divide
+  normal /= np.linalg.norm(normal, axis=-1, keepdims=True)
+/athenahomes/zifan/segmentation/sign_language_segmentation/src/model.py:322: RuntimeWarning: Mean of empty slice
+  metrics[key] = float(np.nanmean(arr))
+Testing DataLoader 0:   6%|████▌                                                                        | 2/34 [00:00<00:08,  3.82it/s]
+/users/zifan/anaconda3/envs/segmentation/lib/python3.10/site-packages/pose_format/utils/normalization_3d.py:98: RuntimeWarning: invalid value encountered in divide
+  normal /= np.linalg.norm(normal, axis=-1, keepdims=True)
+/athenahomes/zifan/segmentation/sign_language_segmentation/src/model.py:322: RuntimeWarning: Mean of empty slice
+  metrics[key] = float(np.nanmean(arr))
+Testing DataLoader 0:   9%|██████▊                                                                      | 3/34 [00:00<00:08,  3.55it/s]
+/users/zifan/anaconda3/envs/segmentation/lib/python3.10/site-packages/pose_format/utils/normalization_3d.py:98: RuntimeWarning: invalid value encountered in divide
+  normal /= np.linalg.norm(normal, axis=-1, keepdims=True)
+/athenahomes/zifan/segmentation/sign_language_segmentation/src/model.py:322: RuntimeWarning: Mean of empty slice
+  metrics[key] = float(np.nanmean(arr))
+Testing DataLoader 0:  12%|█████████                                                                    | 4/34 [00:01<00:08,  3.46it/s]
+/users/zifan/anaconda3/envs/segmentation/lib/python3.10/site-packages/pose_format/utils/normalization_3d.py:98: RuntimeWarning: invalid value encountered in divide
+  normal /= np.linalg.norm(normal, axis=-1, keepdims=True)
+/athenahomes/zifan/segmentation/sign_language_segmentation/src/model.py:322: RuntimeWarning: Mean of empty slice
+  metrics[key] = float(np.nanmean(arr))
+Testing DataLoader 0:  15%|███████████▎                                                                 | 5/34 [00:01<00:08,  3.39it/s]
+/users/zifan/anaconda3/envs/segmentation/lib/python3.10/site-packages/pose_format/utils/normalization_3d.py:98: RuntimeWarning: invalid value encountered in divide
+  normal /= np.linalg.norm(normal, axis=-1, keepdims=True)
+/athenahomes/zifan/segmentation/sign_language_segmentation/src/model.py:322: RuntimeWarning: Mean of empty slice
+  metrics[key] = float(np.nanmean(arr))
+Testing DataLoader 0:  18%|█████████████▌                                                               | 6/34 [00:01<00:08,  3.33it/s]
+/users/zifan/anaconda3/envs/segmentation/lib/python3.10/site-packages/pose_format/utils/normalization_3d.py:98: RuntimeWarning: invalid value encountered in divide
+  normal /= np.linalg.norm(normal, axis=-1, keepdims=True)
+/athenahomes/zifan/segmentation/sign_language_segmentation/src/model.py:322: RuntimeWarning: Mean of empty slice
+  metrics[key] = float(np.nanmean(arr))
+Testing DataLoader 0:  21%|███████████████▊                                                             | 7/34 [00:02<00:08,  3.32it/s]
+/users/zifan/anaconda3/envs/segmentation/lib/python3.10/site-packages/pose_format/utils/normalization_3d.py:98: RuntimeWarning: invalid value encountered in divide
+  normal /= np.linalg.norm(normal, axis=-1, keepdims=True)
+/athenahomes/zifan/segmentation/sign_language_segmentation/src/model.py:322: RuntimeWarning: Mean of empty slice
+  metrics[key] = float(np.nanmean(arr))
+Testing DataLoader 0:  24%|██████████████████                                                           | 8/34 [00:02<00:07,  3.28it/s]
+/users/zifan/anaconda3/envs/segmentation/lib/python3.10/site-packages/pose_format/utils/normalization_3d.py:98: RuntimeWarning: invalid value encountered in divide
+  normal /= np.linalg.norm(normal, axis=-1, keepdims=True)
+/athenahomes/zifan/segmentation/sign_language_segmentation/src/model.py:322: RuntimeWarning: Mean of empty slice
+  metrics[key] = float(np.nanmean(arr))
+Testing DataLoader 0:  26%|████████████████████▍                                                        | 9/34 [00:02<00:07,  3.24it/s]
+/users/zifan/anaconda3/envs/segmentation/lib/python3.10/site-packages/pose_format/utils/normalization_3d.py:98: RuntimeWarning: invalid value encountered in divide
+  normal /= np.linalg.norm(normal, axis=-1, keepdims=True)
+/athenahomes/zifan/segmentation/sign_language_segmentation/src/model.py:322: RuntimeWarning: Mean of empty slice
+  metrics[key] = float(np.nanmean(arr))
+Testing DataLoader 0:  29%|██████████████████████▎                                                     | 10/34 [00:03<00:07,  3.21it/s]
+/users/zifan/anaconda3/envs/segmentation/lib/python3.10/site-packages/pose_format/utils/normalization_3d.py:98: RuntimeWarning: invalid value encountered in divide
+  normal /= np.linalg.norm(normal, axis=-1, keepdims=True)
+/athenahomes/zifan/segmentation/sign_language_segmentation/src/model.py:322: RuntimeWarning: Mean of empty slice
+  metrics[key] = float(np.nanmean(arr))
+Testing DataLoader 0:  32%|████████████████████████▌                                                   | 11/34 [00:03<00:07,  3.17it/s]
+/users/zifan/anaconda3/envs/segmentation/lib/python3.10/site-packages/pose_format/utils/normalization_3d.py:98: RuntimeWarning: invalid value encountered in divide
+  normal /= np.linalg.norm(normal, axis=-1, keepdims=True)
+/athenahomes/zifan/segmentation/sign_language_segmentation/src/model.py:322: RuntimeWarning: Mean of empty slice
+  metrics[key] = float(np.nanmean(arr))
+Testing DataLoader 0:  35%|██████████████████████████▊                                                 | 12/34 [00:03<00:06,  3.17it/s]
+/users/zifan/anaconda3/envs/segmentation/lib/python3.10/site-packages/pose_format/utils/normalization_3d.py:98: RuntimeWarning: invalid value encountered in divide
+  normal /= np.linalg.norm(normal, axis=-1, keepdims=True)
+/athenahomes/zifan/segmentation/sign_language_segmentation/src/model.py:322: RuntimeWarning: Mean of empty slice
+  metrics[key] = float(np.nanmean(arr))
+Testing DataLoader 0:  38%|█████████████████████████████                                               | 13/34 [00:04<00:06,  3.17it/s]
+/users/zifan/anaconda3/envs/segmentation/lib/python3.10/site-packages/pose_format/utils/normalization_3d.py:98: RuntimeWarning: invalid value encountered in divide
+  normal /= np.linalg.norm(normal, axis=-1, keepdims=True)
+/athenahomes/zifan/segmentation/sign_language_segmentation/src/model.py:322: RuntimeWarning: Mean of empty slice
+  metrics[key] = float(np.nanmean(arr))
+Testing DataLoader 0:  41%|███████████████████████████████▎                                            | 14/34 [00:04<00:06,  3.17it/s]
+/users/zifan/anaconda3/envs/segmentation/lib/python3.10/site-packages/pose_format/utils/normalization_3d.py:98: RuntimeWarning: invalid value encountered in divide
+  normal /= np.linalg.norm(normal, axis=-1, keepdims=True)
+/athenahomes/zifan/segmentation/sign_language_segmentation/src/model.py:322: RuntimeWarning: Mean of empty slice
+  metrics[key] = float(np.nanmean(arr))
+Testing DataLoader 0:  44%|█████████████████████████████████▌                                          | 15/34 [00:04<00:05,  3.17it/s]
+/users/zifan/anaconda3/envs/segmentation/lib/python3.10/site-packages/pose_format/utils/normalization_3d.py:98: RuntimeWarning: invalid value encountered in divide
+  normal /= np.linalg.norm(normal, axis=-1, keepdims=True)
+/athenahomes/zifan/segmentation/sign_language_segmentation/src/model.py:322: RuntimeWarning: Mean of empty slice
+  metrics[key] = float(np.nanmean(arr))
+Testing DataLoader 0:  47%|███████████████████████████████████▊                                        | 16/34 [00:05<00:05,  3.16it/s]
+/users/zifan/anaconda3/envs/segmentation/lib/python3.10/site-packages/pose_format/utils/normalization_3d.py:98: RuntimeWarning: invalid value encountered in divide
+  normal /= np.linalg.norm(normal, axis=-1, keepdims=True)
+/athenahomes/zifan/segmentation/sign_language_segmentation/src/model.py:322: RuntimeWarning: Mean of empty slice
+  metrics[key] = float(np.nanmean(arr))
+Testing DataLoader 0:  50%|██████████████████████████████████████                                      | 17/34 [00:05<00:05,  3.15it/s]
+/users/zifan/anaconda3/envs/segmentation/lib/python3.10/site-packages/pose_format/utils/normalization_3d.py:98: RuntimeWarning: invalid value encountered in divide
+  normal /= np.linalg.norm(normal, axis=-1, keepdims=True)
+/athenahomes/zifan/segmentation/sign_language_segmentation/src/model.py:322: RuntimeWarning: Mean of empty slice
+  metrics[key] = float(np.nanmean(arr))
+Testing DataLoader 0:  53%|████████████████████████████████████████▏                                   | 18/34 [00:05<00:05,  3.13it/s]
+/users/zifan/anaconda3/envs/segmentation/lib/python3.10/site-packages/pose_format/utils/normalization_3d.py:98: RuntimeWarning: invalid value encountered in divide
+  normal /= np.linalg.norm(normal, axis=-1, keepdims=True)
+/athenahomes/zifan/segmentation/sign_language_segmentation/src/model.py:322: RuntimeWarning: Mean of empty slice
+  metrics[key] = float(np.nanmean(arr))
+Testing DataLoader 0:  56%|██████████████████████████████████████████▍                                 | 19/34 [00:06<00:04,  3.11it/s]
+/users/zifan/anaconda3/envs/segmentation/lib/python3.10/site-packages/pose_format/utils/normalization_3d.py:98: RuntimeWarning: invalid value encountered in divide
+  normal /= np.linalg.norm(normal, axis=-1, keepdims=True)
+/athenahomes/zifan/segmentation/sign_language_segmentation/src/model.py:322: RuntimeWarning: Mean of empty slice
+  metrics[key] = float(np.nanmean(arr))
+Testing DataLoader 0:  59%|████████████████████████████████████████████▋                               | 20/34 [00:06<00:04,  3.10it/s]
+/users/zifan/anaconda3/envs/segmentation/lib/python3.10/site-packages/pose_format/utils/normalization_3d.py:98: RuntimeWarning: invalid value encountered in divide
+  normal /= np.linalg.norm(normal, axis=-1, keepdims=True)
+/athenahomes/zifan/segmentation/sign_language_segmentation/src/model.py:322: RuntimeWarning: Mean of empty slice
+  metrics[key] = float(np.nanmean(arr))
+Testing DataLoader 0:  62%|██████████████████████████████████████████████▉                             | 21/34 [00:06<00:04,  3.09it/s]
+/users/zifan/anaconda3/envs/segmentation/lib/python3.10/site-packages/pose_format/utils/normalization_3d.py:98: RuntimeWarning: invalid value encountered in divide
+  normal /= np.linalg.norm(normal, axis=-1, keepdims=True)
+/athenahomes/zifan/segmentation/sign_language_segmentation/src/model.py:322: RuntimeWarning: Mean of empty slice
+  metrics[key] = float(np.nanmean(arr))
+Testing DataLoader 0:  65%|█████████████████████████████████████████████████▏                          | 22/34 [00:07<00:03,  3.09it/s]
+/users/zifan/anaconda3/envs/segmentation/lib/python3.10/site-packages/pose_format/utils/normalization_3d.py:98: RuntimeWarning: invalid value encountered in divide
+  normal /= np.linalg.norm(normal, axis=-1, keepdims=True)
+/athenahomes/zifan/segmentation/sign_language_segmentation/src/model.py:322: RuntimeWarning: Mean of empty slice
+  metrics[key] = float(np.nanmean(arr))
+Testing DataLoader 0:  68%|███████████████████████████████████████████████████▍                        | 23/34 [00:07<00:03,  3.08it/s]
+/users/zifan/anaconda3/envs/segmentation/lib/python3.10/site-packages/pose_format/utils/normalization_3d.py:98: RuntimeWarning: invalid value encountered in divide
+  normal /= np.linalg.norm(normal, axis=-1, keepdims=True)
+/athenahomes/zifan/segmentation/sign_language_segmentation/src/model.py:322: RuntimeWarning: Mean of empty slice
+  metrics[key] = float(np.nanmean(arr))
+Testing DataLoader 0:  71%|█████████████████████████████████████████████████████▋                      | 24/34 [00:07<00:03,  3.07it/s]
+/users/zifan/anaconda3/envs/segmentation/lib/python3.10/site-packages/pose_format/utils/normalization_3d.py:98: RuntimeWarning: invalid value encountered in divide
+  normal /= np.linalg.norm(normal, axis=-1, keepdims=True)
+/athenahomes/zifan/segmentation/sign_language_segmentation/src/model.py:322: RuntimeWarning: Mean of empty slice
+  metrics[key] = float(np.nanmean(arr))
+Testing DataLoader 0:  74%|███████████████████████████████████████████████████████▉                    | 25/34 [00:08<00:02,  3.07it/s]
+/users/zifan/anaconda3/envs/segmentation/lib/python3.10/site-packages/pose_format/utils/normalization_3d.py:98: RuntimeWarning: invalid value encountered in divide
+  normal /= np.linalg.norm(normal, axis=-1, keepdims=True)
+/athenahomes/zifan/segmentation/sign_language_segmentation/src/model.py:322: RuntimeWarning: Mean of empty slice
+  metrics[key] = float(np.nanmean(arr))
+Testing DataLoader 0:  76%|██████████████████████████████████████████████████████████                  | 26/34 [00:08<00:02,  3.07it/s]
+/users/zifan/anaconda3/envs/segmentation/lib/python3.10/site-packages/pose_format/utils/normalization_3d.py:98: RuntimeWarning: invalid value encountered in divide
+  normal /= np.linalg.norm(normal, axis=-1, keepdims=True)
+/athenahomes/zifan/segmentation/sign_language_segmentation/src/model.py:322: RuntimeWarning: Mean of empty slice
+  metrics[key] = float(np.nanmean(arr))
+Testing DataLoader 0:  79%|████████████████████████████████████████████████████████████▎               | 27/34 [00:08<00:02,  3.06it/s]
+/users/zifan/anaconda3/envs/segmentation/lib/python3.10/site-packages/pose_format/utils/normalization_3d.py:98: RuntimeWarning: invalid value encountered in divide
+  normal /= np.linalg.norm(normal, axis=-1, keepdims=True)
+/athenahomes/zifan/segmentation/sign_language_segmentation/src/model.py:322: RuntimeWarning: Mean of empty slice
+  metrics[key] = float(np.nanmean(arr))
+Testing DataLoader 0:  82%|██████████████████████████████████████████████████████████████▌             | 28/34 [00:09<00:01,  3.06it/s]
+/users/zifan/anaconda3/envs/segmentation/lib/python3.10/site-packages/pose_format/utils/normalization_3d.py:98: RuntimeWarning: invalid value encountered in divide
+  normal /= np.linalg.norm(normal, axis=-1, keepdims=True)
+/athenahomes/zifan/segmentation/sign_language_segmentation/src/model.py:322: RuntimeWarning: Mean of empty slice
+  metrics[key] = float(np.nanmean(arr))
+Testing DataLoader 0:  85%|████████████████████████████████████████████████████████████████▊           | 29/34 [00:09<00:01,  3.07it/s]
+/users/zifan/anaconda3/envs/segmentation/lib/python3.10/site-packages/pose_format/utils/normalization_3d.py:98: RuntimeWarning: invalid value encountered in divide
+  normal /= np.linalg.norm(normal, axis=-1, keepdims=True)
+/athenahomes/zifan/segmentation/sign_language_segmentation/src/model.py:322: RuntimeWarning: Mean of empty slice
+  metrics[key] = float(np.nanmean(arr))
+Testing DataLoader 0:  88%|███████████████████████████████████████████████████████████████████         | 30/34 [00:09<00:01,  3.08it/s]
+/users/zifan/anaconda3/envs/segmentation/lib/python3.10/site-packages/pose_format/utils/normalization_3d.py:98: RuntimeWarning: invalid value encountered in divide
+  normal /= np.linalg.norm(normal, axis=-1, keepdims=True)
+/athenahomes/zifan/segmentation/sign_language_segmentation/src/model.py:322: RuntimeWarning: Mean of empty slice
+  metrics[key] = float(np.nanmean(arr))
+Testing DataLoader 0:  91%|█████████████████████████████████████████████████████████████████████▎      | 31/34 [00:10<00:00,  3.08it/s]
+/users/zifan/anaconda3/envs/segmentation/lib/python3.10/site-packages/pose_format/utils/normalization_3d.py:98: RuntimeWarning: invalid value encountered in divide
+  normal /= np.linalg.norm(normal, axis=-1, keepdims=True)
+/athenahomes/zifan/segmentation/sign_language_segmentation/src/model.py:322: RuntimeWarning: Mean of empty slice
+  metrics[key] = float(np.nanmean(arr))
+Testing DataLoader 0:  94%|███████████████████████████████████████████████████████████████████████▌    | 32/34 [00:10<00:00,  3.09it/s]
+/users/zifan/anaconda3/envs/segmentation/lib/python3.10/site-packages/pose_format/utils/normalization_3d.py:98: RuntimeWarning: invalid value encountered in divide
+  normal /= np.linalg.norm(normal, axis=-1, keepdims=True)
+/athenahomes/zifan/segmentation/sign_language_segmentation/src/model.py:322: RuntimeWarning: Mean of empty slice
+  metrics[key] = float(np.nanmean(arr))
+Testing DataLoader 0:  97%|█████████████████████████████████████████████████████████████████████████▊  | 33/34 [00:10<00:00,  3.09it/s]
+/users/zifan/anaconda3/envs/segmentation/lib/python3.10/site-packages/pose_format/utils/normalization_3d.py:98: RuntimeWarning: invalid value encountered in divide
+  normal /= np.linalg.norm(normal, axis=-1, keepdims=True)
+/athenahomes/zifan/segmentation/sign_language_segmentation/src/model.py:322: RuntimeWarning: Mean of empty slice
+  metrics[key] = float(np.nanmean(arr))
+Testing DataLoader 0: 100%|████████████████████████████████████████████████████████████████████████████| 34/34 [00:10<00:00,  3.10it/s]
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃            Test metric            ┃           DataLoader 0            ┃
+┡━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┩
+│         test_frame_f1_avg         │        0.2060929834842682         │
+│             test_loss             │        12.462170600891113         │
+│   test_sentence_frame_accuracy    │         0.188533753156662         │
+│      test_sentence_frame_f1       │        0.10090611129999161        │
+│     test_sentence_frame_f1_O      │                nan                │
+│  test_sentence_frame_precision_O  │                nan                │
+│   test_sentence_frame_recall_O    │                nan                │
+│   test_sentence_frame_roc_auc_O   │                nan                │
+│        test_sentence_loss         │         5.715795993804932         │
+│     test_sentence_segment_IoU     │        0.00592592591419816        │
+│ test_sentence_segment_boundary_f1 │        0.4444444477558136         │
+│    test_sentence_segment_mF1S     │                0.0                │
+│ test_sentence_segment_percentage  │        1.8311110734939575         │
+│     test_sign_frame_accuracy      │        0.41030746698379517        │
+│        test_sign_frame_f1         │        0.3112797737121582         │
+│       test_sign_frame_f1_O        │        0.2912423610687256         │
+│    test_sign_frame_precision_O    │        0.22965224087238312        │
+│     test_sign_frame_recall_O      │        0.47843316197395325        │
+│     test_sign_frame_roc_auc_O     │        0.6285961270332336         │
+│          test_sign_loss           │         6.746373176574707         │
+│       test_sign_segment_IoU       │        0.6505596041679382         │
+│   test_sign_segment_boundary_f1   │        0.4819148778915405         │
+│      test_sign_segment_mF1S       │        0.33319178223609924        │
+│   test_sign_segment_percentage    │        0.9395419955253601         │
+└───────────────────────────────────┴───────────────────────────────────┘

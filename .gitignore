@@ -1,2 +1,7 @@
 .idea/
 .env
+__pycache__
+*.egg-info
+models
+lightning_logs/
+wandb

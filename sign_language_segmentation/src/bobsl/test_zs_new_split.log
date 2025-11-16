@@ -1,0 +1,59 @@
+Agruments: Namespace(no_wandb=True, run_name=None, wandb_dir='.', seed=42, device='gpu', gpus=1, epochs=100, patience=20, batch_size=8, batch_size_devtest=20, learning_rate=0.001, lr_scheduler='none', dataset='bobsl_cslr', data_dir=None, data_dev=False, fps=25, pose='holistic', pose_components=['POSE_LANDMARKS', 'LEFT_HAND_LANDMARKS', 'RIGHT_HAND_LANDMARKS'], pose_reduce_face=False, hand_normalization=True, optical_flow=True, only_optical_flow=False, classes='bio', pose_projection_dim=256, hidden_dim=256, encoder_depth=4, encoder_bidirectional=True, encoder_autoregressive=False, weighted_loss=True, b_threshold=50, o_threshold=50, threshold_likeliest=False, train=False, test=True, save_jit=False, checkpoint='./models/E4s-1/best.ckpt', pred_output=None, ffmpeg_path=None)
+Loaded 75 data items from ./sign_language_segmentation/src/bsl/data.csv split=val.
+Loaded 110 data items from ./sign_language_segmentation/src/bsl/data.csv split=test.
+Model Arguments: {'pose_dims': (117, 4), 'pose_projection_dim': 256, 'hidden_dim': 256, 'encoder_depth': 4, 'encoder_bidirectional': True, 'encoder_autoregressive': False, 'learning_rate': 0.001, 'lr_scheduler': 'none', 'b_threshold': 50, 'o_threshold': 50, 'threshold_likeliest': False}
+./models/E4s-1/best.ckpt
+Validation: |          | 0/? [00:00<?, ?it/s]Validation:   0%|          | 0/4 [00:00<?, ?it/s]Validation DataLoader 0:   0%|          | 0/4 [00:00<?, ?it/s]Validation DataLoader 0:  25%|██▌       | 1/4 [00:00<00:01,  1.65it/s]Validation DataLoader 0:  50%|█████     | 2/4 [00:01<00:01,  1.42it/s]Validation DataLoader 0:  75%|███████▌  | 3/4 [00:04<00:01,  0.66it/s]Validation DataLoader 0: 100%|██████████| 4/4 [00:07<00:00,  0.57it/s]Validation DataLoader 0: 100%|██████████| 4/4 [00:07<00:00,  0.57it/s]
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃             Validate metric             ┃              DataLoader 0               ┃
+┡━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┩
+│         validation_frame_f1_avg         │           0.38669058680534363           │
+│             validation_loss             │           7.3739728927612305            │
+│   validation_sentence_frame_accuracy    │           0.7468732595443726            │
+│      validation_sentence_frame_f1       │           0.39996108412742615           │
+│     validation_sentence_frame_f1_O      │           0.34305453300476074           │
+│  validation_sentence_frame_precision_O  │            0.320456862449646            │
+│   validation_sentence_frame_recall_O    │           0.6558194160461426            │
+│   validation_sentence_frame_roc_auc_O   │           0.8398531675338745            │
+│        validation_sentence_loss         │            5.699662208557129            │
+│     validation_sentence_segment_IoU     │           0.7413480877876282            │
+│ validation_sentence_segment_boundary_f1 │           0.10203120857477188           │
+│ validation_sentence_segment_percentage  │           0.5843892693519592            │
+│     validation_sign_frame_accuracy      │           0.48431187868118286           │
+│        validation_sign_frame_f1         │           0.3734200894832611            │
+│       validation_sign_frame_f1_O        │           0.4972245395183563            │
+│    validation_sign_frame_precision_O    │           0.5398789048194885            │
+│     validation_sign_frame_recall_O      │           0.5396173000335693            │
+│     validation_sign_frame_roc_auc_O     │           0.6850528717041016            │
+│          validation_sign_loss           │           1.6743109226226807            │
+│       validation_sign_segment_IoU       │           0.6415927410125732            │
+│   validation_sign_segment_boundary_f1   │           0.3536844849586487            │
+│   validation_sign_segment_percentage    │           1.9101372957229614            │
+└─────────────────────────────────────────┴─────────────────────────────────────────┘
+Testing: |          | 0/? [00:00<?, ?it/s]Testing:   0%|          | 0/6 [00:00<?, ?it/s]Testing DataLoader 0:   0%|          | 0/6 [00:00<?, ?it/s]Testing DataLoader 0:  17%|█▋        | 1/6 [00:01<00:07,  0.66it/s]Testing DataLoader 0:  33%|███▎      | 2/6 [00:02<00:05,  0.70it/s]Testing DataLoader 0:  50%|█████     | 3/6 [00:04<00:04,  0.75it/s]Testing DataLoader 0:  67%|██████▋   | 4/6 [00:05<00:02,  0.79it/s]Testing DataLoader 0:  83%|████████▎ | 5/6 [00:07<00:01,  0.67it/s]Testing DataLoader 0: 100%|██████████| 6/6 [00:08<00:00,  0.73it/s]Testing DataLoader 0: 100%|██████████| 6/6 [00:08<00:00,  0.73it/s]
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃            Test metric            ┃           DataLoader 0            ┃
+┡━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┩
+│         test_frame_f1_avg         │        0.3892611563205719         │
+│             test_loss             │         6.222405433654785         │
+│   test_sentence_frame_accuracy    │        0.7771356701850891         │
+│      test_sentence_frame_f1       │        0.42220160365104675        │
+│     test_sentence_frame_f1_O      │        0.3901521861553192         │
+│  test_sentence_frame_precision_O  │        0.3625771403312683         │
+│   test_sentence_frame_recall_O    │        0.6832911968231201         │
+│   test_sentence_frame_roc_auc_O   │        0.8521832823753357         │
+│        test_sentence_loss         │         4.680434226989746         │
+│     test_sentence_segment_IoU     │        0.7736494541168213         │
+│ test_sentence_segment_boundary_f1 │        0.12423940747976303        │
+│ test_sentence_segment_percentage  │        0.5512737035751343         │
+│     test_sign_frame_accuracy      │        0.47623690962791443        │
+│        test_sign_frame_f1         │        0.3563206195831299         │
+│       test_sign_frame_f1_O        │        0.4201674163341522         │
+│    test_sign_frame_precision_O    │        0.4294452965259552         │
+│     test_sign_frame_recall_O      │        0.5275915861129761         │
+│     test_sign_frame_roc_auc_O     │         0.67729651927948          │
+│          test_sign_loss           │        1.5419710874557495         │
+│       test_sign_segment_IoU       │        0.6326833367347717         │
+│   test_sign_segment_boundary_f1   │        0.3683798611164093         │
+│   test_sign_segment_percentage    │        1.9075928926467896         │
+└───────────────────────────────────┴───────────────────────────────────┘

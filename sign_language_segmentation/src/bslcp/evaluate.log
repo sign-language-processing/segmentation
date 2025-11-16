@@ -1,0 +1,78 @@
+Loaded 22 data items from ./sign_language_segmentation/src/bslcp/data_merged.csv.
+model RecursiveScriptModule(
+  original_name=PoseTaggingModel
+  (pose_projection): RecursiveScriptModule(original_name=Linear)
+  (encoder): RecursiveScriptModule(original_name=LSTM)
+  (sign_bio_head): RecursiveScriptModule(original_name=Linear)
+  (sentence_bio_head): RecursiveScriptModule(original_name=Linear)
+  (sign_loss_function): RecursiveScriptModule(original_name=NLLLoss)
+  (sentence_loss_function): RecursiveScriptModule(original_name=NLLLoss)
+)
+---------------
+Evaluating datum BF22n
+Current metrics for sign: {'frame_f1_sign': 0.6893083536499182, 'frame_f1_O_sign': 0.9445821968757748, 'frame_precision_O_sign': 0.9708205912334352, 'frame_recall_O_sign': 0.9197247706422018, 'frame_roc_auc_O_sign': 0.9826430702603084}
+---------------
+Evaluating datum BF24n
+Current metrics for sign: {'frame_f1_sign': 0.700505681573374, 'frame_f1_O_sign': 0.8999751799453959, 'frame_precision_O_sign': 0.9522058823529411, 'frame_recall_O_sign': 0.8531764705882353, 'frame_roc_auc_O_sign': 0.9698767614945787}
+---------------
+Evaluating datum BL16c
+Current metrics for sign: {'frame_f1_sign': 0.6863391116022551, 'frame_f1_O_sign': 0.943420966367272, 'frame_precision_O_sign': 0.9670049055843021, 'frame_recall_O_sign': 0.92096, 'frame_roc_auc_O_sign': 0.9748343878504673}
+---------------
+Evaluating datum BM11n
+Current metrics for sign: {'frame_f1_sign': 0.7327012919292826, 'frame_f1_O_sign': 0.9726169844020798, 'frame_precision_O_sign': 0.976, 'frame_recall_O_sign': 0.9692573402417962, 'frame_roc_auc_O_sign': 0.9886325201496833}
+---------------
+Evaluating datum BM15c
+Current metrics for sign: {'frame_f1_sign': 0.6993587073937091, 'frame_f1_O_sign': 0.9531921308509836, 'frame_precision_O_sign': 0.9687452121954956, 'frame_recall_O_sign': 0.9381305637982196, 'frame_roc_auc_O_sign': 0.9781098729329947}
+---------------
+Evaluating datum CF10c
+Current metrics for sign: {'frame_f1_sign': 0.5204521475542588, 'frame_f1_O_sign': 0.6458616010854816, 'frame_precision_O_sign': 0.6878612716763006, 'frame_recall_O_sign': 0.6086956521739131, 'frame_roc_auc_O_sign': 0.8232558920479964}
+---------------
+Evaluating datum CF10n
+Current metrics for sign: {'frame_f1_sign': 0.6790836382670173, 'frame_f1_O_sign': 0.9295068898758684, 'frame_precision_O_sign': 0.9584311883513387, 'frame_recall_O_sign': 0.9022772496130886, 'frame_roc_auc_O_sign': 0.9741358165913316}
+---------------
+Evaluating datum CF12n
+Current metrics for sign: {'frame_f1_sign': 0.6664189277295299, 'frame_f1_O_sign': 0.8964919878735383, 'frame_precision_O_sign': 0.9320126069338136, 'frame_recall_O_sign': 0.8635794743429287, 'frame_roc_auc_O_sign': 0.9574329022389099}
+---------------
+Evaluating datum CF28n
+Current metrics for sign: {'frame_f1_sign': 0.6810860902067879, 'frame_f1_O_sign': 0.8922638822971048, 'frame_precision_O_sign': 0.9085051546391752, 'frame_recall_O_sign': 0.8765930991607087, 'frame_roc_auc_O_sign': 0.9630547860520798}
+---------------
+Evaluating datum G10c
+Current metrics for sign: {'frame_f1_sign': 0.7204627524224678, 'frame_f1_O_sign': 0.9689753203411479, 'frame_precision_O_sign': 0.986382954926742, 'frame_recall_O_sign': 0.952171448622095, 'frame_roc_auc_O_sign': 0.9897227872022997}
+---------------
+Evaluating datum G10n
+Current metrics for sign: {'frame_f1_sign': 0.6884259168850145, 'frame_f1_O_sign': 0.9592700921115817, 'frame_precision_O_sign': 0.971097754993813, 'frame_recall_O_sign': 0.947727076684206, 'frame_roc_auc_O_sign': 0.9822104974852105}
+---------------
+Evaluating datum G14n
+Current metrics for sign: {'frame_f1_sign': 0.7151510006518671, 'frame_f1_O_sign': 0.9503775992275596, 'frame_precision_O_sign': 0.985059689756237, 'frame_recall_O_sign': 0.9180546302465024, 'frame_roc_auc_O_sign': 0.9878766046510145}
+---------------
+Evaluating datum G2c
+Current metrics for sign: {'frame_f1_sign': 0.6994036495456327, 'frame_f1_O_sign': 0.9619547059079882, 'frame_precision_O_sign': 0.9826383736459415, 'frame_recall_O_sign': 0.9421238333712725, 'frame_roc_auc_O_sign': 0.9864600337987394}
+---------------
+Evaluating datum G2n
+Current metrics for sign: {'frame_f1_sign': 0.6991349513992672, 'frame_f1_O_sign': 0.9614408316209355, 'frame_precision_O_sign': 0.9747549019607843, 'frame_recall_O_sign': 0.9484855711900787, 'frame_roc_auc_O_sign': 0.9868999476285205}
+---------------
+Evaluating datum L18c
+Current metrics for sign: {'frame_f1_sign': 0.6832768792983693, 'frame_f1_O_sign': 0.9769961764083147, 'frame_precision_O_sign': 0.9770083447502802, 'frame_recall_O_sign': 0.9769840083694515, 'frame_roc_auc_O_sign': 0.9884056556369817}
+---------------
+Evaluating datum L25c
+Current metrics for sign: {'frame_f1_sign': 0.6718099077336355, 'frame_f1_O_sign': 0.9210115516703091, 'frame_precision_O_sign': 0.9289509938988388, 'frame_recall_O_sign': 0.9132066710521224, 'frame_roc_auc_O_sign': 0.9636849225876536}
+---------------
+Evaluating datum L33c
+Current metrics for sign: {'frame_f1_sign': 0.6912428684869735, 'frame_f1_O_sign': 0.935847266690383, 'frame_precision_O_sign': 0.9507451898254914, 'frame_recall_O_sign': 0.9214090332910801, 'frame_roc_auc_O_sign': 0.9727022133356379}
+---------------
+Evaluating datum L8c
+Current metrics for sign: {'frame_f1_sign': 0.6884394226616206, 'frame_f1_O_sign': 0.9362007168458781, 'frame_precision_O_sign': 0.9496866234980436, 'frame_recall_O_sign': 0.9230924573390327, 'frame_roc_auc_O_sign': 0.971182306070291}
+---------------
+Evaluating datum M13c
+Current metrics for sign: {'frame_f1_sign': 0.6696698246628762, 'frame_f1_O_sign': 0.9456780269774124, 'frame_precision_O_sign': 0.9530259644155593, 'frame_recall_O_sign': 0.9384425294639462, 'frame_roc_auc_O_sign': 0.9761025546033343}
+---------------
+Evaluating datum M24c
+Current metrics for sign: {'frame_f1_sign': 0.700705921827002, 'frame_f1_O_sign': 0.9532570702256117, 'frame_precision_O_sign': 0.9757041566382619, 'frame_recall_O_sign': 0.9318195937131143, 'frame_roc_auc_O_sign': 0.9819483040240884}
+---------------
+Evaluating datum M28c
+Current metrics for sign: {'frame_f1_sign': 0.6652468622181057, 'frame_f1_O_sign': 0.9459494873390769, 'frame_precision_O_sign': 0.9634659015080742, 'frame_recall_O_sign': 0.9290586191364777, 'frame_roc_auc_O_sign': 0.9755408973969344}
+---------------
+Evaluating datum N30c
+Current metrics for sign: {'frame_f1_sign': 0.7031440691270675, 'frame_f1_O_sign': 0.9481425207019676, 'frame_precision_O_sign': 0.9703010324667247, 'frame_recall_O_sign': 0.9269734692058588, 'frame_roc_auc_O_sign': 0.9736777488971089}
+Final metrics:
+{'frame_f1_sign': 0.6841530898557286, 'frame_f1_O_sign': 0.9292278720746211, 'frame_precision_O_sign': 0.949564031602345, 'frame_recall_O_sign': 0.9100883437384695, 'frame_roc_auc_O_sign': 0.9703813855880075}
