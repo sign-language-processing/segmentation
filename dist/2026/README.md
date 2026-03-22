@@ -1,11 +1,10 @@
 # 2026 Models
 
 Improved sign language segmentation models trained on DGS Corpus 3.0.0-uzh-document.
-Full experiment log: [EXPERIMENTS.md](EXPERIMENTS.md).
 
 ## Files
 
-- `best.ckpt` — best checkpoint (PyTorch Lightning `.ckpt`, to be added after final training)
+- `best.ckpt` — best checkpoint (PyTorch Lightning `.ckpt`)
 
 ## Usage
 
@@ -19,8 +18,10 @@ python -m sign_language_segmentation.bin \
 python -m sign_language_segmentation.train \
     --corpus /path/to/dgs-corpus \
     --poses /path/to/mediapipe-poses \
-    --batch_size 8 --num_frames 1536 \
-    --epochs 200 --patience 50
+    --hidden_dim 384 --encoder_depth 4 --attn_nhead 8 \
+    --batch_size 8 --num_frames 1024 \
+    --dice_loss_weight 1.5 \
+    --epochs 500 --patience 100
 ```
 
 ## Architecture
@@ -30,7 +31,7 @@ python -m sign_language_segmentation.train \
 - Stage 1: Two-stage UNet CNN — spatial compression over joints (skip connections at each resolution), then temporal context
 - Stage 2: N-layer pre-norm transformer with Rotary Position Embedding (RoPE) and residual connections
 - Two output heads: sign (gloss) BIO and phrase (sentence) BIO, each a two-layer MLP (linear → GELU → linear)
-- ~7.8M parameters (hidden_dim=384, depth=6, nhead=8)
+- ~5.5M parameters (hidden_dim=384, depth=4, nhead=8)
 
 RoPE encodes relative time — attention scores depend on the *time difference* in
 seconds between frames, not absolute position. This allows chunked inference
@@ -43,14 +44,14 @@ during training.
 | Technique | Effect |
 |-----------|--------|
 | **CNN-medium-attn + RoPE** (vs LSTM, TCN, local-attn) | +6pp Sign IoU over LSTM |
-| **Dice loss** (weight=1.0) | +2pp Sign IoU; 3× faster convergence |
+| **Dice loss** (weight=1.5) | +2pp Sign IoU; 3× faster convergence |
 | **fps_aug** (random 25–50fps per clip) | ESSENTIAL — disabling drops Sign IoU from 0.58→0.49 |
 | **body_part_dropout=0.1** | +0.9pp S25, +10.5pp Phrase25 (zeroes each hand independently) |
 | **frame_dropout=0.15** | ESSENTIAL regularization — without it, phrase head overfits at long training |
 | **velocity features** | +1–2pp Sign IoU |
 | **no_face** (exclude face landmarks) | Cleaner signal; improves convergence |
 | **hidden_dim=384** (vs 256) | +2pp Sign IoU |
-| **encoder_depth=6** (vs 4) | Marginal improvement — depth=4 worth retrying for fewer parameters |
+| **encoder_depth=4** | More training time with depth=4 beats depth=6 at equal budget |
 | **Inference chunk_size=num_frames** | +12.8pp Phrase IoU at 2048-frame models (bug fix) |
 
 ## What Did Not Help
@@ -58,6 +59,7 @@ during training.
 | Technique | Why |
 |-----------|-----|
 | **Attention padding mask** | Consistently hurt Sign25 by ~7pp — training uses padded sequences but inference does not, so mask changes training distribution in a way that does not match inference |
+| **Threshold-based decoding** | Likeliest (argmax) wins on well-trained models; threshold overfits dev sign IoU at the expense of phrase IoU |
 | **B-frame Dice loss** | Added complexity, no consistent IoU improvement |
 | **Focal loss** | No benefit over plain NLL + Dice in our setup |
 | **Label smoothing** | Marginal/no effect |
@@ -66,19 +68,18 @@ during training.
 | **Acceleration features** | No consistent improvement over velocity alone |
 | **Frame curriculum** (grow num_frames during training) | Marginal at best; adds complexity |
 | **fd=0 (no frame_dropout)** | Severe phrase head overfitting after ~50 epochs |
-| **2048-frame context** | Higher Sign50 (+1pp) but worse Phrase25 without long training |
+| **2048-frame context** | Marginal sign gain, worse phrase without long training; 1024fr more efficient |
 | **Longer fine-tuning** (beyond early stopping) | Hurts IoU; val_loss is a flawed proxy — trust early stopping |
 
 ## Best Results (dev split, 50fps evaluation)
 
-| Model | Sign IoU@50 | Sign IoU@25 | Phrase IoU@50 | Phrase IoU@25 | HM |
-|-------|-------------|-------------|---------------|---------------|----|
-| E1s (2023 paper) | 0.440 | — | — | — | — |
-| E145 (1024fr, body_dropout=0.1) | 0.595 | 0.569 | 0.907 | 0.880 | **0.705** |
-| E147 (2048fr) | 0.617 | 0.573 | 0.739 | — | 0.675 |
-| E160 (2048fr + bug fixes) | 0.607 | 0.563 | 0.867 | — | 0.721* |
-
-*E160 evaluated before HM metric was adopted for early stopping.
+| Model | Sign IoU@50 | Phrase IoU@50 | HM |
+|-------|-------------|---------------|----|
+| E1s (2023 paper) | 0.440 | — | — |
+| E166 (depth=4, 1024fr, 3h) | 0.641 | 0.900 | 0.748 |
+| E167 (depth=4, 1536fr, 3h) | 0.645 | 0.908 | 0.754 |
+| E169 (depth=4, 1024fr, 6h) | 0.657 | 0.910 | 0.763 |
+| **Efinal** (depth=4, 1024fr, 12h) | — | — | — |
 
 HM = harmonic mean of Sign IoU@50 and Phrase IoU@50.
 

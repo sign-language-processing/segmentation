@@ -38,9 +38,10 @@ docker run --rm --gpus all \
   python -m sign_language_segmentation.train \
     --corpus /data/dgs-corpus \
     --poses /data/poses \
-    --hidden_dim 384 --encoder_depth 6 --attn_nhead 8 \
-    --batch_size 8 --num_frames 1536 \
-    --epochs 200 --patience 50
+    --hidden_dim 384 --encoder_depth 4 --attn_nhead 8 \
+    --batch_size 8 --num_frames 1024 \
+    --dice_loss_weight 1.5 \
+    --epochs 500 --patience 100
 
 # Evaluate on dev split
 docker run --rm --gpus all \

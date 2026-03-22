@@ -43,25 +43,14 @@ parser.add_argument('--body_part_dropout', type=float, default=0.1,
 
 # Model
 parser.add_argument('--hidden_dim', type=int, default=384)
-parser.add_argument('--encoder_depth', type=int, default=6)
+parser.add_argument('--encoder_depth', type=int, default=4)
 parser.add_argument('--attn_nhead', type=int, default=8)
 parser.add_argument('--attn_ff_mult', type=int, default=2)
 parser.add_argument('--attn_dropout', type=float, default=0.1)
 
 # Loss
-parser.add_argument('--dice_loss_weight', type=float, default=1.0,
-                    help='Dice loss weight for binary sign mask (0=off, 1.0=equal to CE)')
-
-# Deprecated: accepted for backward-compat with run_experiment.py but ignored
-parser.add_argument('--arch', default='cnn-medium-attn', help=_argparse.SUPPRESS)
-parser.add_argument('--pos_encoding', default='rope', help=_argparse.SUPPRESS)
-parser.add_argument('--steps_per_epoch', type=int, default=100, help=_argparse.SUPPRESS)
-parser.add_argument('--acceleration', action='store_true', default=False, help=_argparse.SUPPRESS)
-parser.add_argument('--speed_aug', action='store_true', default=False, help=_argparse.SUPPRESS)
-parser.add_argument('--target_fps', type=float, default=None, help=_argparse.SUPPRESS)
-parser.add_argument('--no_face', action='store_true', default=False, help=_argparse.SUPPRESS)
-parser.add_argument('--no_normalize', action='store_true', default=False, help=_argparse.SUPPRESS)
-parser.add_argument('--pose_dims', type=int, default=3, help=_argparse.SUPPRESS)
+parser.add_argument('--dice_loss_weight', type=float, default=1.5,
+                    help='Dice loss weight for binary sign mask (0=off, 1.5=recommended)')
 
 args = parser.parse_args()
 

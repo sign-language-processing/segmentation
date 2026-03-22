@@ -3,3 +3,7 @@
 .pytest_cache/
 build/
 .env
+*.egg-info/
+models/
+logs/
+lightning_logs/
