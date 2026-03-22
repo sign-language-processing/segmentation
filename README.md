@@ -1,100 +1,88 @@
 # Sign Language Segmentation
 
-Pose segmentation model on both the sentence and sign level
+Pose segmentation model for sign language — signs and sentences — using CNN + Transformer with RoPE.
 
 ## Usage
 
 ```bash
-# Install the package
+# Install
 pip install git+https://github.com/sign-language-processing/segmentation
 
 # Acquire a MediaPipe Holistic pose file
 wget -O example.pose https://sign-lanugage-datasets.sign-mt.cloud/poses/holistic/dgs_corpus/1413451-11105600-11163240_a.pose
 
-# Run the model!
-pose_to_segments --pose="example.pose" --elan="example.eaf" [--video="example.mp4"]
+# Run the model
+pose_to_segments --pose example.pose --elan output.eaf [--video example.mp4]
 ```
 
-## 2025 Version
+The model reads a `.pose` file and writes an ELAN (`.eaf`) annotation file with SIGN and SENTENCE tiers.
 
-The original version of the code supported many experimental model architectures.
-In the current version, we simplify the code base, to allow continuous support.
+## Training
 
-### Summary of Improvements
+### Prerequisites
 
-| Category              | Original (2023)              | Current (2025)          |
-|-----------------------|------------------------------|-------------------------|
-| Reliability           | Unreliable in the first 2-3s | Should be more reliable |
-| Inference Performance | Slow LSTM-based              | Fast CNN-based          |
-| Training Efficiency   | Used wasteful padding        | Using packed sequences  |
+Requires the DGS Corpus and MediaPipe Holistic poses (internal datasets).
 
-### Development
+### Docker (recommended)
 
-<details>
-<summary>Create the environment</summary>
+```bash
+# Build the training image
+docker build -f Dockerfile.train -t segmentation-train .
+
+# Train
+docker run --rm --gpus all \
+  -v /path/to/dgs-corpus:/data/dgs-corpus:ro \
+  -v /path/to/mediapipe-poses:/data/poses:ro \
+  -v $(pwd)/models:/app/models \
+  segmentation-train \
+  python -m sign_language_segmentation.train \
+    --corpus /data/dgs-corpus \
+    --poses /data/poses \
+    --hidden_dim 384 --encoder_depth 6 --attn_nhead 8 \
+    --batch_size 8 --num_frames 1536 \
+    --epochs 200 --patience 50
+
+# Evaluate on dev split
+docker run --rm --gpus all \
+  -v /path/to/dgs-corpus:/data/dgs-corpus:ro \
+  -v /path/to/mediapipe-poses:/data/poses:ro \
+  -v $(pwd)/models:/app/models \
+  segmentation-train \
+  python -m sign_language_segmentation.evaluate \
+    --checkpoint /app/models/<run_name>/best.ckpt \
+    --corpus /data/dgs-corpus \
+    --poses /data/poses \
+    --split dev
+```
+
+Best hyperparameters and architecture details: [`dist/2026/README.md`](dist/2026/README.md).
+
+### Local (development)
 
 ```bash
 conda create --name segmentation python=3.12 -y
 conda activate segmentation
 pip install ".[dev]"
-
-# Confirm the environment
-pylint sign_language_segmentation
-pytest sign_language_segmentation
+python -m sign_language_segmentation.train --corpus /path/to/dgs-corpus --poses /path/to/poses
 ```
 
-</details>
+## Architecture
 
-<details>
-<summary>Prepare the dataset</summary>
+CNN-medium-attn + RoPE (2026):
+- Stage 1: Two-stage UNet CNN — spatial compression over joints, then temporal context
+- Stage 2: N-layer pre-norm Transformer with Rotary Position Embedding (RoPE)
+- Two output heads: sign (gloss) BIO and phrase (sentence) BIO
 
-Requires access to the annotations database.
+See [`dist/2026/README.md`](dist/2026/README.md) for what worked, what didn't, and key bug fixes.
 
-```bash
-# Prepare the entire dataset
-python -m sign_language_segmentation.data.create_dataset \
-  --poses="/Volumes/Echo/GCS/sign-mt-poses/" \
-  --output="/tmp/segmentation/"
-  
-# Make sure you can load the dataset
-python -m sign_language_segmentation.data.dataset \
-  --dataset="/tmp/segmentation/"
-```
-
-</details>
-
-<details>
-<summary>Train the model</summary>
-
-```bash
-python -m sign_language_segmentation.src.train \
-    --dataset=dgs_corpus \
-    --pose=holistic \
-    --fps=25 \
-    --hidden_dim=256 \
-    --encoder_depth=1 \
-    --encoder_bidirectional=true
-```
-
-</details>
-
-## 2023 Version ([v2023](https://github.com/sign-language-processing/segmentation/tree/v2023))
-
-Exact code for the
-paper [Linguistically Motivated Sign Language Segmentation](https://aclanthology.org/2023.findings-emnlp.846).
+## Citation
 
 ```bibtex
 @inproceedings{moryossef-etal-2023-linguistically,
     title = "Linguistically Motivated Sign Language Segmentation",
     author = {Moryossef, Amit  and Jiang, Zifan  and M{\"u}ller, Mathias  and Ebling, Sarah  and Goldberg, Yoav},
-    editor = "Bouamor, Houda  and Pino, Juan  and Bali, Kalika",
-    booktitle = "Findings of the Association for Computational Linguistics: EMNLP 2023",
-    month = dec,
+    booktitle = "Findings of EMNLP 2023",
     year = "2023",
-    address = "Singapore",
-    publisher = "Association for Computational Linguistics",
     url = "https://aclanthology.org/2023.findings-emnlp.846",
-    doi = "10.18653/v1/2023.findings-emnlp.846",
-    pages = "12703--12724",
 }
 ```
