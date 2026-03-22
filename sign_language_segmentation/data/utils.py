@@ -9,8 +9,13 @@ BIO = {
     "I": 3,
 }
 
-def preprocess_pose(pose: Pose):
-    pose = pose.get_components(["POSE_LANDMARKS", "LEFT_HAND_LANDMARKS", "RIGHT_HAND_LANDMARKS", "FACE_LANDMARKS"])
+def preprocess_pose(pose: Pose, normalize: bool = True, no_face: bool = False):
+    components = ["POSE_LANDMARKS", "LEFT_HAND_LANDMARKS", "RIGHT_HAND_LANDMARKS"]
+    if not no_face:
+        components.append("FACE_LANDMARKS")
+    pose = pose.get_components(components)
     pose_hide_legs(pose)
     pose = reduce_holistic(pose)
-    return normalize_mean_std(pose)
+    if normalize:
+        pose = normalize_mean_std(pose)
+    return pose

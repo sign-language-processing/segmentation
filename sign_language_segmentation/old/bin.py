@@ -101,8 +101,9 @@ def main():
             pose = process_pose(pose)
 
     print("Loading model ...")
-    install_dir = str(os.path.dirname(os.path.abspath(__file__)))
-    model = load_model(os.path.join(install_dir, "dist", args.model))
+    # 2023 models live in dist/2023/ at the repository root
+    repo_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    model = load_model(os.path.join(repo_root, "dist", "2023", args.model))
 
     print("Estimating segments ...")
     probs = predict(model, pose)
