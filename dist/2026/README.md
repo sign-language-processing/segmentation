@@ -19,12 +19,8 @@ python -m sign_language_segmentation.bin \
 python -m sign_language_segmentation.train \
     --corpus /path/to/dgs-corpus \
     --poses /path/to/mediapipe-poses \
-    --hidden_dim 384 --encoder_depth 6 --attn_nhead 8 \
-    --velocity --no_face --fps_aug \
-    --body_part_dropout 0.1 --frame_dropout 0.15 \
-    --dice_loss_weight 1.0 \
-    --batch_size 8 --num_frames 1024 \
-    --epochs 200 --patience 10
+    --batch_size 8 --num_frames 1536 \
+    --epochs 200 --patience 50
 ```
 
 ## Architecture
