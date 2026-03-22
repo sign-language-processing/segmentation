@@ -14,7 +14,7 @@ import torch
 from pose_format import Pose
 
 from sign_language_segmentation.data.utils import preprocess_pose, compute_velocity
-from sign_language_segmentation.metrics import probs_to_segments
+from sign_language_segmentation.metrics import likeliest_probs_to_segments, filter_segments
 from sign_language_segmentation.model.model import PoseTaggingModel
 
 
@@ -32,6 +32,10 @@ def get_args():
     parser.add_argument("--video", default=None, type=str, help="video file to link in ELAN")
     parser.add_argument("--no-pose-link", action="store_true", help="do not link pose file in ELAN")
     parser.add_argument("--device", default="cpu", help="inference device (default: cpu)")
+    parser.add_argument("--min_frames", type=int, default=3,
+                        help="drop segments shorter than N frames (default: 3, ~60ms at 50fps)")
+    parser.add_argument("--merge_gap", type=int, default=0,
+                        help="merge segments with gaps ≤ N frames (default: 0 = off)")
     return parser.parse_args()
 
 
@@ -52,7 +56,7 @@ def run_inference(model: PoseTaggingModel, pose: Pose, device: str) -> dict:
     # Timestamps in seconds; RoPE scales internally.
     frame_times = np.arange(T, dtype="float32") / fps
 
-    if getattr(model.hparams, 'velocity', False):
+    if getattr(model.hparams, 'velocity', True):
         vel = compute_velocity(pose_data, frame_times)
         pose_data = np.concatenate([pose_data, vel], axis=-1)
 
@@ -105,8 +109,11 @@ def main():
     log_probs = run_inference(model, pose, args.device)
 
     fps = pose.body.fps
-    sign_segments = probs_to_segments(log_probs["sign"][0].cpu())
-    sentence_segments = probs_to_segments(log_probs["sentence"][0].cpu())
+    seg_fn = likeliest_probs_to_segments
+    sign_segments = filter_segments(seg_fn(log_probs["sign"][0].cpu()),
+                                    min_frames=args.min_frames, merge_gap=args.merge_gap)
+    sentence_segments = filter_segments(seg_fn(log_probs["sentence"][0].cpu()),
+                                        min_frames=args.min_frames, merge_gap=args.merge_gap)
 
     print(f"Found {len(sign_segments)} signs, {len(sentence_segments)} sentences")
 

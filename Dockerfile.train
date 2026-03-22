@@ -1,0 +1,16 @@
+FROM nvcr.io/nvidia/pytorch:26.02-py3
+
+WORKDIR /app
+
+# Install dependencies from pyproject.toml
+# The actual code is mounted at runtime so we don't rebuild on code changes
+COPY pyproject.toml /app/
+RUN mkdir -p /app/sign_language_segmentation/model \
+             /app/sign_language_segmentation/data && \
+    touch /app/sign_language_segmentation/__init__.py \
+          /app/sign_language_segmentation/model/__init__.py \
+          /app/sign_language_segmentation/data/__init__.py && \
+    touch /app/README.md && \
+    pip install --no-cache-dir -e ".[dev]"
+
+WORKDIR /app

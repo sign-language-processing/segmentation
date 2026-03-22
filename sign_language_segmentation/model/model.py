@@ -7,7 +7,7 @@ import torch.nn.functional as F
 from torch import nn
 
 from sign_language_segmentation.data.utils import BIO
-from sign_language_segmentation.metrics import likeliest_probs_to_segments, probs_to_segments, segment_IoU, bio_labels_to_segments
+from sign_language_segmentation.metrics import likeliest_probs_to_segments, segment_IoU, bio_labels_to_segments
 from sign_language_segmentation.model.pose_encoder import ConvDef, PoseEncoderUNetBlock
 
 
@@ -191,20 +191,28 @@ class PoseTaggingModel(pl.LightningModule):
                 ts = ts.unsqueeze(0).expand(B, -1)
 
         # Process in training-size chunks so eval context matches training distribution.
+        # All chunks are stacked into a single batch and processed in one forward pass
+        # through the transformer — much faster than sequential chunk processing for
+        # long videos (e.g. 10 chunks → 1 batched call instead of 10 serial calls).
         chunk_size = self.hparams.num_frames
         if T <= chunk_size:
             for layer in self.encoder_attn:
                 x = layer(x, ts)
             return x
 
-        chunks_out = []
-        for start in range(0, T, chunk_size):
-            chunk = x[:, start:start + chunk_size]
-            chunk_ts = ts[:, start:start + chunk_size]
-            for layer in self.encoder_attn:
-                chunk = layer(chunk, chunk_ts)
-            chunks_out.append(chunk)
-        return torch.cat(chunks_out, dim=1)
+        # Pad to a multiple of chunk_size, split, batch, process, unpad.
+        n_chunks = (T + chunk_size - 1) // chunk_size
+        pad_len = n_chunks * chunk_size - T
+        x_pad = F.pad(x, (0, 0, 0, pad_len))          # (B, n_chunks*chunk_size, D)
+        ts_pad = F.pad(ts, (0, pad_len))               # (B, n_chunks*chunk_size)
+
+        # Reshape: treat each chunk as an independent batch element.
+        # B must be 1 at inference (guaranteed by evaluate.py / bin.py).
+        x_chunks = x_pad.reshape(n_chunks, chunk_size, x_pad.shape[-1])   # (n_chunks, C, D)
+        ts_chunks = ts_pad.reshape(n_chunks, chunk_size)                   # (n_chunks, C)
+        for layer in self.encoder_attn:
+            x_chunks = layer(x_chunks, ts_chunks)
+        return x_chunks.reshape(1, n_chunks * chunk_size, x_pad.shape[-1])[:, :T]
 
     def forward(self, pose_data: torch.Tensor, timestamps: torch.Tensor = None,
                 lengths: torch.Tensor = None) -> dict:
@@ -232,7 +240,7 @@ class PoseTaggingModel(pl.LightningModule):
                     if mask_i.sum() == 0:
                         continue
                     num_frames = int(mask_i.sum())
-                    pred_segs = probs_to_segments(probs_i[:num_frames])
+                    pred_segs = likeliest_probs_to_segments(probs_i[:num_frames])
                     gold_segs = bio_labels_to_segments(gold_i[:num_frames])
                     ious.append(segment_IoU(pred_segs, gold_segs, num_frames))
                 return sum(ious) / len(ious) if ious else 0.0
@@ -280,22 +288,6 @@ class PoseTaggingModel(pl.LightningModule):
             self.log(f"{name}_dice_loss", dice_loss, batch_size=batch_size)
 
         return total_loss
-
-    def on_load_checkpoint(self, checkpoint: dict) -> None:
-        """Migrate old single-Linear head checkpoints.
-
-        Old checkpoints have sign_bio_head.weight / sign_bio_head.bias (plain nn.Linear).
-        New architecture uses ClassifierHead (Linear→GELU→Linear).
-        When loading an old checkpoint, swap the heads back to nn.Linear so inference
-        is exact — no approximation from the extra GELU layer.
-        """
-        sd = checkpoint.get("state_dict", {})
-        num_classes = len(BIO)
-        hidden_dim = self.hparams.hidden_dim
-        for attr in ("sign_bio_head", "sentence_bio_head"):
-            if f"{attr}.weight" in sd and f"{attr}.net.2.weight" not in sd:
-                setattr(self, attr, nn.Linear(hidden_dim, num_classes))
-                # Keys already match nn.Linear naming — no rename needed.
 
     def configure_optimizers(self):
         optimizer = torch.optim.AdamW(self.parameters(), lr=self.learning_rate, weight_decay=0.01)

@@ -11,8 +11,8 @@ from torch.utils.data import DataLoader
 from sign_language_segmentation.data.dataset import DGSSegmentationDataset, collate_fn
 from sign_language_segmentation.data.utils import BIO
 from sign_language_segmentation.metrics import (
-    frame_f1, probs_to_segments, likeliest_probs_to_segments,
-    segment_IoU, segment_f1, bio_labels_to_segments,
+    frame_f1, likeliest_probs_to_segments,
+    segment_IoU, segment_f1, bio_labels_to_segments, filter_segments,
 )
 from sign_language_segmentation.model.model import PoseTaggingModel
 
@@ -75,17 +75,12 @@ if __name__ == "__main__":
     parser.add_argument("--device", default="cuda" if torch.cuda.is_available() else "cpu")
     parser.add_argument("--target_fps", type=float, default=None,
                         help="downsample poses to this FPS before evaluation")
-    parser.add_argument("--likeliest", action="store_true", default=True,
-                        help="use argmax decoding (default; faster and simpler)")
-    parser.add_argument("--threshold", action="store_true", default=False,
-                        help="use threshold-based decoding instead of argmax")
-    parser.add_argument("--b_threshold", type=int, default=50)
-    parser.add_argument("--o_threshold", type=int, default=50)
-    parser.add_argument("--io_threshold", type=int, default=50)
-    parser.add_argument("--tune_threshold", action="store_true", default=False,
-                        help="sweep thresholds and report best sign IoU")
     parser.add_argument("--chunk_multiplier", type=float, default=1.0,
                         help="scale inference chunk size by this factor (e.g. 2.0 for 2x context)")
+    parser.add_argument("--min_frames", type=int, default=0,
+                        help="drop predicted segments shorter than this many frames (0=off)")
+    parser.add_argument("--merge_gap", type=int, default=0,
+                        help="merge predicted segments separated by ≤ this many frames (0=off)")
     eval_args = parser.parse_args()
 
     model = PoseTaggingModel.load_from_checkpoint(eval_args.checkpoint, map_location=eval_args.device, strict=False)
@@ -95,6 +90,7 @@ if __name__ == "__main__":
         model.hparams.num_frames = int(model.hparams.num_frames * eval_args.chunk_multiplier)
 
     fps_aug = getattr(model.hparams, 'fps_aug', False)
+    velocity = getattr(model.hparams, 'velocity', True)
 
     dataset = DGSSegmentationDataset(
         corpus_dir=eval_args.corpus,
@@ -103,48 +99,22 @@ if __name__ == "__main__":
         num_frames=999999,
         target_fps=eval_args.target_fps,
         fps_aug=fps_aug,
+        velocity=velocity,
     )
     dataloader = DataLoader(dataset, batch_size=1, collate_fn=collate_fn)
 
-    if eval_args.tune_threshold:
-        print(f"\nSweeping thresholds on {eval_args.split} set...")
-        best_cfg, best_iou = {}, 0.0
+    seg_fn = likeliest_probs_to_segments
+    if eval_args.min_frames > 0 or eval_args.merge_gap > 0:
+        seg_fn = lambda lp: filter_segments(
+            likeliest_probs_to_segments(lp),
+            min_frames=eval_args.min_frames,
+            merge_gap=eval_args.merge_gap,
+        )
 
-        r = evaluate_model(model, dataloader, eval_args.device, seg_fn=likeliest_probs_to_segments)
-        print(f"  likeliest        → Sign IoU={r['sign_IoU']:.4f}  Sign F1={r['sign_frame_f1']:.4f}")
-        if r['sign_IoU'] > best_iou:
-            best_iou = r['sign_IoU']
-            best_cfg = {"likeliest": True}
-
-        for io_thresh in range(10, 95, 5):
-            fn = lambda lp, t=io_thresh: probs_to_segments(lp, b_threshold=99, io_threshold=t)
-            r = evaluate_model(model, dataloader, eval_args.device, seg_fn=fn)
-            print(f"  io_threshold={io_thresh:3d} → Sign IoU={r['sign_IoU']:.4f}  Sign F1={r['sign_frame_f1']:.4f}")
-            if r['sign_IoU'] > best_iou:
-                best_iou = r['sign_IoU']
-                best_cfg = {"b_threshold": 99, "io_threshold": io_thresh}
-
-        print(f"\nBest config={best_cfg} → Sign IoU={best_iou:.4f}")
-        if best_cfg.get("likeliest"):
-            eval_args.likeliest = True
-            eval_args.threshold = False
-        else:
-            eval_args.b_threshold = best_cfg.get("b_threshold", eval_args.b_threshold)
-            eval_args.io_threshold = best_cfg.get("io_threshold", eval_args.io_threshold)
-            eval_args.threshold = True
-
-    if eval_args.threshold:
-        final_seg_fn = lambda lp: probs_to_segments(lp, b_threshold=eval_args.b_threshold,
-                                                    o_threshold=eval_args.o_threshold,
-                                                    io_threshold=eval_args.io_threshold)
-    else:
-        final_seg_fn = likeliest_probs_to_segments
-
-    results = evaluate_model(model, dataloader, eval_args.device, seg_fn=final_seg_fn)
+    results = evaluate_model(model, dataloader, eval_args.device, seg_fn=seg_fn)
 
     print(f"\n{'='*50}")
     print(f"Evaluation on {eval_args.split} set")
-    print(f"decoding={'threshold' if eval_args.threshold else 'likeliest'}")
     print(f"{'='*50}")
     print(f"Sign Frame F1:     {results['sign_frame_f1']:.4f}")
     print(f"Sign IoU:          {results['sign_IoU']:.4f}")
