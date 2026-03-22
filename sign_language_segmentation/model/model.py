@@ -7,7 +7,7 @@ import torch.nn.functional as F
 from torch import nn
 
 from sign_language_segmentation.data.utils import BIO
-from sign_language_segmentation.metrics import likeliest_probs_to_segments, segment_IoU, bio_labels_to_segments
+from sign_language_segmentation.metrics import likeliest_probs_to_segments, probs_to_segments, segment_IoU, bio_labels_to_segments
 from sign_language_segmentation.model.pose_encoder import ConvDef, PoseEncoderUNetBlock
 
 
@@ -232,7 +232,7 @@ class PoseTaggingModel(pl.LightningModule):
                     if mask_i.sum() == 0:
                         continue
                     num_frames = int(mask_i.sum())
-                    pred_segs = likeliest_probs_to_segments(probs_i[:num_frames])
+                    pred_segs = probs_to_segments(probs_i[:num_frames])
                     gold_segs = bio_labels_to_segments(gold_i[:num_frames])
                     ious.append(segment_IoU(pred_segs, gold_segs, num_frames))
                 return sum(ious) / len(ious) if ious else 0.0
