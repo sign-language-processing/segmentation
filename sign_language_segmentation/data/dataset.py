@@ -247,6 +247,7 @@ class DGSSegmentationDataset(Dataset):
                 frame_times_ms = frame_times * 1000
             else:
                 frame_times = np.arange(num_frames, dtype=np.float32) / fps
+                frame_times_ms = frame_times * 1000
 
         # Body part dropout: zero entire hands independently (training only).
         # With no_face=True: joints 0-7 = pose body, 8-28 = left hand, 29-49 = right hand.

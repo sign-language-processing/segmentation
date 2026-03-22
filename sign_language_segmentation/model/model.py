@@ -281,6 +281,22 @@ class PoseTaggingModel(pl.LightningModule):
 
         return total_loss
 
+    def on_load_checkpoint(self, checkpoint: dict) -> None:
+        """Migrate old single-Linear head checkpoints.
+
+        Old checkpoints have sign_bio_head.weight / sign_bio_head.bias (plain nn.Linear).
+        New architecture uses ClassifierHead (Linear→GELU→Linear).
+        When loading an old checkpoint, swap the heads back to nn.Linear so inference
+        is exact — no approximation from the extra GELU layer.
+        """
+        sd = checkpoint.get("state_dict", {})
+        num_classes = len(BIO)
+        hidden_dim = self.hparams.hidden_dim
+        for attr in ("sign_bio_head", "sentence_bio_head"):
+            if f"{attr}.weight" in sd and f"{attr}.net.2.weight" not in sd:
+                setattr(self, attr, nn.Linear(hidden_dim, num_classes))
+                # Keys already match nn.Linear naming — no rename needed.
+
     def configure_optimizers(self):
         optimizer = torch.optim.AdamW(self.parameters(), lr=self.learning_rate, weight_decay=0.01)
         if self._optimizer_name == "adam":

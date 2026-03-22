@@ -84,10 +84,15 @@ if __name__ == "__main__":
     parser.add_argument("--io_threshold", type=int, default=50)
     parser.add_argument("--tune_threshold", action="store_true", default=False,
                         help="sweep thresholds and report best sign IoU")
+    parser.add_argument("--chunk_multiplier", type=float, default=1.0,
+                        help="scale inference chunk size by this factor (e.g. 2.0 for 2x context)")
     eval_args = parser.parse_args()
 
     model = PoseTaggingModel.load_from_checkpoint(eval_args.checkpoint, map_location=eval_args.device, strict=False)
     model = model.to(eval_args.device)
+
+    if eval_args.chunk_multiplier != 1.0:
+        model.hparams.num_frames = int(model.hparams.num_frames * eval_args.chunk_multiplier)
 
     fps_aug = getattr(model.hparams, 'fps_aug', False)
 
