@@ -12,7 +12,7 @@ from pose_format.pose_body import EmptyPoseBody
 from sign_language_datasets.datasets.dgs_corpus.dgs_utils import get_elan_sentences
 from torch.utils.data import Dataset
 
-from sign_language_segmentation.data.utils import preprocess_pose, BIO
+from sign_language_segmentation.data.utils import preprocess_pose, compute_velocity, BIO
 
 Split = Literal["train", "dev", "test"]
 
@@ -69,24 +69,18 @@ class DGSSegmentationDataset(Dataset):
                  poses_dir: str,
                  split: Split = "train",
                  num_frames: int = 1024,
-                 normalize: bool = True,
-                 pose_dims: int = 3,
-                 velocity: bool = False,
-                 no_face: bool = False,
+                 velocity: bool = True,
                  target_fps: Optional[float] = None,
-                 fps_aug: bool = False,
-                 frame_dropout: float = 0.0,
-                 body_part_dropout: float = 0.0,
+                 fps_aug: bool = True,
+                 frame_dropout: float = 0.15,
+                 body_part_dropout: float = 0.1,
                  splits_path: Optional[str] = None,
                  cache_path: Optional[str] = None):
         self.corpus_dir = corpus_dir
         self.poses_dir = poses_dir
         self.split = split
         self.num_frames = num_frames
-        self.normalize = normalize
-        self.pose_dims = pose_dims
         self.velocity = velocity
-        self.no_face = no_face
         self.target_fps = target_fps
         self.fps_aug = fps_aug
         self.frame_dropout = frame_dropout
@@ -226,9 +220,9 @@ class DGSSegmentationDataset(Dataset):
         with open(item["pose_path"], "rb") as f:
             pose = Pose.read(f, start_frame=start, end_frame=end)
 
-        pose = preprocess_pose(pose, normalize=self.normalize, no_face=self.no_face)
+        pose = preprocess_pose(pose)
         num_frames = len(pose.body.data)
-        pose_data = pose.body.data.filled(0)[:, 0, :, :self.pose_dims].astype(np.float32)
+        pose_data = pose.body.data.filled(0)[:, 0, :, :3].astype(np.float32)
 
         # Downsample to target fps if needed
         effective_fps = fps
@@ -238,26 +232,21 @@ class DGSSegmentationDataset(Dataset):
                 np.arange(target_len) * (num_frames - 1) / max(1, target_len - 1)
             ).astype(int).clip(0, num_frames - 1)
             pose_data = pose_data[src_indices]
-            # 50fps-equivalent positions: fps-invariant and correct RoPE scale
-            REFERENCE_FPS = 50.0
-            frame_times = src_indices.astype(np.float32) * (REFERENCE_FPS / fps)
-            frame_times_ms = src_indices.astype(np.float32) / fps * 1000
+            # Timestamps in seconds; RoPE scales internally by reference_fps=50.
+            frame_times = src_indices.astype(np.float32) / fps
+            frame_times_ms = frame_times * 1000
             effective_fps = effective_target_fps
             num_frames = target_len
         else:
             if self.fps_aug:
-                REFERENCE_FPS = 50.0
                 # tempo_fps: RoPE-only stretch/compress (no frames removed).
                 # 24/30fps → positions spread out (slower view); 60fps → compressed (faster view).
                 rope_fps = tempo_fps if tempo_fps is not None else fps
-                frame_times = np.arange(num_frames, dtype=np.float32) * (REFERENCE_FPS / rope_fps)
-                # frame_times_ms must use rope_fps so BIO labels align with RoPE positions.
-                # e.g. at rope_fps=24: frame i is at i/24s, so a 500ms sign starts at frame 12
-                # — consistent with RoPE seeing positions at 24fps spacing.
-                frame_times_ms = np.arange(num_frames, dtype=np.float32) / rope_fps * 1000
+                # Timestamps in seconds at the apparent (RoPE) fps.
+                frame_times = np.arange(num_frames, dtype=np.float32) / rope_fps
+                frame_times_ms = frame_times * 1000
             else:
-                # Frame-index (backward compat for non-fps_aug experiments)
-                frame_times = np.arange(num_frames, dtype=np.float32)
+                frame_times = np.arange(num_frames, dtype=np.float32) / fps
 
         # Body part dropout: zero entire hands independently (training only).
         # With no_face=True: joints 0-7 = pose body, 8-28 = left hand, 29-49 = right hand.
@@ -281,18 +270,8 @@ class DGSSegmentationDataset(Dataset):
                     frame_times_ms = frame_times_ms[keep_mask]
                 num_frames = len(pose_data)
 
-        # Velocity: fps_aug uses 50fps-equivalent dt for fps-invariant magnitude;
-        # non-fps_aug uses raw frame-to-frame diff.
         if self.velocity:
-            if num_frames > 1:
-                if self.fps_aug:
-                    dt = np.diff(frame_times)  # (T-1,) in 50fps-equiv units
-                    vel_inner = np.diff(pose_data, axis=0) / dt[:, None, None]
-                    vel = np.concatenate([np.zeros_like(pose_data[:1]), vel_inner], axis=0)
-                else:
-                    vel = np.diff(pose_data, axis=0, prepend=pose_data[:1])
-            else:
-                vel = np.zeros_like(pose_data)
+            vel = compute_velocity(pose_data, frame_times)
             pose_data = np.concatenate([pose_data, vel], axis=-1)
 
         start_ms = start / fps * 1000

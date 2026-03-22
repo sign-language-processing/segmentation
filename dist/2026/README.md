@@ -31,14 +31,16 @@ python -m sign_language_segmentation.train \
 
 **CNN-medium-attn with RoPE**
 
-- Stage 1: Two-stage UNet CNN — spatial compression over joints, then temporal context
-- Stage 2: N-layer pre-norm transformer with Rotary Position Embedding (RoPE)
-- Two output heads: sign (gloss) BIO and phrase (sentence) BIO
+- Stage 1: Two-stage UNet CNN — spatial compression over joints (skip connections at each resolution), then temporal context
+- Stage 2: N-layer pre-norm transformer with Rotary Position Embedding (RoPE) and residual connections
+- Two output heads: sign (gloss) BIO and phrase (sentence) BIO, each a two-layer MLP (linear → GELU → linear)
 - ~7.8M parameters (hidden_dim=384, depth=6, nhead=8)
 
-RoPE encodes relative position — attention scores depend on frame *offset*, not
-absolute index. This allows chunked inference (training-window-sized chunks) that
-correctly handles the full-length dev videos (3k–51k frames).
+RoPE encodes relative time — attention scores depend on the *time difference* in
+seconds between frames, not absolute position. This allows chunked inference
+(training-window-sized chunks) that correctly handles the full-length dev videos
+(3k–51k frames), because each chunk sees the same relative-time distribution as
+during training.
 
 ## What Helped
 
@@ -52,15 +54,14 @@ correctly handles the full-length dev videos (3k–51k frames).
 | **velocity features** | +1–2pp Sign IoU |
 | **no_face** (exclude face landmarks) | Cleaner signal; improves convergence |
 | **hidden_dim=384** (vs 256) | +2pp Sign IoU |
-| **encoder_depth=6** (vs 4) | Marginal improvement |
-| **HM(sign, phrase) validation metric** | Prevents sign over-optimisation at expense of phrase |
+| **encoder_depth=6** (vs 4) | Marginal improvement — depth=4 worth retrying for fewer parameters |
 | **Inference chunk_size=num_frames** | +12.8pp Phrase IoU at 2048-frame models (bug fix) |
 
 ## What Did Not Help
 
 | Technique | Why |
 |-----------|-----|
-| **Attention padding mask** | Consistently hurt Sign25 by ~7pp; training dynamics unfavorable |
+| **Attention padding mask** | Consistently hurt Sign25 by ~7pp — training uses padded sequences but inference does not, so mask changes training distribution in a way that does not match inference |
 | **B-frame Dice loss** | Added complexity, no consistent IoU improvement |
 | **Focal loss** | No benefit over plain NLL + Dice in our setup |
 | **Label smoothing** | Marginal/no effect |

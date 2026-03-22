@@ -1,3 +1,4 @@
+import argparse as _argparse
 import random
 from argparse import ArgumentParser
 
@@ -24,25 +25,20 @@ parser.add_argument('--max_time', type=str, default="00:00:30:00",
                     help='max wall time DD:HH:MM:SS (default: 30 min)')
 parser.add_argument('--optimizer',
                     choices=['adam', 'adamw', 'adamw-onecycle', 'cosine', 'constant'],
-                    default=None,
-                    help='optimizer/schedule (default: adamw-onecycle)')
+                    default='adamw-onecycle')
 parser.add_argument('--finetune_from', type=str, default=None,
                     help='checkpoint to fine-tune from')
 
 # Data
 parser.add_argument('--corpus', default='/mnt/nas/GCS/sign-external-datasets/dgs-corpus')
 parser.add_argument('--poses', default='/mnt/nas/GCS/sign-mediapipe-holistic-poses')
-parser.add_argument('--no_normalize', action='store_true', default=False)
-parser.add_argument('--pose_dims', type=int, default=3, choices=[2, 3])
-parser.add_argument('--velocity', action='store_true', default=False,
-                    help='append frame-to-frame velocity to pose features')
-parser.add_argument('--no_face', action='store_true', default=False,
-                    help='exclude face landmarks')
-parser.add_argument('--fps_aug', action='store_true', default=False,
+parser.add_argument('--velocity', action='store_true', default=True,
+                    help='append fps-normalised velocity to pose features')
+parser.add_argument('--fps_aug', action='store_true', default=True,
                     help='randomly sample fps 25-50 per clip (fps-invariance augmentation)')
-parser.add_argument('--frame_dropout', type=float, default=0.0,
+parser.add_argument('--frame_dropout', type=float, default=0.15,
                     help='max frame dropout rate (0=off, 0.15=drop 0-15%% of frames)')
-parser.add_argument('--body_part_dropout', type=float, default=0.0,
+parser.add_argument('--body_part_dropout', type=float, default=0.1,
                     help='per-hand zeroing probability (0=off, 0.1=10%% per hand)')
 
 # Model
@@ -55,6 +51,17 @@ parser.add_argument('--attn_dropout', type=float, default=0.1)
 # Loss
 parser.add_argument('--dice_loss_weight', type=float, default=1.0,
                     help='Dice loss weight for binary sign mask (0=off, 1.0=equal to CE)')
+
+# Deprecated: accepted for backward-compat with run_experiment.py but ignored
+parser.add_argument('--arch', default='cnn-medium-attn', help=_argparse.SUPPRESS)
+parser.add_argument('--pos_encoding', default='rope', help=_argparse.SUPPRESS)
+parser.add_argument('--steps_per_epoch', type=int, default=100, help=_argparse.SUPPRESS)
+parser.add_argument('--acceleration', action='store_true', default=False, help=_argparse.SUPPRESS)
+parser.add_argument('--speed_aug', action='store_true', default=False, help=_argparse.SUPPRESS)
+parser.add_argument('--target_fps', type=float, default=None, help=_argparse.SUPPRESS)
+parser.add_argument('--no_face', action='store_true', default=False, help=_argparse.SUPPRESS)
+parser.add_argument('--no_normalize', action='store_true', default=False, help=_argparse.SUPPRESS)
+parser.add_argument('--pose_dims', type=int, default=3, help=_argparse.SUPPRESS)
 
 args = parser.parse_args()
 

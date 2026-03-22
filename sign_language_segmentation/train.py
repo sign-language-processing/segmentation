@@ -18,10 +18,7 @@ def get_dataloader(split: Split, batch_size: int = None, num_frames: int = None,
         poses_dir=args.poses,
         split=split,
         num_frames=num_frames if num_frames is not None else args.num_frames,
-        normalize=not args.no_normalize,
-        pose_dims=args.pose_dims,
         velocity=args.velocity,
-        no_face=args.no_face,
         fps_aug=args.fps_aug,
         frame_dropout=args.frame_dropout,
         body_part_dropout=args.body_part_dropout if split == "train" else 0.0,
@@ -112,3 +109,8 @@ if __name__ == '__main__':
     )
 
     trainer.fit(model, train_dataloaders=train_loader, val_dataloaders=validation_loader)
+
+    best_ckpt = os.path.join(model_dir, "best.ckpt")
+    if os.path.exists(best_ckpt):
+        print(f"\nBest checkpoint: {best_ckpt}")
+        print("Copy to dist/2026/best.ckpt to deploy for inference.")

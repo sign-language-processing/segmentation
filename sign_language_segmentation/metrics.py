@@ -7,6 +7,24 @@ from sklearn.metrics import f1_score
 from sign_language_segmentation.data.utils import BIO
 
 
+def bio_labels_to_segments(gold: torch.Tensor) -> List[dict]:
+    """Convert a BIO label tensor to a list of {start, end} segment dicts."""
+    gold_np = gold.cpu().numpy()
+    segments = []
+    seg_start = None
+    for j, label in enumerate(gold_np):
+        if label == BIO["B"]:
+            if seg_start is not None:
+                segments.append({"start": seg_start, "end": j - 1})
+            seg_start = j
+        elif label == BIO["O"] and seg_start is not None:
+            segments.append({"start": seg_start, "end": j - 1})
+            seg_start = None
+    if seg_start is not None:
+        segments.append({"start": seg_start, "end": len(gold_np) - 1})
+    return segments
+
+
 def frame_f1(probs: torch.Tensor, gold: torch.Tensor) -> float:
     return f1_score(gold.cpu().numpy(), probs.argmax(dim=1).cpu().numpy(), average='macro', zero_division=0)
 

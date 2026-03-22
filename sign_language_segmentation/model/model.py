@@ -7,7 +7,7 @@ import torch.nn.functional as F
 from torch import nn
 
 from sign_language_segmentation.data.utils import BIO
-from sign_language_segmentation.metrics import probs_to_segments, segment_IoU
+from sign_language_segmentation.metrics import probs_to_segments, segment_IoU, bio_labels_to_segments
 from sign_language_segmentation.model.pose_encoder import ConvDef, PoseEncoderUNetBlock
 
 
@@ -26,7 +26,14 @@ class RoPETransformerEncoderLayer(nn.Module):
     RoPE rotates Q and K by position-dependent angles so that attention scores
     depend only on relative position, not absolute — generalises well across
     chunk boundaries during chunked inference.
+
+    Timestamps are expected in seconds; they are scaled by reference_fps=50
+    internally so that relative positions are expressed in "50fps frame units"
+    (i.e. two frames 0.02s apart → relative position 1, same as consecutive
+    frames at 50fps).
     """
+    REFERENCE_FPS = 50.0
+
     def __init__(self, hidden_dim: int, nhead: int, dim_feedforward: int, dropout: float = 0.1):
         super().__init__()
         assert hidden_dim % nhead == 0, f"hidden_dim {hidden_dim} must be divisible by nhead {nhead}"
@@ -57,7 +64,8 @@ class RoPETransformerEncoderLayer(nn.Module):
     def _compute_rope(self, timestamps: torch.Tensor):
         if timestamps.dim() == 1:
             timestamps = timestamps.unsqueeze(0)
-        freqs = timestamps.unsqueeze(-1).float() * self.inv_freq
+        # Scale seconds → 50fps-equivalent frame units before computing frequencies.
+        freqs = (timestamps * self.REFERENCE_FPS).unsqueeze(-1).float() * self.inv_freq
         emb = torch.cat([freqs, freqs], dim=-1)
         return emb.cos().unsqueeze(1), emb.sin().unsqueeze(1)
 
@@ -84,6 +92,24 @@ class RoPETransformerEncoderLayer(nn.Module):
         return x
 
 
+class ClassifierHead(nn.Module):
+    """Two-layer MLP classifier: hidden_dim → hidden_dim → num_classes.
+
+    Decouples the sign and phrase heads so they don't share a linear map
+    that would force a direct trade-off between their outputs.
+    """
+    def __init__(self, hidden_dim: int, num_classes: int):
+        super().__init__()
+        self.net = nn.Sequential(
+            nn.Linear(hidden_dim, hidden_dim),
+            nn.GELU(),
+            nn.Linear(hidden_dim, num_classes),
+        )
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        return self.net(x)
+
+
 class PoseTaggingModel(pl.LightningModule):
     """CNN-medium-attn model with RoPE for sign language segmentation.
 
@@ -92,6 +118,8 @@ class PoseTaggingModel(pl.LightningModule):
     Validated by harmonic mean of sign and phrase IoU to prevent over-optimising
     one head at the expense of the other.
     """
+
+    REFERENCE_FPS = RoPETransformerEncoderLayer.REFERENCE_FPS
 
     def __init__(self,
                  pose_dims: (int, int) = (178, 3),
@@ -147,15 +175,16 @@ class PoseTaggingModel(pl.LightningModule):
             for _ in range(encoder_depth)
         ])
 
-        self.sign_bio_head = nn.Linear(hidden_dim, num_classes)
-        self.sentence_bio_head = nn.Linear(hidden_dim, num_classes)
+        self.sign_bio_head = ClassifierHead(hidden_dim, num_classes)
+        self.sentence_bio_head = ClassifierHead(hidden_dim, num_classes)
 
     def encode(self, pose_data: torch.Tensor, timestamps: torch.Tensor = None) -> torch.Tensor:
         x = self.input_norm(self.frame_cnn(pose_data))  # (B, T, hidden_dim)
         B, T, _ = x.shape
 
         if timestamps is None:
-            ts = torch.arange(T, device=x.device, dtype=torch.float32).unsqueeze(0).expand(B, -1)
+            # Assume 50fps when no timestamps provided (1/50s per frame → *50 → 1 unit/frame).
+            ts = (torch.arange(T, device=x.device, dtype=torch.float32) / self.REFERENCE_FPS).unsqueeze(0).expand(B, -1)
         else:
             ts = timestamps.to(x.device)
             if ts.dim() == 1:
@@ -204,18 +233,7 @@ class PoseTaggingModel(pl.LightningModule):
                         continue
                     num_frames = int(mask_i.sum())
                     pred_segs = probs_to_segments(probs_i[:num_frames])
-                    gold_np = gold_i[:num_frames].cpu().numpy()
-                    gold_segs, seg_start = [], None
-                    for j, label in enumerate(gold_np):
-                        if label == BIO["B"]:
-                            if seg_start is not None:
-                                gold_segs.append({"start": seg_start, "end": j - 1})
-                            seg_start = j
-                        elif label == BIO["O"] and seg_start is not None:
-                            gold_segs.append({"start": seg_start, "end": j - 1})
-                            seg_start = None
-                    if seg_start is not None:
-                        gold_segs.append({"start": seg_start, "end": num_frames - 1})
+                    gold_segs = bio_labels_to_segments(gold_i[:num_frames])
                     ious.append(segment_IoU(pred_segs, gold_segs, num_frames))
                 return sum(ious) / len(ious) if ious else 0.0
 

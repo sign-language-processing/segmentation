@@ -3,19 +3,17 @@
 
 Loads a PyTorch Lightning checkpoint (.ckpt), runs inference on a .pose file,
 and writes an ELAN (.eaf) annotation file with SIGN and SENTENCE tiers.
-
-For 2023 models (torch.jit .pth format) use sign_language_segmentation/old/bin.py.
 """
 import argparse
 import os
 from pathlib import Path
 
+import numpy as np
 import pympi
 import torch
 from pose_format import Pose
-from pose_format.utils.generic import pose_normalization_info, pose_hide_legs, reduce_holistic
 
-from sign_language_segmentation.data.utils import preprocess_pose
+from sign_language_segmentation.data.utils import preprocess_pose, compute_velocity
 from sign_language_segmentation.metrics import probs_to_segments
 from sign_language_segmentation.model.model import PoseTaggingModel
 
@@ -43,34 +41,26 @@ def load_pose(pose_path: Path) -> Pose:
     return pose
 
 
+@torch.inference_mode()
 def run_inference(model: PoseTaggingModel, pose: Pose, device: str) -> dict:
     """Preprocess pose and run model inference. Returns log-prob tensors."""
-    processed = preprocess_pose(pose, normalize=True, no_face=getattr(model.hparams, 'no_face', False))
+    processed = preprocess_pose(pose)
+    pose_data = processed.body.data.filled(0)[:, 0, :, :3].astype("float32")  # (T, joints, 3)
 
-    import numpy as np
-    pose_data = processed.body.data.filled(0)[:, 0, :, :].astype("float32")  # (T, joints, 3)
-
-    # Velocity (matching training if model was trained with velocity)
-    if getattr(model.hparams, 'velocity', False):
-        vel = np.diff(pose_data, axis=0, prepend=pose_data[:1])
-        pose_data = np.concatenate([pose_data, vel], axis=-1)
-
-    # FPS-based timestamps for RoPE (if model was trained with fps_aug)
     fps = pose.body.fps
     T = len(pose_data)
-    if getattr(model.hparams, 'fps_aug', False):
-        REFERENCE_FPS = 50.0
-        timestamps = torch.from_numpy(
-            (np.arange(T, dtype="float32") * REFERENCE_FPS / fps)
-        ).unsqueeze(0).to(device)
-    else:
-        timestamps = None
+    # Timestamps in seconds; RoPE scales internally.
+    frame_times = np.arange(T, dtype="float32") / fps
 
+    if getattr(model.hparams, 'velocity', False):
+        vel = compute_velocity(pose_data, frame_times)
+        pose_data = np.concatenate([pose_data, vel], axis=-1)
+
+    timestamps = torch.from_numpy(frame_times).unsqueeze(0).to(device)
     pose_tensor = torch.from_numpy(pose_data).unsqueeze(0).to(device)  # (1, T, joints, dims)
 
     model.eval()
-    with torch.no_grad():
-        return model(pose_tensor, timestamps=timestamps)
+    return model(pose_tensor, timestamps=timestamps)
 
 
 def segments_to_eaf(tiers: dict, fps: float, pose_path: Path,

@@ -13,7 +13,7 @@ dependencies = [
     "pympi-ling",
     "torch",
     "sign_language_datasets",
-    "pose_anonymization @ git+https://github.com/sign-language-processing/pose-anonymization",
+    "pose-anonymization",
 ]
 
 [project.optional-dependencies]
@@ -47,16 +47,10 @@ packages = [
     "sign_language_segmentation",
     "sign_language_segmentation.model",
     "sign_language_segmentation.data",
-    "sign_language_segmentation.old",
-    "sign_language_segmentation.old.src",
-    "sign_language_segmentation.old.src.utils",
 ]
 
 [tool.setuptools.package-data]
 sign_language_segmentation = ["**/*.json"]
-
-[tool.setuptools.data-files]
-"dist/2023" = ["dist/2023/model.pth", "dist/2023/model_E1s-1.pth", "dist/2023/model_E4s-1.pth"]
 
 [tool.pytest.ini_options]
 addopts = "-v"
