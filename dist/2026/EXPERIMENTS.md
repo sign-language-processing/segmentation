@@ -15,6 +15,9 @@ All experiments use the DGS Corpus 3.0.0-uzh-document split, MediaPipe Holistic 
 
 | Experiment | Params | Epochs | Sign F1 | Sign IoU | Sign Seg F1 | Phrase F1 | Phrase IoU | Phrase Seg F1 |
 |---|---|---|---|---|---|---|---|---|
+| E166-1024-depth4-drop01-fixchunk-hmval-3h | 5,734,141 | 199 | 0.5445 | 0.6411 | 0.9733 | 0.5464 | 0.8996 | 0.9006 |
+| E165-1536-batch8-drop01-fixchunk-hmval-3h | 8,097,277 | 70 | 0.4909 | 0.5598 | 0.9654 | 0.5448 | 0.8892 | 0.8540 |
+| E162-1536-batch8-drop01-fixchunk-3h | 7,801,597 | 139 | 0.5249 | 0.6156 | 0.9712 | 0.5491 | 0.6661 | 0.7567 |
 | E161-2048-batch8-drop01-fd0-fixchunk-3h | 7,801,597 | 135 | 0.5247 | 0.6030 | 0.9622 | 0.5571 | 0.5865 | 0.6336 |
 | E160-2048-batch8-drop01-fixchunk-3h | 7,801,597 | 121 | 0.5179 | 0.6068 | 0.9638 | 0.5461 | 0.8669 | 0.9039 |
 | E159-1536-nodropframe-drop01-3h | 7,801,597 | 101 | 0.5075 | 0.6074 | 0.9721 | 0.5586 | 0.4071 | 0.4722 |
@@ -9186,3 +9189,359 @@ on our current dev split (DGS Corpus 3.0.0-uzh-document, 9/10 videos with poses)
 **Notes:** E160+fd=0: no frame_dropout, 2048 chunks match training, no mask
 
 ---
+
+## E162-1536-batch8-drop01-fixchunk-3h [SUCCESS] — 2026-03-22 04:27
+
+**Config:**
+- acceleration: False
+- arch: cnn-medium-attn
+- attn_dropout: 0.1
+- attn_ff_mult: 2
+- attn_nhead: 8
+- b_dice_loss_weight: 0.0
+- batch_size: 8
+- batch_size_schedule: False
+- body_part_dropout: 0.1
+- dice_loss_weight: 1.5
+- encoder_depth: 6
+- epochs: 200
+- finetune_from: None
+- focal_gamma: 0.0
+- fps_aug: True
+- frame_dropout: 0.15
+- hidden_dim: 384
+- label_smoothing: 0.0
+- learning_rate: 0.0005
+- loss_b_weight: 5.0
+- loss_i_weight: 3.0
+- max_time: 00:03:00:00
+- no_face: True
+- no_normalize: False
+- num_frames: 1536
+- num_frames_end: None
+- optimizer: None
+- patience: 50
+- phrase_b_weight: 2.0
+- phrase_i_weight: 1.5
+- phrase_weighted_loss: False
+- pos_encoding: rope
+- pose_dims: 3
+- sign_b_weight: 3.0
+- sign_i_weight: 2.0
+- sign_weighted_loss: False
+- speed_aug: False
+- steps_per_epoch: 100
+- target_fps: None
+- velocity: True
+- weighted_loss: False
+
+**Training:**
+- Params: 7,801,597
+- Best epoch: 139
+- Best val loss: None
+- Elapsed: 89.2 min
+- Log: /mnt/rylo-tnas/users/amit/dev/sign-language-processing/segmentation/logs/E162-1536-batch8-drop01-fixchunk-3h_train.log
+
+**Dev metrics @ 50fps:**
+- Sign: F1=0.5249  IoU=0.6156  SegF1=0.9712
+- Phrase: F1=0.5491  IoU=0.6661  SegF1=0.7567
+
+**Dev metrics @ 25fps:**
+- Sign: F1=0.5219  IoU=0.5381  SegF1=0.8682
+- Phrase: F1=0.5457  IoU=0.6532  SegF1=0.7385
+
+**Notes:** 1536 sweet spot: E145 phrase quality + E160 sign gain, fd=0.15 regularizes
+
+---
+
+## E163-1024-batch8-drop01-fixchunk-3h [SUCCESS] — 2026-03-22 05:21
+
+**Config:**
+- acceleration: False
+- arch: cnn-medium-attn
+- attn_dropout: 0.1
+- attn_ff_mult: 2
+- attn_nhead: 8
+- b_dice_loss_weight: 0.0
+- batch_size: 8
+- batch_size_schedule: False
+- body_part_dropout: 0.1
+- dice_loss_weight: 1.5
+- encoder_depth: 6
+- epochs: 200
+- finetune_from: None
+- focal_gamma: 0.0
+- fps_aug: True
+- frame_dropout: 0.15
+- hidden_dim: 384
+- label_smoothing: 0.0
+- learning_rate: 0.0005
+- loss_b_weight: 5.0
+- loss_i_weight: 3.0
+- max_time: 00:03:00:00
+- no_face: True
+- no_normalize: False
+- num_frames: 1024
+- num_frames_end: None
+- optimizer: None
+- patience: 50
+- phrase_b_weight: 2.0
+- phrase_i_weight: 1.5
+- phrase_weighted_loss: False
+- pos_encoding: rope
+- pose_dims: 3
+- sign_b_weight: 3.0
+- sign_i_weight: 2.0
+- sign_weighted_loss: False
+- speed_aug: False
+- steps_per_epoch: 100
+- target_fps: None
+- velocity: True
+- weighted_loss: False
+
+**Training:**
+- Params: 7,801,597
+- Best epoch: 84
+- Best val loss: None
+- Elapsed: 39.5 min
+- Log: /mnt/rylo-tnas/users/amit/dev/sign-language-processing/segmentation/logs/E163-1024-batch8-drop01-fixchunk-3h_train.log
+
+**Dev metrics @ 50fps:**
+- N/A (training failed or no checkpoint)
+
+**Dev metrics @ 25fps:**
+- not run
+
+**Notes:** E145 repro with new code (no mask, chunk_size=1024) — confirm or beat baseline
+
+---
+
+## E165-1536-batch8-drop01-fixchunk-hmval-3h [SUCCESS] — 2026-03-22 07:09
+
+**Config:**
+- acceleration: False
+- arch: cnn-medium-attn
+- attn_dropout: 0.1
+- attn_ff_mult: 2
+- attn_nhead: 8
+- b_dice_loss_weight: 0.0
+- batch_size: 8
+- batch_size_schedule: False
+- body_part_dropout: 0.1
+- dice_loss_weight: 1.5
+- encoder_depth: 6
+- epochs: 200
+- finetune_from: None
+- focal_gamma: 0.0
+- fps_aug: True
+- frame_dropout: 0.15
+- hidden_dim: 384
+- label_smoothing: 0.0
+- learning_rate: 0.0005
+- loss_b_weight: 5.0
+- loss_i_weight: 3.0
+- max_time: 00:03:00:00
+- no_face: True
+- no_normalize: False
+- num_frames: 1536
+- num_frames_end: None
+- optimizer: None
+- patience: 50
+- phrase_b_weight: 2.0
+- phrase_i_weight: 1.5
+- phrase_weighted_loss: False
+- pos_encoding: rope
+- pose_dims: 3
+- sign_b_weight: 3.0
+- sign_i_weight: 2.0
+- sign_weighted_loss: False
+- speed_aug: False
+- steps_per_epoch: 100
+- target_fps: None
+- velocity: True
+- weighted_loss: False
+
+**Training:**
+- Params: 8,097,277
+- Best epoch: 70
+- Best val loss: None
+- Elapsed: 44.2 min
+- Log: /mnt/rylo-tnas/users/amit/dev/sign-language-processing/segmentation/logs/E165-1536-batch8-drop01-fixchunk-hmval-3h_train.log
+
+**Dev metrics @ 50fps:**
+- Sign: F1=0.4909  IoU=0.5598  SegF1=0.9654
+- Phrase: F1=0.5448  IoU=0.8892  SegF1=0.8540
+
+**Dev metrics @ 25fps:**
+- Sign: F1=0.4763  IoU=0.5364  SegF1=0.9669
+- Phrase: F1=0.5400  IoU=0.8765  SegF1=0.9095
+
+**Notes:** E162 clean re-run: 1536fr + chunk_size fix + HM validation metric
+
+---
+
+**Dev metrics @ 50fps (auto-eval 2026-03-22 08:37):**
+- Sign IoU: 0.5598
+- Phrase IoU: 0.8892
+- HM: 0.6871
+
+**Dev metrics @ 25fps:**
+- Sign IoU: 0.5362
+- Phrase IoU: 0.8765
+
+**Dev metrics @ 50fps (auto-eval 2026-03-22 12:04):**
+- Sign IoU: 0.5601
+- Phrase IoU: 0.8892
+- HM: 0.6873
+
+**Dev metrics @ 25fps:**
+- Sign IoU: 0.5372
+- Phrase IoU: 0.8765
+
+## E166-1024-depth4-drop01-fixchunk-hmval-3h [SUCCESS] — 2026-03-22 08:35
+
+**Config:**
+- acceleration: False
+- arch: cnn-medium-attn
+- attn_dropout: 0.1
+- attn_ff_mult: 2
+- attn_nhead: 8
+- b_dice_loss_weight: 0.0
+- batch_size: 8
+- batch_size_schedule: False
+- body_part_dropout: 0.1
+- dice_loss_weight: 1.5
+- encoder_depth: 4
+- epochs: 200
+- finetune_from: None
+- focal_gamma: 0.0
+- fps_aug: True
+- frame_dropout: 0.15
+- hidden_dim: 384
+- label_smoothing: 0.0
+- learning_rate: 0.0005
+- loss_b_weight: 5.0
+- loss_i_weight: 3.0
+- max_time: 00:03:00:00
+- no_face: True
+- no_normalize: False
+- num_frames: 1024
+- num_frames_end: None
+- optimizer: None
+- patience: 50
+- phrase_b_weight: 2.0
+- phrase_i_weight: 1.5
+- phrase_weighted_loss: False
+- pos_encoding: rope
+- pose_dims: 3
+- sign_b_weight: 3.0
+- sign_i_weight: 2.0
+- sign_weighted_loss: False
+- speed_aug: False
+- steps_per_epoch: 100
+- target_fps: None
+- velocity: True
+- weighted_loss: False
+
+**Training:**
+- Params: 5,734,141
+- Best epoch: 199
+- Best val loss: None
+- Elapsed: 85.4 min
+- Log: /mnt/rylo-tnas/users/amit/dev/sign-language-processing/segmentation/logs/E166-1024-depth4-drop01-fixchunk-hmval-3h_train.log
+
+**Dev metrics @ 50fps:**
+- Sign: F1=0.5445  IoU=0.6411  SegF1=0.9733
+- Phrase: F1=0.5464  IoU=0.8996  SegF1=0.9006
+
+**Dev metrics @ 25fps:**
+- Sign: F1=0.5604  IoU=0.6343  SegF1=0.9757
+- Phrase: F1=0.5480  IoU=0.9037  SegF1=0.9152
+
+**Notes:** depth=4 vs E163 depth=6: test whether marginal sign gain justifies +2.4M params
+
+---
+
+**Dev metrics @ 50fps (auto-eval 2026-03-22 08:37):**
+- Sign IoU: 0.6411
+- Phrase IoU: 0.8996
+- HM: 0.7487
+
+**Dev metrics @ 25fps:**
+- Sign IoU: 0.6343
+- Phrase IoU: 0.9037
+
+---
+**Dev metrics @ 50fps (auto-eval 2026-03-22 12:04):**
+- Sign IoU: 0.6407
+- Phrase IoU: 0.8996
+- HM: 0.7484
+
+**Dev metrics @ 25fps:**
+- Sign IoU: 0.6342
+- Phrase IoU: 0.9037
+
+## E167-1536-depth4-drop01-hmval-3h
+
+**Dev metrics @ 50fps (auto-eval 2026-03-22 10:07):**
+- Sign IoU: 0.6452
+- Phrase IoU: 0.9081
+- HM: 0.7544
+
+**Dev metrics @ 25fps:**
+- Sign IoU: 0.6352
+- Phrase IoU: 0.9065
+
+---
+**Dev metrics @ 50fps (auto-eval 2026-03-22 12:04):**
+- Sign IoU: 0.6452
+- Phrase IoU: 0.9081
+- HM: 0.7544
+
+**Dev metrics @ 25fps:**
+- Sign IoU: 0.6352
+- Phrase IoU: 0.9065
+
+## E168-1536-depth6-drop01-hmval-6h
+
+**Dev metrics @ 50fps (auto-eval 2026-03-22 11:53):**
+- Sign IoU: 0.6447
+- Phrase IoU: 0.9042
+- HM: 0.7527
+
+**Dev metrics @ 25fps:**
+- Sign IoU: 0.6320
+- Phrase IoU: 0.9018
+
+**Dev metrics @ 50fps (auto-eval 2026-03-22 12:05):**
+- Sign IoU: 0.6447
+- Phrase IoU: 0.9042
+- HM: 0.7527
+
+**Dev metrics @ 25fps:**
+- Sign IoU: 0.6320
+- Phrase IoU: 0.9018
+
+---
+## E169-1024-depth4-drop01-hmval-6h
+
+**Dev metrics @ 50fps (auto-eval 2026-03-22 14:30):**
+- Sign IoU: 0.6569
+- Phrase IoU: 0.9104
+- HM: 0.7631
+
+**Dev metrics @ 25fps:**
+- Sign IoU: 0.6526
+- Phrase IoU: 0.9080
+
+---
+## E170-2048-depth4-drop01-hmval-3h
+
+**Dev metrics @ 50fps (auto-eval 2026-03-22 16:20):**
+- Sign IoU: 0.6401
+- Phrase IoU: 0.9043
+- HM: 0.7496
+
+**Dev metrics @ 25fps:**
+- Sign IoU: 0.6251
+- Phrase IoU: 0.9030
