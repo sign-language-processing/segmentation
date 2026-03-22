@@ -17,6 +17,33 @@ pose_to_segments --pose example.pose --elan output.eaf [--video example.mp4]
 
 The model reads a `.pose` file and writes an ELAN (`.eaf`) annotation file with SIGN and SENTENCE tiers.
 
+```python
+from pose_format import Pose
+from sign_language_segmentation.bin import segment_pose
+
+with open("example.pose", "rb") as f:
+    pose = Pose.read(f)
+
+eaf, tiers = segment_pose(pose)
+# tiers["SIGN"] and tiers["SENTENCE"] are lists of {"start": int, "end": int} frame dicts
+```
+
+## Server
+
+```bash
+# Build and run the inference server
+docker build -t segmentation-serve .
+docker run -p 8080:8080 -e PORT=8080 segmentation-serve
+
+# Segment a pose file (input/output are file paths or gs:// URIs)
+curl -X POST http://localhost:8080 \
+  -H "Content-Type: application/json" \
+  -d '{"input": "/path/to/input.pose", "output": "/path/to/output.eaf"}'
+
+# Health check
+curl http://localhost:8080/health
+```
+
 ## Training
 
 ### Prerequisites

@@ -24,6 +24,11 @@ dev = [
     "wandb",
     "scikit-learn",
 ]
+server = [
+    "Flask",
+    "Werkzeug",
+    "gunicorn",
+]
 
 [tool.yapf]
 based_on_style = "google"
