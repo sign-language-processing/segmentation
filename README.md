@@ -103,14 +103,25 @@ CNN-medium-attn + RoPE (2026):
 
 See [`dist/2026/README.md`](dist/2026/README.md) for what worked, what didn't, and key bug fixes.
 
+## 2023 Version ([v2023](https://github.com/sign-language-processing/segmentation/tree/v2023))
+
+Exact code for the
+paper [Linguistically Motivated Sign Language Segmentation](https://aclanthology.org/2023.findings-emnlp.846).
+
 ## Citation
 
 ```bibtex
 @inproceedings{moryossef-etal-2023-linguistically,
     title = "Linguistically Motivated Sign Language Segmentation",
     author = {Moryossef, Amit  and Jiang, Zifan  and M{\"u}ller, Mathias  and Ebling, Sarah  and Goldberg, Yoav},
-    booktitle = "Findings of EMNLP 2023",
+    editor = "Bouamor, Houda  and Pino, Juan  and Bali, Kalika",
+    booktitle = "Findings of the Association for Computational Linguistics: EMNLP 2023",
+    month = dec,
     year = "2023",
+    address = "Singapore",
+    publisher = "Association for Computational Linguistics",
     url = "https://aclanthology.org/2023.findings-emnlp.846",
+    doi = "10.18653/v1/2023.findings-emnlp.846",
+    pages = "12703--12724",
 }
 ```

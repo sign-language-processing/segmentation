@@ -4,7 +4,12 @@ Improved sign language segmentation models trained on DGS Corpus 3.0.0-uzh-docum
 
 ## Files
 
-- `best.ckpt` — best checkpoint (PyTorch Lightning `.ckpt`)
+- `best.ckpt` — best checkpoint (PyTorch Lightning `.ckpt`, bfloat16, optimizer states stripped)
+
+To update `best.ckpt` after training a new model:
+```bash
+slim_checkpoint models/best.ckpt sign_language_segmentation/dist/2026/best.ckpt
+```
 
 ## Usage
 
