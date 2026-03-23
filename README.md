@@ -1,147 +1,114 @@
 # Sign Language Segmentation
 
-Pose segmentation model on both the sentence and sign level
-
-Code for the paper [Linguistically Motivated Sign Language Segmentation](https://aclanthology.org/2023.findings-emnlp.846).
+Pose segmentation model for sign language — signs and sentences — using CNN + Transformer with RoPE.
 
 ## Usage
 
-
 ```bash
+# Install
 pip install git+https://github.com/sign-language-processing/segmentation
+
+# Acquire a MediaPipe Holistic pose file
+wget -O example.pose https://sign-lanugage-datasets.sign-mt.cloud/poses/holistic/dgs_corpus/1413451-11105600-11163240_a.pose
+
+# Run the model
+pose_to_segments --pose example.pose --elan output.eaf [--video example.mp4]
 ```
 
-To create an ELAN file with sign and sentence segments:
-(To demo this on a longer file, you can download a large pose file from [here](https://firebasestorage.googleapis.com/v0/b/sign-language-datasets/o/poses%2Fholistic%2Fdgs_corpus%2F1413451-11105600-11163240_a.pose?alt=media&token=432f0b57-3fb9-45ad-a9a4-0b6fae4ffcf7))
-
-```bash
-pose_to_segments --pose="sign.pose" --elan="sign.eaf" [--video="sign.mp4"]
-```
-
-### Web Server on Docker
-
-```bash
-docker build -t segmentation .
-
-docker run --rm -p 9876:8080 -e PORT=8080 \
-  -v $(pwd)/sign_language_segmentation/tests:/mnt/examples \
-  segmentation
-
-curl -X POST http://localhost:9876/ \
-    -H "Content-Type: application/json" \
-    -d '{"input": "/mnt/examples/example.pose", "output": "/mnt/examples/example.eaf"}'
-```
-
----
-
-## Main Idea
-
-We tag pose sequences with BIO (beginning/in/out) and try to classify each frame. 
-Due to huge sequence sizes intended to work on (full videos), this is not done using a transformer.
-Loss is heavily weighted in favor of "B" as it is a "rare" prediction compared to I and O.
-
-
-#### Pseudo code:
+The model reads a `.pose` file and writes an ELAN (`.eaf`) annotation file with SIGN and SENTENCE tiers.
 
 ```python
-pose_embedding = embed_pose(pose)
-pose_encoding = encoder(pose_embedding)
-sign_bio = sign_bio_tagger(pose_encoding)
-sentence_bio = sentence_bio_tagger(pose_encoding)
+from pose_format import Pose
+from sign_language_segmentation.bin import segment_pose
+
+with open("example.pose", "rb") as f:
+    pose = Pose.read(f)
+
+eaf, tiers = segment_pose(pose)
+# tiers["SIGN"] and tiers["SENTENCE"] are lists of {"start": int, "end": int} frame dicts
 ```
 
-## Extra details
-
-- Model tests, including overfitting, and continuous integration
-- We remove the legs because they are not informative
-- For experiment management we use WANDB
-- Training works on CPU and GPU (90% util)
-- Multiple-GPUs not tested
-
-## Motivation
-
-### Optical flow 
-Optical flow is highly correlative to phrase boundaries. 
-
-![Optical flow](sign_language_segmentation/figures/optical_fow/optical_flow_sentence_example.png)
-
-### 3D Hand Normalization
-3D hand normalization may assist the model with learning hand shape changes.
-
-Watch [this video](https://youtu.be/pCKRWSNIaNQ?t=191) to see how it's done.
-
-## Reproducing Experiments
-
-### E0: Moryossef et al. (2020)
-This is an attempt to reproduce the methodology of Moryossef et al. (2020) on the DGS corpus.
-Since they used a different document split, and do not filter out wrong data, our results are not directly comparable. This model processes optical flow as input and outputs I (is signing) and O (not signing) tags.
+## Server
 
 ```bash
-python -m sign_language_segmentation.src.train --dataset=dgs_corpus --pose=holistic --fps=25 --hidden_dim=64 --encoder_depth=1 --encoder_bidirectional=false --optical_flow=true --only_optical_flow=true --weighted_loss=false --classes=io
+# Build and run the inference server
+docker build -t segmentation-serve .
+docker run -p 8080:8080 -e PORT=8080 segmentation-serve
+
+# Segment a pose file (input/output are file paths or gs:// URIs)
+curl -X POST http://localhost:8080 \
+  -H "Content-Type: application/json" \
+  -d '{"input": "/path/to/input.pose", "output": "/path/to/output.eaf"}'
+
+# Health check
+curl http://localhost:8080/health
 ```
 
-### E1: Bidirectional BIO Tagger
-We replace the IO tagging heads in E0 with BIO heads to form our baseline. Our preliminary experiments indicate that inputting only the 75 hand and body keypoints and making the LSTM layer bidirectional yields optimal results.
+## Training
+
+### Prerequisites
+
+Requires the DGS Corpus and MediaPipe Holistic poses (internal datasets).
+
+### Docker (recommended)
+
 ```bash
+# Build the training image
+docker build -f Dockerfile.train -t segmentation-train .
+
+# Train
+docker run --rm --gpus all \
+  -v /path/to/dgs-corpus:/data/dgs-corpus:ro \
+  -v /path/to/mediapipe-poses:/data/poses:ro \
+  -v $(pwd)/models:/app/models \
+  segmentation-train \
+  python -m sign_language_segmentation.train \
+    --corpus /data/dgs-corpus \
+    --poses /data/poses \
+    --hidden_dim 384 --encoder_depth 4 --attn_nhead 8 \
+    --batch_size 8 --num_frames 1024 \
+    --dice_loss_weight 1.5 \
+    --epochs 500 --patience 100
+
+# Evaluate on dev split
+docker run --rm --gpus all \
+  -v /path/to/dgs-corpus:/data/dgs-corpus:ro \
+  -v /path/to/mediapipe-poses:/data/poses:ro \
+  -v $(pwd)/models:/app/models \
+  segmentation-train \
+  python -m sign_language_segmentation.evaluate \
+    --checkpoint /app/models/<run_name>/best.ckpt \
+    --corpus /data/dgs-corpus \
+    --poses /data/poses \
+    --split dev
+```
+
+Best hyperparameters and architecture details: [`dist/2026/README.md`](dist/2026/README.md).
+
+### Local (development)
+
+```bash
+conda create --name segmentation python=3.12 -y
 conda activate segmentation
-export CUDA_VISIBLE_DEVICES=3
-python -m sign_language_segmentation.src.train --dataset=dgs_corpus --pose=holistic --fps=25 --hidden_dim=256 --encoder_depth=4 --encoder_bidirectional=true --no_wandb true
-```
-Or for the mediapi-skel dataset (only phrase segmentation)
-```bash
-# FPS is not relevant for mediapi-skel
-export MEDIAPI_PATH=/shares/volk.cl.uzh/amoryo/datasets/mediapi/mediapi-skel.zip
-export MEDIAPI_POSE_PATH=/shares/volk.cl.uzh/amoryo/datasets/mediapi/mediapipe_zips.zip
-python -m sign_language_segmentation.src.train --dataset=mediapi_skel --pose=holistic --fps=0 --hidden_dim=256 --encoder_depth=1 --encoder_bidirectional=true
+pip install ".[dev]"
+python -m sign_language_segmentation.train --corpus /path/to/dgs-corpus --poses /path/to/poses
 ```
 
-### E2: Adding Reduced Face Keypoints
+## Architecture
 
-Although the 75 hand and body keypoints serve as an efficient minimal set for sign language detection/segmentation models, we investigate the impact of other nonmanual sign language articulators, namely, the face. We introduce a reduced set of 128 face keypoints that signify the signer's face contour.
-```bash
-python -m sign_language_segmentation.src.train --dataset=dgs_corpus --pose=holistic --fps=25 --hidden_dim=256 --encoder_depth=1 --encoder_bidirectional=true --pose_components POSE_LANDMARKS LEFT_HAND_LANDMARKS RIGHT_HAND_LANDMARKS FACE_LANDMARKS --pose_reduce_face=true
-```
+CNN-medium-attn + RoPE (2026):
+- Stage 1: Two-stage UNet CNN — spatial compression over joints, then temporal context
+- Stage 2: N-layer pre-norm Transformer with Rotary Position Embedding (RoPE)
+- Two output heads: sign (gloss) BIO and phrase (sentence) BIO
 
-### E3: Adding Optical Flow
+See [`dist/2026/README.md`](dist/2026/README.md) for what worked, what didn't, and key bug fixes.
 
-At every time step $t$ we append the optical flow between $t$ and $t-1$ to the current pose frame as an additional dimension after the $XYZ$ axes.
-```bash
-python -m sign_language_segmentation.src.train --dataset=dgs_corpus --pose=holistic --fps=25 --hidden_dim=256 --encoder_depth=1 --encoder_bidirectional=true --optical_flow=true
-```
+## 2023 Version ([v2023](https://github.com/sign-language-processing/segmentation/tree/v2023))
 
-### E4: Adding 3D Hand Normalization
+Exact code for the
+paper [Linguistically Motivated Sign Language Segmentation](https://aclanthology.org/2023.findings-emnlp.846).
 
-At every time step, we normalize the hand poses and concatenate them to the current pose frame.
-```bash
-python -m sign_language_segmentation.src.train --dataset=dgs_corpus --pose=holistic --fps=25 --hidden_dim=256 --encoder_depth=1 --encoder_bidirectional=true --optical_flow=true --hand_normalization=true
-```
-
-### E5: Autoregressive Encoder
-
-We add autoregressive connections between time steps to encourage consistent output labels. The logits at time step $t$ are concatenated to the input of the next time step, $t+1$. This modification is implemented bidirectionally by stacking two autoregressive encoders and adding their output up before the Softmax operation. However, this approach is inherently slow, as we have to fully wait for the previous time step predictions before we can feed them to the next time step.
-```bash
-python -m sign_language_segmentation.src.train --dataset=dgs_corpus --pose=holistic --fps=25 --hidden_dim=256 --encoder_depth=4 --encoder_bidirectional=true --encoder_autoregressive=true --optical_flow=true --hand_normalization=true --epochs=50 --patience=10
-```
-
-CAUTION: this experiment does not improve the model as expected and runs very slowly.
-
-## Test and Evaluation
-
-To test and evaluate a model, add the `train=false` and `--checkpoint` flag. Take E1 as an example:
-
-```bash
-python -m sign_language_segmentation.src.train --dataset=dgs_corpus --pose=holistic --fps=25 --hidden_dim=256 --encoder_depth=1 --encoder_bidirectional=true --train=false --checkpoint=./models/E1-1/best.ckpt
-```
-
-It's also possible to adjust the decoding algorithm by setting the `b_threshold` and the `o_threshold`:
-
-```bash
-python -m sign_language_segmentation.src.train --dataset=dgs_corpus --pose=holistic --fps=25 --hidden_dim=256 --encoder_depth=1 --encoder_bidirectional=true --train=false --checkpoint=./models/E1-1/best.ckpt --b_threshold=50 --o_threshold=50
-```
-
-To test on an external dataset, see [evaluate_mediapi.py](https://github.com/sign-language-processing/transcription/blob/main/sign_language_segmentation/src/evaluate_mediapi.py) for an example.
-
-## Cite
+## Citation
 
 ```bibtex
 @inproceedings{moryossef-etal-2023-linguistically,

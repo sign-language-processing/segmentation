@@ -40,18 +40,15 @@ def health_check():
 
 @app.route("/", methods=['POST'])
 def pose_segmentation():
-    # Get request parameters
     body = request.get_json()
     for param in ['input', 'output']:
         if param not in body:
             abort(make_response(jsonify(message=f"Missing `{param}` body property"), 400))
 
-    # Check if output file already exists
     output_file_path = Path(resolve_path(body["output"]))
     if output_file_path.exists():
         return make_response(jsonify(message="Output file already exists", path=body["output"]), 208)
 
-    # Check if input file exists at all
     pose_file_path = Path(resolve_path(body["input"]))
     if not pose_file_path.exists():
         raise Exception("File does not exist")
@@ -60,8 +57,7 @@ def pose_segmentation():
         pose = Pose.read(f)
 
     if len(pose.body.data) == 1:
-        # Otherwise, segment_pose gives an error:
-        # > too many indices for array: array is 1-dimensional, but 2 were indexed
+        # segment_pose would error on a single-frame pose
         return make_response(jsonify(message="Pose has only one frame, no segmentation needed", path=body["output"]), 200)
 
     eaf, tiers = segment_pose(pose)
