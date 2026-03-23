@@ -28,6 +28,9 @@ server = [
     "Flask",
     "Werkzeug",
     "gunicorn",
+    "Flask-Cors",
+    "Flask-Compress",
+    "Flask-Caching",
 ]
 
 [tool.ruff]
