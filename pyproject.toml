@@ -21,7 +21,7 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
     "pytest",
-    "pylint",
+    "ruff",
     "wandb",
 ]
 server = [
@@ -30,22 +30,14 @@ server = [
     "gunicorn",
 ]
 
-[tool.yapf]
-based_on_style = "google"
-column_limit = 120
+[tool.ruff]
+line-length = 120
 
-[tool.pylint]
-max-line-length = 120
-disable = [
-    "C0114", # Missing module docstring
-    "C0115", # Missing class docstring
-    "C0116", # Missing function or method docstring
-    "C0415", # Import outside toplevel
+[tool.ruff.lint]
+ignore = [
+    "E501",  # line too long (handled by line-length)
+    "F401",  # unused imports in __init__.py re-exports
 ]
-good-names = ["i", "f", "x", "y"]
-
-[tool.pylint.typecheck]
-generated-members = ["torch.*", "numpy.*", "cv2.*"]
 
 [tool.setuptools]
 packages = [

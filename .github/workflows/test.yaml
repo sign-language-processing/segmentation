@@ -14,13 +14,17 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
-        with:
-          python-version: '3.12'
+      - uses: actions/checkout@v6
 
-      - name: Install Requirements
-        run: pip install ".[dev,server]"
+      - name: Setup uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          python-version: "3.10"
+          enable-cache: true
+          activate-environment: true
+
+      - name: Install dependencies
+        run: uv pip install ".[dev,server]" --extra-index-url https://download.pytorch.org/whl/cpu
 
       - name: Test Code
-        run: pytest sign_language_segmentation
+        run: uv run pytest

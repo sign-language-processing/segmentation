@@ -9,18 +9,22 @@ on:
 
 
 jobs:
-  test:
+  lint:
     name: Lint
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
+      - uses: actions/checkout@v6
+
+      - name: Setup uv
+        uses: astral-sh/setup-uv@v7
         with:
-          python-version: '3.12'
+          python-version: "3.10"
+          enable-cache: true
+          activate-environment: true
 
-      - name: Install Requirements
-        run: pip install ".[dev,server]"
+      - name: Install dependencies
+        run: uv pip install ".[dev]" --extra-index-url https://download.pytorch.org/whl/cpu
 
-      - name: Lint Code
-        run: pylint sign_language_segmentation
+      - name: Lint code
+        run: uv run ruff check .
