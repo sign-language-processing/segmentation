@@ -78,8 +78,16 @@ during training.
 | E1s (2023 paper) | 0.440 | — | — |
 | E166 (depth=4, 1024fr, 3h) | 0.641 | 0.900 | 0.748 |
 | E167 (depth=4, 1536fr, 3h) | 0.645 | 0.908 | 0.754 |
-| E169 (depth=4, 1024fr, 6h) | 0.657 | 0.910 | 0.763 |
-| **Efinal** (depth=4, 1024fr, 12h) | — | — | — |
+| **E169** (depth=4, 1024fr, 6h) | **0.657** | **0.910** | **0.763** |
+| Efinal (depth=4, 1024fr, 12h) | 0.650 | 0.898 | 0.754 |
+
+E169 is the shipped model (`best.ckpt`). Efinal trained longer but early stopping had already found the optimum — additional epochs hurt slightly.
+
+## Test Set Results (best.ckpt = E169)
+
+| | Sign IoU | Phrase IoU | HM |
+|--|---------|-----------|-----|
+| 50fps | 0.652 | 0.925 | **0.764** |
 
 HM = harmonic mean of Sign IoU@50 and Phrase IoU@50.
 
