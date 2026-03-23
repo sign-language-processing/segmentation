@@ -51,7 +51,7 @@ def pose_segmentation():
 
     pose_file_path = Path(resolve_path(body["input"]))
     if not pose_file_path.exists():
-        raise Exception("File does not exist")
+        raise FileNotFoundError("File does not exist")
 
     with pose_file_path.open("rb") as f:
         pose = Pose.read(f)

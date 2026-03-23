@@ -148,7 +148,7 @@ def main():
         eaf.add_linked_file(str(args.pose), mimetype="application/pose")
 
     if args.subtitles and os.path.exists(args.subtitles):
-        import srt
+        import srt  # pylint: disable=import-error
         eaf.add_tier("SUBTITLE")
         with open(args.subtitles, "r", encoding="utf-8-sig") as f:
             for subtitle in srt.parse(f):
