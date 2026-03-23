@@ -1,16 +1,20 @@
-import gzip
-import json
 import os
 import traceback
 from datetime import datetime, UTC
 from pathlib import Path
 
 from flask import Flask, request, abort, make_response, jsonify
+from flask_caching import Cache
+from flask_compress import Compress
+from flask_cors import CORS
 from pose_format import Pose
 
 from sign_language_segmentation.bin import segment_pose
 
 app = Flask(__name__)
+compress = Compress(app)
+cache = Cache(app, config={"CACHE_TYPE": "SimpleCache"})
+CORS(app, resources={r"/": {"methods": ["GET", "OPTIONS"]}})
 
 CACHE_TTL = 86400  # 1 day in seconds
 
@@ -20,15 +24,20 @@ def resolve_path(uri: str):
     return uri.replace("gs://", "/mnt/")
 
 
-def add_cors(response):
-    response.headers["Access-Control-Allow-Origin"] = "*"
-    response.headers["Access-Control-Allow-Headers"] = "Content-Type"
-    return response
+def load_pose(uri: str) -> Pose:
+    pose_file_path = Path(resolve_path(uri))
+    if not pose_file_path.exists():
+        raise FileNotFoundError(f"File does not exist: {uri}")
+    with pose_file_path.open("rb") as f:
+        return Pose.read(f)
 
 
-@app.after_request
-def after_request(response):
-    return add_cors(response)
+def tiers_to_seconds(tiers: dict, fps: float) -> dict:
+    return {
+        tier: [{"start": round(seg["start"] / fps, 3), "end": round(seg["end"] / fps, 3)}
+               for seg in segments]
+        for tier, segments in tiers.items()
+    }
 
 
 @app.errorhandler(Exception)
@@ -43,32 +52,6 @@ def handle_exception(e):
     return make_response(jsonify(message=message, code=code), code)
 
 
-def load_pose(uri: str) -> Pose:
-    pose_file_path = Path(resolve_path(uri))
-    if not pose_file_path.exists():
-        raise FileNotFoundError(f"File does not exist: {uri}")
-    with pose_file_path.open("rb") as f:
-        return Pose.read(f)
-
-
-def tiers_to_seconds(tiers: dict, fps: float) -> dict:
-    """Convert frame-index segment dicts to seconds."""
-    return {
-        tier: [{"start": round(seg["start"] / fps, 4), "end": round(seg["end"] / fps, 4)}
-               for seg in segments]
-        for tier, segments in tiers.items()
-    }
-
-
-def gzip_json(data: dict):
-    body = json.dumps(data, separators=(",", ":")).encode("utf-8")
-    compressed = gzip.compress(body)
-    response = make_response(compressed, 200)
-    response.headers["Content-Type"] = "application/json"
-    response.headers["Content-Encoding"] = "gzip"
-    return response
-
-
 @app.route('/health', methods=['GET'])
 def health_check():
     body = {
@@ -79,7 +62,9 @@ def health_check():
     return make_response(jsonify(body), 200)
 
 
-@app.route("/segments", methods=['GET', 'OPTIONS'])
+@app.route("/", methods=['GET', 'OPTIONS'])
+@compress.compressed()
+@cache.cached(timeout=CACHE_TTL, query_string=True)
 def get_segments():
     if request.method == 'OPTIONS':
         return make_response("", 204)
@@ -91,12 +76,12 @@ def get_segments():
     pose = load_pose(pose_uri)
 
     if len(pose.body.data) == 1:
-        return gzip_json({"sign": [], "sentence": []})
+        return jsonify(sign=[], sentence=[])
 
     _eaf, tiers = segment_pose(pose)
     result = tiers_to_seconds(tiers, pose.body.fps)
 
-    response = gzip_json({"sign": result["SIGN"], "sentence": result["SENTENCE"]})
+    response = make_response(jsonify(sign=result["SIGN"], sentence=result["SENTENCE"]))
     response.headers["Cache-Control"] = f"public, max-age={CACHE_TTL}"
     return response
 
