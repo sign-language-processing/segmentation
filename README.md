@@ -8,11 +8,12 @@ Pose segmentation model for sign language — signs and sentences — using CNN 
 # Install
 pip install git+https://github.com/sign-language-processing/segmentation
 
-# Acquire a MediaPipe Holistic pose file
+# Acquire a MediaPipe Holistic pose file and the corresponding video
 wget -O example.pose https://datasets.sigma-sign-language.com/poses/holistic/dgs_corpus/1413451-11105600-11163240_a.pose
+wget -O example.mp4 https://www.sign-lang.uni-hamburg.de/meinedgs/videos/1413451-11105600-11163240/1413451-11105600-11163240_1a1.mp4
 
-# Run the model
-pose_to_segments --pose example.pose --elan output.eaf [--video example.mp4]
+# Run the model (video is linked into the ELAN file so it plays in ELAN)
+pose_to_segments --pose example.pose --elan output.eaf --video example.mp4
 ```
 
 The model reads a `.pose` file and writes an ELAN (`.eaf`) annotation file with SIGN and SENTENCE tiers.
