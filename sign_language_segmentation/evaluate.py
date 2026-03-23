@@ -103,13 +103,11 @@ if __name__ == "__main__":
     )
     dataloader = DataLoader(dataset, batch_size=1, collate_fn=collate_fn)
 
-    seg_fn = likeliest_probs_to_segments
-    if eval_args.min_frames > 0 or eval_args.merge_gap > 0:
-        seg_fn = lambda lp: filter_segments(
-            likeliest_probs_to_segments(lp),
-            min_frames=eval_args.min_frames,
-            merge_gap=eval_args.merge_gap,
-        )
+    def seg_fn(lp):
+        segs = likeliest_probs_to_segments(lp)
+        if eval_args.min_frames > 0 or eval_args.merge_gap > 0:
+            segs = filter_segments(segs, min_frames=eval_args.min_frames, merge_gap=eval_args.merge_gap)
+        return segs
 
     results = evaluate_model(model, dataloader, eval_args.device, seg_fn=seg_fn)
 

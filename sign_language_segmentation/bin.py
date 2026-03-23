@@ -20,8 +20,7 @@ from sign_language_segmentation.model.model import PoseTaggingModel
 
 
 def _default_model_path() -> str:
-    repo_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    return os.path.join(repo_root, "dist", "2026", "best.ckpt")
+    return os.path.join(os.path.dirname(os.path.abspath(__file__)), "dist", "2026", "best.ckpt")
 
 
 @lru_cache(maxsize=1)

@@ -103,7 +103,6 @@ def _segment_recall(segments: List[dict], segments_gold: List[dict]) -> float:
     for sg in segments_gold:
         start = sg["start"] - allowed_shift
         end = sg["end"] + allowed_shift
-        gold_range = range(start, end + 1)
         if any(range(max(s['start'], start), min(s['end'], end) + 1) for s in segments
                if s['start'] <= end and s['end'] >= start):
             hit += 1

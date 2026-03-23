@@ -1,4 +1,3 @@
-import argparse as _argparse
 import random
 from argparse import ArgumentParser
 

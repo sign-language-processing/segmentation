@@ -14,15 +14,15 @@ dependencies = [
     "torch",
     "sign_language_datasets",
     "pose-anonymization",
+    "scikit-learn",
+    "pytorch-lightning",
 ]
 
 [project.optional-dependencies]
 dev = [
     "pytest",
     "pylint",
-    "pytorch-lightning",
     "wandb",
-    "scikit-learn",
 ]
 server = [
     "Flask",
@@ -55,7 +55,7 @@ packages = [
 ]
 
 [tool.setuptools.package-data]
-sign_language_segmentation = ["**/*.json"]
+sign_language_segmentation = ["**/*.json", "**/*.ckpt"]
 
 [tool.pytest.ini_options]
 addopts = "-v"
