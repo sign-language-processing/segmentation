@@ -10,20 +10,24 @@ readme = "README.md"
 dependencies = [
     "pose-format>=0.8.1",
     "numpy",
-    "pympi-ling", # Working with ELAN files in CLI
+    "pympi-ling",
     "torch",
-    "pose_anonymization @ git+https://github.com/sign-language-processing/pose-anonymization", # Used for normalization
+    "sign_language_datasets",
+    "pose-anonymization",
+    "scikit-learn",
+    "pytorch-lightning",
 ]
 
 [project.optional-dependencies]
 dev = [
     "pytest",
     "pylint",
-    "pytorch-lightning",
     "wandb",
-    "matplotlib",
-    "scikit-learn",
-    "psycopg2-binary" # to fetch the annotations from the database
+]
+server = [
+    "Flask",
+    "Werkzeug",
+    "gunicorn",
 ]
 
 [tool.yapf]
@@ -46,12 +50,12 @@ generated-members = ["torch.*", "numpy.*", "cv2.*"]
 [tool.setuptools]
 packages = [
     "sign_language_segmentation",
-    "sign_language_segmentation.src",
-    "sign_language_segmentation.src.utils",
+    "sign_language_segmentation.model",
+    "sign_language_segmentation.data",
 ]
 
 [tool.setuptools.package-data]
-sign_language_segmentation = ["**/*.pth"]
+sign_language_segmentation = ["**/*.json", "**/*.ckpt"]
 
 [tool.pytest.ini_options]
 addopts = "-v"
@@ -59,3 +63,4 @@ testpaths = ["sign_language_segmentation"]
 
 [project.scripts]
 pose_to_segments = "sign_language_segmentation.bin:main"
+slim_checkpoint = "sign_language_segmentation.slim_checkpoint:main"
