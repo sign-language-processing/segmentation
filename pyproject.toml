@@ -2,6 +2,7 @@
 name = "sign-language-segmentation"
 description = "Sign language pose segmentation model on both the sentence and sign level"
 version = "0.0.1"
+requires-python = ">=3.12"
 authors = [
     { name = "Amit Moryossef", email = "amitmoryossef@gmail.com" },
     { name = "Zifan Jiang", email = "jiang@cl.uzh.ch" }
@@ -16,6 +17,8 @@ dependencies = [
     "pose-anonymization",
     "scikit-learn",
     "pytorch-lightning",
+    "httpx",
+    "python-dotenv",
 ]
 
 [project.optional-dependencies]
@@ -46,7 +49,10 @@ ignore = [
 packages = [
     "sign_language_segmentation",
     "sign_language_segmentation.model",
-    "sign_language_segmentation.data",
+    "sign_language_segmentation.datasets",
+    "sign_language_segmentation.datasets.dgs",
+    "sign_language_segmentation.datasets.annotation_platform",
+    "sign_language_segmentation.utils",
 ]
 
 [tool.setuptools.package-data]

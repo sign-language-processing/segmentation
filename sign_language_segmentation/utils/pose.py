@@ -3,16 +3,9 @@ from pose_anonymization.data.normalization import normalize_mean_std
 from pose_format import Pose
 from pose_format.utils.generic import pose_hide_legs, reduce_holistic
 
-BIO = {
-    "UNK": 0,
-    "O": 1,
-    "B": 2,
-    "I": 3,
-}
-
 
 def preprocess_pose(pose: Pose) -> Pose:
-    """Normalise and strip face landmarks from a holistic pose."""
+    """normalise and strip face landmarks from a holistic pose."""
     pose = pose.get_components(["POSE_LANDMARKS", "LEFT_HAND_LANDMARKS", "RIGHT_HAND_LANDMARKS"])
     pose_hide_legs(pose)
     pose = reduce_holistic(pose)
@@ -20,7 +13,7 @@ def preprocess_pose(pose: Pose) -> Pose:
 
 
 def compute_velocity(pose_data: np.ndarray, frame_times_seconds: np.ndarray) -> np.ndarray:
-    """Compute fps-normalised velocity (units/second).
+    """compute fps-normalised velocity (units/second).
 
     frame_times_seconds: (T,) timestamps in seconds.
     Returns: (T, joints, dims) velocity array, zero at the first frame.

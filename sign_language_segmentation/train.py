@@ -1,32 +1,108 @@
+import json
 import os
+from datetime import datetime, timezone
 
 import pytorch_lightning as pl
 from pytorch_lightning.callbacks import ModelCheckpoint, LearningRateMonitor
 from pytorch_lightning.callbacks.early_stopping import EarlyStopping
 from pytorch_lightning.loggers import WandbLogger
-from torch.utils.data import DataLoader
+from torch.utils.data import ConcatDataset, DataLoader, Dataset
 
 from sign_language_segmentation.args import args
-from sign_language_segmentation.data.dataset import DGSSegmentationDataset, Split, collate_fn
+from sign_language_segmentation.datasets.common import DatasetType, Split, collate_fn
 from sign_language_segmentation.model.model import PoseTaggingModel
 
 
-def get_dataloader(split: Split, batch_size: int = None, num_frames: int = None,
-                   persistent_workers: bool = True) -> DataLoader:
-    dataset = DGSSegmentationDataset(
-        corpus_dir=args.corpus,
-        poses_dir=args.poses,
-        split=split,
-        num_frames=num_frames if num_frames is not None else args.num_frames,
+def _build_dataset(dataset_type: DatasetType, split: Split, num_frames: int) -> Dataset:
+    """build dataset(s) based on type selection."""
+    augment_kwargs = dict(
+        num_frames=num_frames,
         velocity=args.velocity,
         fps_aug=args.fps_aug,
         frame_dropout=args.frame_dropout,
-        body_part_dropout=args.body_part_dropout if split == "train" else 0.0,
+        body_part_dropout=args.body_part_dropout if split == Split.TRAIN else 0.0,
+    )
+
+    if dataset_type == DatasetType.DGS:
+        from sign_language_segmentation.datasets.dgs.dataset import DGSSegmentationDataset
+        return DGSSegmentationDataset(
+            corpus_dir=args.corpus,
+            poses_dir=args.poses,
+            split=split,
+            **augment_kwargs,
+        )
+
+    if dataset_type == DatasetType.PLATFORM:
+        from sign_language_segmentation.datasets.annotation_platform.dataset import (
+            AnnotationPlatformSegmentationDataset,
+        )
+        if not args.annotations_path:
+            raise ValueError("--annotations_path required for platform dataset")
+        return AnnotationPlatformSegmentationDataset(
+            annotations_path=args.annotations_path,
+            poses_dir=args.poses,
+            split=split,
+            quality_percentile=args.quality_percentile,
+            **augment_kwargs,
+        )
+
+    if dataset_type == DatasetType.COMBINED:
+        from sign_language_segmentation.datasets.annotation_platform.dataset import (
+            AnnotationPlatformSegmentationDataset,
+        )
+        from sign_language_segmentation.datasets.dgs.dataset import DGSSegmentationDataset
+        if not args.annotations_path:
+            raise ValueError("--annotations_path required for combined dataset")
+        dgs = DGSSegmentationDataset(
+            corpus_dir=args.corpus,
+            poses_dir=args.poses,
+            split=split,
+            **augment_kwargs,
+        )
+        platform = AnnotationPlatformSegmentationDataset(
+            annotations_path=args.annotations_path,
+            poses_dir=args.poses,
+            split=split,
+            quality_percentile=args.quality_percentile,
+            **augment_kwargs,
+        )
+        return ConcatDataset([dgs, platform])
+
+    raise ValueError(f"Unknown dataset type: {dataset_type}")
+
+
+def _collect_split_manifest(dataset: Dataset, dataset_type: DatasetType) -> dict:
+    """collect split manifest from dataset(s)."""
+    manifests: list[dict] = []
+    if isinstance(dataset, ConcatDataset):
+        for ds in dataset.datasets:
+            if hasattr(ds, "get_split_manifest"):
+                manifests.append(ds.get_split_manifest())
+    elif hasattr(dataset, "get_split_manifest"):
+        manifests.append(dataset.get_split_manifest())
+    return {
+        "created_at": datetime.now(tz=timezone.utc).isoformat(),
+        "dataset_type": dataset_type.value,
+        "manifests": manifests,
+    }
+
+
+def get_dataloader(
+    split: Split,
+    dataset_type: DatasetType,
+    batch_size: int | None = None,
+    num_frames: int | None = None,
+    persistent_workers: bool = True,
+) -> DataLoader:
+    dataset = _build_dataset(
+        dataset_type=dataset_type,
+        split=split,
+        num_frames=num_frames if num_frames is not None else args.num_frames,
     )
     return DataLoader(
         dataset,
         batch_size=batch_size or args.batch_size,
-        shuffle=(split == "train"),
+        shuffle=(split == Split.TRAIN),
         collate_fn=collate_fn,
         num_workers=8,
         persistent_workers=persistent_workers,
@@ -42,8 +118,9 @@ if __name__ == '__main__':
                              offline=False, name=args.run_name,
                              save_dir=args.wandb_dir)
 
-    train_loader = get_dataloader("train")
-    validation_loader = get_dataloader("dev", batch_size=1)
+    dataset_type = DatasetType(args.dataset)
+    train_loader = get_dataloader(Split.TRAIN, dataset_type=dataset_type)
+    validation_loader = get_dataloader(Split.DEV, dataset_type=dataset_type, batch_size=1)
 
     example_datum = train_loader.dataset[0]
     pose_joints, pose_dims = example_datum["pose"].shape[1:3]
@@ -77,8 +154,17 @@ if __name__ == '__main__':
     total_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
     print(f"Parameters: {total_params:,}")
 
-    model_dir = f"models/{args.run_name or 'model'}"
+    model_dir = f"dist/{args.run_name or 'model'}"
     os.makedirs(model_dir, exist_ok=True)
+
+    # write split manifest
+    manifest = _collect_split_manifest(train_loader.dataset, dataset_type)
+    val_manifest = _collect_split_manifest(validation_loader.dataset, dataset_type)
+    manifest["manifests"].extend(val_manifest["manifests"])
+    manifest_path = os.path.join(model_dir, "split_manifest.json")
+    with open(manifest_path, "w") as f:
+        json.dump(manifest, f, indent=2)
+    print(f"Split manifest: {manifest_path}")
 
     monitor_metric = "validation_hm_iou"
 

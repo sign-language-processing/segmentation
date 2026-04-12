@@ -8,8 +8,9 @@ import argparse
 import torch
 from torch.utils.data import DataLoader
 
-from sign_language_segmentation.data.dataset import DGSSegmentationDataset, collate_fn
-from sign_language_segmentation.data.utils import BIO
+from sign_language_segmentation.datasets.common import collate_fn
+from sign_language_segmentation.datasets.dgs.dataset import DGSSegmentationDataset
+from sign_language_segmentation.utils.bio import BIO
 from sign_language_segmentation.metrics import (
     frame_f1, likeliest_probs_to_segments,
     segment_IoU, segment_f1, bio_labels_to_segments, filter_segments,

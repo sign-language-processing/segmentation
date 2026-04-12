@@ -14,7 +14,7 @@ import pympi
 import torch
 from pose_format import Pose
 
-from sign_language_segmentation.data.utils import preprocess_pose, compute_velocity
+from sign_language_segmentation.utils.pose import preprocess_pose, compute_velocity
 from sign_language_segmentation.metrics import likeliest_probs_to_segments, filter_segments
 from sign_language_segmentation.model.model import PoseTaggingModel
 

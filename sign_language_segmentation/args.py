@@ -29,8 +29,14 @@ parser.add_argument('--finetune_from', type=str, default=None,
                     help='checkpoint to fine-tune from')
 
 # Data
+parser.add_argument('--dataset', choices=['dgs', 'platform', 'combined'], default='dgs',
+                    help='dataset to train on')
 parser.add_argument('--corpus', default='/mnt/nas/GCS/sign-external-datasets/dgs-corpus')
 parser.add_argument('--poses', default='/mnt/nas/GCS/sign-mediapipe-holistic-poses')
+parser.add_argument('--annotations_path', type=str, default=None,
+                    help='path to annotations_cache.json (required for platform/combined)')
+parser.add_argument('--quality_percentile', type=float, default=1.0,
+                    help='keep top X of platform annotations by quality score (1.0=all, 0.8=top 80%%)')
 parser.add_argument('--velocity', action='store_true', default=True,
                     help='append fps-normalised velocity to pose features')
 parser.add_argument('--fps_aug', action='store_true', default=True,
