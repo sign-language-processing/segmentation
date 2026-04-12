@@ -114,9 +114,14 @@ def get_dataloader(
 if __name__ == '__main__':
     LOGGER = None
     if not args.no_wandb:
-        LOGGER = WandbLogger(project="pose-to-segments", log_model=False,
-                             offline=False, name=args.run_name,
-                             save_dir=args.wandb_dir)
+        LOGGER = WandbLogger(
+            entity=args.wandb_entity,
+            project=args.wandb_project,
+            name=args.run_name,
+            save_dir=args.wandb_dir,
+            log_model=False,
+        )
+        LOGGER.log_hyperparams(vars(args))
 
     dataset_type = DatasetType(args.dataset)
     train_loader = get_dataloader(Split.TRAIN, dataset_type=dataset_type)

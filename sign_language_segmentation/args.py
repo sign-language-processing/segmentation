@@ -7,9 +7,11 @@ import torch
 parser = ArgumentParser()
 
 # wandb
-parser.add_argument('--no_wandb', action='store_true', default=True)
+parser.add_argument('--no_wandb', action='store_true', default=False)
 parser.add_argument('--run_name', type=str, default=None)
 parser.add_argument('--wandb_dir', type=str, default='.')
+parser.add_argument('--wandb_entity', type=str, default='nagish')
+parser.add_argument('--wandb_project', type=str, default='segmentation')
 
 # Training
 parser.add_argument('--seed', type=int, default=42)
@@ -34,7 +36,7 @@ parser.add_argument('--dataset', choices=['dgs', 'platform', 'combined'], defaul
 parser.add_argument('--corpus', default='/mnt/nas/GCS/sign-external-datasets/dgs-corpus')
 parser.add_argument('--poses', default='/mnt/nas/GCS/sign-mediapipe-holistic-poses')
 parser.add_argument('--annotations_path', type=str, default=None,
-                    help='path to annotations_cache.json (required for platform/combined)')
+                    help='path to annotations_cache.json (required for platform/combined)/')
 parser.add_argument('--quality_percentile', type=float, default=1.0,
                     help='keep top X of platform annotations by quality score (1.0=all, 0.8=top 80%%)')
 parser.add_argument('--velocity', action='store_true', default=True,

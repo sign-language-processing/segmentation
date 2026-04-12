@@ -10,22 +10,26 @@ authors = [
 readme = "README.md"
 dependencies = [
     "pose-format>=0.8.1",
-    "numpy",
+    "numpy<2",
     "pympi-ling",
     "torch",
     "sign_language_datasets",
+    "tensorflow<2.19",
+    "tensorflow-datasets==4.9.2",
+    "lxml",
+    "webvtt-py",
     "pose-anonymization",
     "scikit-learn",
     "pytorch-lightning",
     "httpx",
     "python-dotenv",
+    "wandb",
 ]
 
 [project.optional-dependencies]
 dev = [
     "pytest",
     "ruff",
-    "wandb",
 ]
 server = [
     "Flask",
