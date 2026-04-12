@@ -34,10 +34,7 @@ class TestSplitBucket:
             assert 0 <= bucket <= 999
 
     def test_different_seeds_different_buckets(self):
-        a = _split_bucket(video_id="video-1", seed=1)
-        b = _split_bucket(video_id="video-1", seed=2)
-        # not guaranteed to differ, but extremely unlikely to be equal
-        # for extra safety, test with multiple IDs
+        # not guaranteed to differ per pair, but extremely unlikely to be equal across many
         diffs = sum(
             _split_bucket(video_id=f"v-{i}", seed=1) != _split_bucket(video_id=f"v-{i}", seed=2)
             for i in range(20)
