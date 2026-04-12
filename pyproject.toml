@@ -7,6 +7,7 @@ authors = [
     { name = "Zifan Jiang", email = "jiang@cl.uzh.ch" }
 ]
 readme = "README.md"
+requires-python = ">=3.11"
 dependencies = [
     "pose-format>=0.8.1",
     "numpy<2",
