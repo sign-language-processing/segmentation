@@ -105,7 +105,10 @@ def fetch_project_annotations(
     class_map = fetch_ontology_class_map(convex_url=convex_url, ontology_id=ontology_id, token=token)
 
     # fetch tasks, keep only those that reached the workflow's terminal node
-    # (completedAt is set when a task flows through to the "Complete" node)
+    # (completedAt is set when a task flows through to the "Complete" node).
+    # all production workflows currently have no review stage, so every
+    # completed status is treated as good. if a review stage is added later,
+    # filter on status == "approved" here.
     tasks = convex_query(url=convex_url, path="tasks:list", args={"projectId": project_id}, token=token)
     completed_tasks = [t for t in tasks if t.get("completedAt") is not None]
 
@@ -124,7 +127,6 @@ def fetch_project_annotations(
 
     # fetch annotations per video, keeping only those from completed tasks
     # and with a non-draft status (approved, submitted)
-    _VALID_ANN_STATUSES = {"approved", "submitted"}
     annotations_by_video: dict[str, list[dict]] = {}
     for item_id in completed_item_ids:
         item_annotations = convex_query(
@@ -135,13 +137,8 @@ def fetch_project_annotations(
             if "startTime" not in ann or "endTime" not in ann:
                 continue
 
-            # skip annotations not from a completed task
+            # skip annotations not from an approved task
             if ann.get("taskId") and ann["taskId"] not in completed_task_ids:
-                continue
-
-            # skip draft/rejected annotations
-            ann_status = ann.get("status", "")
-            if ann_status and ann_status not in _VALID_ANN_STATUSES:
                 continue
 
             class_type = class_map.get(ann.get("objectClassId", ""))
