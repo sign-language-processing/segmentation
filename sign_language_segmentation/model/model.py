@@ -119,7 +119,7 @@ class PoseTaggingModel(pl.LightningModule):
     REFERENCE_FPS = RoPETransformerEncoderLayer.REFERENCE_FPS
 
     def __init__(self,
-                 pose_dims: (int, int) = (178, 3),
+                 pose_dims: tuple[int, int] = (178, 3),
                  hidden_dim: int = 384,
                  encoder_depth: int = 6,
                  num_classes: int = len(BIO),
@@ -134,6 +134,7 @@ class PoseTaggingModel(pl.LightningModule):
                  attn_dropout: float = 0.1,
                  # Optimizer
                  optimizer: str = "adamw-onecycle",
+                 lr_scale_backbone: float = 1.0,
                  # Stored as hparams for evaluate.py (not used in forward)
                  fps_aug: bool = False,
                  frame_dropout: float = 0.0,
@@ -146,6 +147,7 @@ class PoseTaggingModel(pl.LightningModule):
         self.steps_per_epoch = steps_per_epoch
         self.max_epochs = max_epochs
         self._optimizer_name = optimizer
+        self._lr_scale_backbone = lr_scale_backbone
 
         self.sign_loss_fn = nn.NLLLoss(reduction='none')
         self.phrase_loss_fn = nn.NLLLoss(reduction='none')
@@ -287,14 +289,25 @@ class PoseTaggingModel(pl.LightningModule):
         return total_loss
 
     def configure_optimizers(self):
-        optimizer = torch.optim.AdamW(self.parameters(), lr=self.learning_rate, weight_decay=0.01)
+        backbone_lr = self.learning_rate * self._lr_scale_backbone
+        head_lr = self.learning_rate
+
+        param_groups = [
+            {"params": self.frame_cnn.parameters(), "lr": backbone_lr},
+            {"params": self.input_norm.parameters(), "lr": backbone_lr},
+            {"params": self.encoder_attn.parameters(), "lr": backbone_lr},
+            {"params": self.sign_bio_head.parameters(), "lr": head_lr},
+            {"params": self.sentence_bio_head.parameters(), "lr": head_lr},
+        ]
+
+        optimizer = torch.optim.AdamW(param_groups, lr=head_lr, weight_decay=0.01)
         if self._optimizer_name == "adam":
-            optimizer = torch.optim.Adam(self.parameters(), lr=self.learning_rate)
+            optimizer = torch.optim.Adam(param_groups, lr=head_lr)
 
         if self._optimizer_name in ("adamw-onecycle", "adamw", None):
             scheduler = torch.optim.lr_scheduler.OneCycleLR(
                 optimizer,
-                max_lr=self.learning_rate,
+                max_lr=[backbone_lr, backbone_lr, backbone_lr, head_lr, head_lr],
                 epochs=self.max_epochs,
                 steps_per_epoch=self.steps_per_epoch,
                 pct_start=0.1,
