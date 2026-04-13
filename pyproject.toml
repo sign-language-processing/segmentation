@@ -26,6 +26,9 @@ dgs = [
     "lxml",
     "webvtt-py",
 ]
+train = [
+    "sign-language-segmentation[dgs]",
+]
 dev = [
     "pytest",
     "ruff",
