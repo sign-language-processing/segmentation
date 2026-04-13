@@ -24,7 +24,7 @@ dgs = [
     "tensorflow<2.19",
     "tensorflow-datasets==4.9.2",
     "lxml",
-    "webvtt-py",
+    "webvtt-py",  # transitive: sign_language_datasets eagerly imports mediapi_skel
 ]
 train = [
     "sign-language-segmentation[dgs]",
