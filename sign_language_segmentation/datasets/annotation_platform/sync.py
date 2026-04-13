@@ -1,13 +1,13 @@
-"""sync annotations from the Convex annotation platform and optionally score them.
+"""sync annotations from the Convex annotation platform and score them.
 
 Usage:
-    # sync annotations
-    python -m sign_language_segmentation.datasets.annotation_platform.sync sync \
+    # sync and score (default)
+    python -m sign_language_segmentation.datasets.annotation_platform.sync \
         --project_ids m971s5xkknqsfhgrnjr2rdy83n80hmwx
 
-    # score annotations against current model
-    python -m sign_language_segmentation.datasets.annotation_platform.sync score \
-        --model_path dist/2026/best.ckpt
+    # sync only, skip scoring
+    python -m sign_language_segmentation.datasets.annotation_platform.sync \
+        --project_ids m971s5xkknqsfhgrnjr2rdy83n80hmwx --no_score
 """
 from __future__ import annotations
 
@@ -93,7 +93,7 @@ def fetch_project_annotations(
     we therefore:
       1. fetch all tasks for the project and keep those with completedAt set
       2. fetch annotations per completed item, filtering to annotations that
-         belong to a completed task and have status approved or submitted
+         belong to a completed task (see comment below)
     """
     # projects:get returns ontology, linked datasets, and task counts — no auth needed
     project = convex_query(url=convex_url, path="projects:get", args={"id": project_id}, token=token)
@@ -269,6 +269,11 @@ def sync(
 ) -> None:
     """fetch annotations from Convex and write annotations_cache.json."""
     output_path = Path(output_path)
+
+    if output_path.exists():
+        print(f"Cache already exists at {output_path}, skipping sync")
+        return
+
     print(f"Syncing annotations from {convex_url}")
     print(f"Projects: {project_ids}")
 
@@ -329,25 +334,41 @@ def sync(
 
 
 def score(
-    cache_path: str,
+    cache_path: str | Path,
     model_path: str,
     poses_dir: str,
     device: str = "cpu",
 ) -> None:
-    """score cached annotations against model predictions, writing quality_score per video."""
+    """score cached annotations against model predictions, writing quality_score per video.
+
+    skips videos that already have a quality_score.
+    """
     import torch
     from pose_format import Pose as PoseRead
 
     from sign_language_segmentation.bin import load_model, run_inference
     from sign_language_segmentation.metrics import likeliest_probs_to_segments, segment_IoU
 
+    cache_path = Path(cache_path)
     with open(cache_path) as f:
         cache = json.load(f)
 
-    model = load_model(model_path, device=device)
+    # check if all videos already scored
+    videos = cache.get("videos", {})
+    unscored = [v for v in videos.values() if "quality_score" not in v and v.get("signs")]
+    if not unscored:
+        print(f"All videos already scored in {cache_path}, skipping")
+        return
+
+    # map "gpu" (lightning name) to "cuda" (torch name) for checkpoint loading
+    torch_device = "cuda" if device == "gpu" else device
+    model = load_model(model_path, device=torch_device)
     scored = 0
 
-    for video_id, video_data in cache.get("videos", {}).items():
+    for video_id, video_data in videos.items():
+        if "quality_score" in video_data:
+            continue
+
         pose_hash = video_data.get("pose_hash")
         if not pose_hash:
             continue
@@ -365,7 +386,7 @@ def score(
             pose = PoseRead.read(f)
 
         with torch.inference_mode():
-            log_probs = run_inference(model=model, pose=pose, device=device)
+            log_probs = run_inference(model=model, pose=pose, device=torch_device)
 
         fps = pose.body.fps
         total_frames = len(pose.body.data)
@@ -399,39 +420,31 @@ def main() -> None:
     from dotenv import load_dotenv
     load_dotenv()
 
-    parser = argparse.ArgumentParser(description="Sync annotations from Convex annotation platform")
-    subparsers = parser.add_subparsers(dest="command", required=True)
-
-    # sync subcommand
-    sync_parser = subparsers.add_parser("sync", help="Fetch annotations from Convex")
-    sync_parser.add_argument("--convex_url", type=str, default=os.environ.get("CONVEX_URL", ""))
-    sync_parser.add_argument("--project_ids", type=str, nargs="+", required=True, help="Convex project IDs to sync")
-    sync_parser.add_argument("--poses_dir", type=str, default="/mnt/nas/GCS/sign-mediapipe-holistic-poses")
-    sync_parser.add_argument("--gcs_root", type=str, default="/mnt/nas/GCS")
-    sync_parser.add_argument("--output", type=Path, default=_DEFAULT_ANNOTATIONS_CACHE)
-
-    # score subcommand
-    score_parser = subparsers.add_parser("score", help="Score cached annotations against a model")
-    score_parser.add_argument("--model_path", type=str, required=True)
-    score_parser.add_argument("--cache", type=Path, default=_DEFAULT_ANNOTATIONS_CACHE)
-    score_parser.add_argument("--poses_dir", type=str, default="/mnt/nas/GCS/sign-mediapipe-holistic-poses")
-    score_parser.add_argument("--device", type=str, default="gpu")
+    parser = argparse.ArgumentParser(description="Sync annotations from Convex and score against a model")
+    parser.add_argument("--convex_url", type=str, default=os.environ.get("CONVEX_URL", ""))
+    parser.add_argument("--project_ids", type=str, nargs="+", required=True, help="Convex project IDs to sync")
+    parser.add_argument("--poses_dir", type=str, default="/mnt/nas/GCS/sign-mediapipe-holistic-poses")
+    parser.add_argument("--gcs_root", type=str, default="/mnt/nas/GCS")
+    parser.add_argument("--output", type=Path, default=_DEFAULT_ANNOTATIONS_CACHE)
+    parser.add_argument("--no_score", action="store_true", default=False, help="skip scoring after sync")
+    parser.add_argument("--model_path", type=str, default="sign_language_segmentation/dist/2026/best.ckpt",
+                        help="model checkpoint for scoring (default: dist/2026/best.ckpt)")
+    parser.add_argument("--device", type=str, default="gpu")
 
     args = parser.parse_args()
 
-    if args.command == "sync":
-        token = os.environ.get("CONVEX_AUTH_TOKEN")
-        sync(
-            convex_url=args.convex_url,
-            project_ids=args.project_ids,
-            poses_dir=args.poses_dir,
-            gcs_root=args.gcs_root,
-            output_path=args.output,
-            token=token,
-        )
-    elif args.command == "score":
+    token = os.environ.get("CONVEX_AUTH_TOKEN")
+    sync(
+        convex_url=args.convex_url,
+        project_ids=args.project_ids,
+        poses_dir=args.poses_dir,
+        gcs_root=args.gcs_root,
+        output_path=args.output,
+        token=token,
+    )
+    if not args.no_score:
         score(
-            cache_path=args.cache,
+            cache_path=args.output,
             model_path=args.model_path,
             poses_dir=args.poses_dir,
             device=args.device,
