@@ -2,16 +2,12 @@
 
 Usage:
     # sync annotations
-    python -m sign_language_segmentation.datasets.annotation_platform.sync \
-        --convex_url https://amiable-labrador-506.convex.cloud \
-        --project_ids m971s5xkknqsfhgrnjr2rdy83n80hmwx \
-        --poses_dir /mnt/nas/GCS/sign-mediapipe-holistic-poses \
-        --gcs_root /mnt/nas/GCS
+    python -m sign_language_segmentation.datasets.annotation_platform.sync sync \
+        --project_ids m971s5xkknqsfhgrnjr2rdy83n80hmwx
 
     # score annotations against current model
-    python -m sign_language_segmentation.datasets.annotation_platform.sync \
-        --score --model_path dist/2026/best.ckpt \
-        --poses_dir /mnt/nas/GCS/sign-mediapipe-holistic-poses
+    python -m sign_language_segmentation.datasets.annotation_platform.sync score \
+        --model_path dist/2026/best.ckpt
 """
 from __future__ import annotations
 
@@ -407,36 +403,27 @@ def main() -> None:
     load_dotenv()
 
     parser = argparse.ArgumentParser(description="Sync annotations from Convex annotation platform")
+    subparsers = parser.add_subparsers(dest="command", required=True)
 
-    # sync args
-    parser.add_argument("--convex_url", type=str, default=os.environ.get("CONVEX_URL", ""))
-    parser.add_argument("--project_ids", type=str, nargs="+", help="Convex project IDs to sync")
-    parser.add_argument("--poses_dir", type=str, default="/mnt/nas/GCS/sign-mediapipe-holistic-poses")
-    parser.add_argument("--gcs_root", type=str, default="/mnt/nas/GCS")
-    parser.add_argument("--output", type=Path, default=_DEFAULT_ANNOTATIONS_CACHE)
+    # sync subcommand
+    sync_parser = subparsers.add_parser("sync", help="Fetch annotations from Convex")
+    sync_parser.add_argument("--convex_url", type=str, default=os.environ.get("CONVEX_URL", ""))
+    sync_parser.add_argument("--project_ids", type=str, nargs="+", required=True, help="Convex project IDs to sync")
+    sync_parser.add_argument("--poses_dir", type=str, default="/mnt/nas/GCS/sign-mediapipe-holistic-poses")
+    sync_parser.add_argument("--gcs_root", type=str, default="/mnt/nas/GCS")
+    sync_parser.add_argument("--output", type=Path, default=_DEFAULT_ANNOTATIONS_CACHE)
 
-    # score args
-    parser.add_argument("--score", action="store_true", help="Score annotations against model", default=True)
-    parser.add_argument("--model_path", type=str, default=None)
-    parser.add_argument("--cache", type=Path, default=_DEFAULT_ANNOTATIONS_CACHE, help="Path to existing cache for scoring")
-    parser.add_argument("--device", type=str, default="gpu")
+    # score subcommand
+    score_parser = subparsers.add_parser("score", help="Score cached annotations against a model")
+    score_parser.add_argument("--model_path", type=str, required=True)
+    score_parser.add_argument("--cache", type=Path, default=_DEFAULT_ANNOTATIONS_CACHE)
+    score_parser.add_argument("--poses_dir", type=str, default="/mnt/nas/GCS/sign-mediapipe-holistic-poses")
+    score_parser.add_argument("--device", type=str, default="gpu")
 
     args = parser.parse_args()
 
-    token = os.environ.get("CONVEX_AUTH_TOKEN")
-
-    if args.score:
-        if not args.model_path:
-            parser.error("--model_path required for scoring")
-        score(
-            cache_path=args.cache,
-            model_path=args.model_path,
-            poses_dir=args.poses_dir,
-            device=args.device,
-        )
-    else:
-        if not args.project_ids:
-            parser.error("--project_ids required for syncing")
+    if args.command == "sync":
+        token = os.environ.get("CONVEX_AUTH_TOKEN")
         sync(
             convex_url=args.convex_url,
             project_ids=args.project_ids,
@@ -444,6 +431,13 @@ def main() -> None:
             gcs_root=args.gcs_root,
             output_path=args.output,
             token=token,
+        )
+    elif args.command == "score":
+        score(
+            cache_path=args.cache,
+            model_path=args.model_path,
+            poses_dir=args.poses_dir,
+            device=args.device,
         )
 
 

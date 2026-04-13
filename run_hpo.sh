@@ -1,8 +1,19 @@
 #!/usr/bin/env bash
+set -e
+
+# sync annotations from production Convex DB
+uv run --python 3.11 --extra train \
+  python -m sign_language_segmentation.datasets.annotation_platform.sync sync \
+  --project_ids \
+    ms76x02ycvvvp44k9796hs92m98192r5 \
+    ms7a40x27xemrk45bxkf6tx9yh81r822 \
+    ms77arjjhgfdc7tyqk197xeb6x81s3mm \
+    ms775tp9gsqfpgf7gsetb0376181rerq
+
+# run HPO sweep
 uv run --python 3.11 --extra dev --extra train \
   python -m sign_language_segmentation.train \
   --dataset platform \
-  --annotations_path sign_language_segmentation/datasets/annotation_platform/annotations_cache.json \
   --device gpu \
   --gpus 1 \
   --lr_scale_backbone 0.1 \
