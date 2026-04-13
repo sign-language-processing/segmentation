@@ -13,17 +13,19 @@ dependencies = [
     "numpy<2",
     "pympi-ling",
     "torch",
-    "sign_language_datasets",
-    "tensorflow<2.19",
-    "tensorflow-datasets==4.9.2",
-    "lxml",
-    "webvtt-py",
     "pose-anonymization",
     "scikit-learn",
     "pytorch-lightning",
 ]
 
 [project.optional-dependencies]
+dgs = [
+    "sign_language_datasets",
+    "tensorflow<2.19",
+    "tensorflow-datasets==4.9.2",
+    "lxml",
+    "webvtt-py",
+]
 dev = [
     "pytest",
     "ruff",
