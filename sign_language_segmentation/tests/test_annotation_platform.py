@@ -235,22 +235,22 @@ class TestAnnotationPlatformDataset:
 class TestGcsUrlToLocal:
     def test_gs_protocol(self):
         result = _gcs_url_to_local("gs://my-bucket/path/to/video.mp4", gcs_root="/mnt/nas/GCS")
-        assert result == "/mnt/nas/GCS/my-bucket/path/to/video.mp4"
+        assert result == Path("/mnt/nas/GCS/my-bucket/path/to/video.mp4")
 
     def test_https_storage_googleapis(self):
         result = _gcs_url_to_local(
             "https://storage.googleapis.com/my-bucket/video.mp4",
             gcs_root="/mnt/nas/GCS",
         )
-        assert result == "/mnt/nas/GCS/my-bucket/video.mp4"
+        assert result == Path("/mnt/nas/GCS/my-bucket/video.mp4")
 
     def test_other_http_url(self):
         result = _gcs_url_to_local("https://example.com/files/video.mp4", gcs_root="/mnt/nas/GCS")
-        assert result == "/mnt/nas/GCS/files/video.mp4"
+        assert result == Path("/mnt/nas/GCS/files/video.mp4")
 
     def test_local_path_passthrough(self):
         result = _gcs_url_to_local("/local/path/video.mp4", gcs_root="/mnt/nas/GCS")
-        assert result == "/local/path/video.mp4"
+        assert result == Path("/local/path/video.mp4")
 
 
 # -- convex_query (mocked) ----------------------------------------------------

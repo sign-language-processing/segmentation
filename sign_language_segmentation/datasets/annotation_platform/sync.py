@@ -6,13 +6,11 @@ Usage:
         --convex_url https://amiable-labrador-506.convex.cloud \
         --project_ids m971s5xkknqsfhgrnjr2rdy83n80hmwx \
         --poses_dir /mnt/nas/GCS/sign-mediapipe-holistic-poses \
-        --gcs_root /mnt/nas/GCS \
-        --output annotations_cache.json
+        --gcs_root /mnt/nas/GCS
 
     # score annotations against current model
     python -m sign_language_segmentation.datasets.annotation_platform.sync \
         --score --model_path dist/2026/best.ckpt \
-        --cache annotations_cache.json \
         --poses_dir /mnt/nas/GCS/sign-mediapipe-holistic-poses
 """
 from __future__ import annotations
@@ -21,6 +19,7 @@ import argparse
 import json
 import os
 from datetime import datetime, timezone
+from pathlib import Path
 from urllib.parse import urlparse
 
 import numpy as np
@@ -29,6 +28,10 @@ from pose_format import Pose
 from pose_format.pose_body import EmptyPoseBody
 
 from sign_language_segmentation.datasets.common import md5sum
+
+_PACKAGE_DIR = Path(__file__).resolve().parent
+_DEFAULT_ANNOTATIONS_CACHE = _PACKAGE_DIR / "annotations_cache.json"
+_DEFAULT_VIDEO_MAP_CACHE = _PACKAGE_DIR / "video_map_cache.json"
 
 
 def _build_auth_header(token: str) -> str:
@@ -86,6 +89,15 @@ def fetch_project_annotations(
     """fetch all annotations for a project, grouped by externalItemId.
 
     Returns (annotations_by_video, dataset_ids).
+
+    completion logic: the Convex DB has no projectItems table with a public
+    query endpoint. item completion is tracked on the tasks table instead —
+    each task links a project to an item (projectId + itemId) and gets a
+    completedAt timestamp when it reaches the workflow's terminal node.
+    we therefore:
+      1. fetch all tasks for the project and keep those with completedAt set
+      2. fetch annotations per completed item, filtering to annotations that
+         belong to a completed task and have status approved or submitted
     """
     # projects:get returns ontology, linked datasets, and task counts — no auth needed
     project = convex_query(url=convex_url, path="projects:get", args={"id": project_id}, token=token)
@@ -96,18 +108,27 @@ def fetch_project_annotations(
     dataset_ids = [d["datasetId"] for d in project.get("datasets", [])]
     class_map = fetch_ontology_class_map(convex_url=convex_url, ontology_id=ontology_id, token=token)
 
-    # fetch tasks, filter completed
+    # fetch tasks, keep only those that reached the workflow's terminal node
+    # (completedAt is set when a task flows through to the "Complete" node)
     tasks = convex_query(url=convex_url, path="tasks:list", args={"projectId": project_id}, token=token)
-    completed_tasks = [t for t in tasks if t.get("status") in ("submitted", "approved")]
+    completed_tasks = [t for t in tasks if t.get("completedAt") is not None]
 
-    # collect unique video IDs from completed tasks
-    completed_item_ids = {t["itemId"] for t in completed_tasks if "itemId" in t}
+    # build item -> completed task IDs mapping (for filtering annotations)
+    completed_task_ids: set[str] = set()
+    completed_item_ids: set[str] = set()
+    for t in completed_tasks:
+        if "itemId" in t:
+            completed_item_ids.add(t["itemId"])
+        if "_id" in t:
+            completed_task_ids.add(t["_id"])
 
     print(f"  Project {project.get('name', project_id)}: "
           f"{len(completed_tasks)}/{len(tasks)} completed tasks, "
           f"{len(completed_item_ids)} unique videos")
 
-    # fetch annotations per video using annotations:listByItem (no auth, one call per video)
+    # fetch annotations per video, keeping only those from completed tasks
+    # and with a non-draft status (approved, submitted)
+    _VALID_ANN_STATUSES = {"approved", "submitted"}
     annotations_by_video: dict[str, list[dict]] = {}
     for item_id in completed_item_ids:
         item_annotations = convex_query(
@@ -116,6 +137,15 @@ def fetch_project_annotations(
         )
         for ann in item_annotations:
             if "startTime" not in ann or "endTime" not in ann:
+                continue
+
+            # skip annotations not from a completed task
+            if ann.get("taskId") and ann["taskId"] not in completed_task_ids:
+                continue
+
+            # skip draft/rejected annotations
+            ann_status = ann.get("status", "")
+            if ann_status and ann_status not in _VALID_ANN_STATUSES:
                 continue
 
             class_type = class_map.get(ann.get("objectClassId", ""))
@@ -141,7 +171,7 @@ def resolve_video_paths(
     gcs_root: str,
     poses_dir: str,
     token: str | None = None,
-    video_map_cache_path: str | None = None,
+    video_map_cache_path: Path | None = None,
 ) -> dict[str, dict]:
     """resolve externalItemId -> {pose_hash, fps, total_frames} via datasetItems API + local files.
 
@@ -149,7 +179,7 @@ def resolve_video_paths(
     """
     # load existing cache
     video_map: dict[str, dict] = {}
-    if video_map_cache_path and os.path.exists(video_map_cache_path):
+    if video_map_cache_path and video_map_cache_path.exists():
         with open(video_map_cache_path) as f:
             video_map = json.load(f)
 
@@ -195,13 +225,13 @@ def resolve_video_paths(
 
         # map GCS URL to local path
         local_path = _gcs_url_to_local(video_url, gcs_root=gcs_root)
-        if not local_path or not os.path.exists(local_path):
+        if not local_path or not local_path.exists():
             print(f"  WARNING: video file not found for {video_id}: {local_path}")
             continue
 
-        video_hash = md5sum(local_path)
-        pose_path = os.path.join(poses_dir, f"{video_hash}.pose")
-        if not os.path.exists(pose_path):
+        video_hash = md5sum(str(local_path))
+        pose_path = Path(poses_dir) / f"{video_hash}.pose"
+        if not pose_path.exists():
             print(f"  WARNING: pose file not found for {video_id}: {pose_path}")
             continue
 
@@ -224,23 +254,16 @@ def resolve_video_paths(
     return {vid: video_map[vid] for vid in video_ids if vid in video_map}
 
 
-def _gcs_url_to_local(url: str, gcs_root: str) -> str | None:
+def _gcs_url_to_local(url: str, gcs_root: str) -> Path | None:
     """convert a GCS URL or bucket path to a local filesystem path under gcs_root."""
+    root = Path(gcs_root)
     if url.startswith("gs://"):
-        # gs://bucket-name/path/to/file -> {gcs_root}/bucket-name/path/to/file
-        path = url[5:]
-        return os.path.join(gcs_root, path)
+        return root / url[5:]
     if url.startswith("https://storage.googleapis.com/"):
-        # https://storage.googleapis.com/bucket-name/path -> {gcs_root}/bucket-name/path
-        parsed = urlparse(url)
-        path = parsed.path.lstrip("/")
-        return os.path.join(gcs_root, path)
+        return root / urlparse(url).path.lstrip("/")
     if url.startswith("http"):
-        # other URL, try to extract path
-        parsed = urlparse(url)
-        return os.path.join(gcs_root, parsed.path.lstrip("/"))
-    # assume it's already a local path
-    return url
+        return root / urlparse(url).path.lstrip("/")
+    return Path(url)
 
 
 def sync(
@@ -248,10 +271,11 @@ def sync(
     project_ids: list[str],
     poses_dir: str,
     gcs_root: str,
-    output_path: str,
+    output_path: str | Path,
     token: str | None = None,
 ) -> None:
     """fetch annotations from Convex and write annotations_cache.json."""
+    output_path = Path(output_path)
     print(f"Syncing annotations from {convex_url}")
     print(f"Projects: {project_ids}")
 
@@ -269,7 +293,7 @@ def sync(
     print(f"\nFound {len(all_annotations)} videos with time-aligned annotations")
 
     # resolve video paths
-    video_map_cache = os.path.join(os.path.dirname(output_path), "video_map_cache.json")
+    video_map_cache = output_path.parent / "video_map_cache.json"
     video_map: dict[str, dict] = {}
     for dataset_id in dataset_ids:
         resolved = resolve_video_paths(
@@ -335,8 +359,8 @@ def score(
         if not pose_hash:
             continue
 
-        pose_path = os.path.join(poses_dir, f"{pose_hash}.pose")
-        if not os.path.exists(pose_path):
+        pose_path = Path(poses_dir) / f"{pose_hash}.pose"
+        if not pose_path.exists():
             continue
 
         signs = video_data.get("signs", [])
@@ -389,12 +413,12 @@ def main() -> None:
     parser.add_argument("--project_ids", type=str, nargs="+", help="Convex project IDs to sync")
     parser.add_argument("--poses_dir", type=str, default="/mnt/nas/GCS/sign-mediapipe-holistic-poses")
     parser.add_argument("--gcs_root", type=str, default="/mnt/nas/GCS")
-    parser.add_argument("--output", type=str, default="annotations_cache.json")
+    parser.add_argument("--output", type=Path, default=_DEFAULT_ANNOTATIONS_CACHE)
 
     # score args
     parser.add_argument("--score", action="store_true", help="Score annotations against model", default=True)
     parser.add_argument("--model_path", type=str, default=None)
-    parser.add_argument("--cache", type=str, default=None, help="Path to existing cache for scoring")
+    parser.add_argument("--cache", type=Path, default=_DEFAULT_ANNOTATIONS_CACHE, help="Path to existing cache for scoring")
     parser.add_argument("--device", type=str, default="gpu")
 
     args = parser.parse_args()
@@ -402,8 +426,6 @@ def main() -> None:
     token = os.environ.get("CONVEX_AUTH_TOKEN")
 
     if args.score:
-        if not args.cache:
-            parser.error("--cache required for scoring")
         if not args.model_path:
             parser.error("--model_path required for scoring")
         score(

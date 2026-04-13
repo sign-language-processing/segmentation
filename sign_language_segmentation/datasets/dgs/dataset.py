@@ -3,6 +3,12 @@ import os
 
 from pose_format import Pose
 from pose_format.pose_body import EmptyPoseBody
+
+# shim: sign_language_datasets imports get_dl_dirname which was renamed in tfds >=4.9
+import tensorflow_datasets.core.download.resource as _tfds_resource
+if not hasattr(_tfds_resource, "get_dl_dirname"):
+    _tfds_resource.get_dl_dirname = _tfds_resource.get_dl_fname
+
 from sign_language_datasets.datasets.dgs_corpus.dgs_utils import get_elan_sentences
 
 from sign_language_segmentation.datasets.common import BaseSegmentationDataset, Split, md5sum

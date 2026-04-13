@@ -24,6 +24,9 @@ dependencies = [
     "httpx",
     "python-dotenv",
     "wandb",
+    "optuna",
+    "optuna-integration[pytorch_lightning]",
+    "pyyaml",
 ]
 
 [project.optional-dependencies]

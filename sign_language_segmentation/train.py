@@ -1,6 +1,7 @@
 import json
 import os
 from datetime import datetime, timezone
+from pathlib import Path
 
 import pytorch_lightning as pl
 from pytorch_lightning.callbacks import ModelCheckpoint, LearningRateMonitor
@@ -111,21 +112,94 @@ def get_dataloader(
     )
 
 
-if __name__ == '__main__':
-    LOGGER = None
+_ARCHITECTURE_PARAMS = {"hidden_dim", "encoder_depth", "attn_nhead", "attn_ff_mult"}
+
+
+def _sample_hyperparams(trial, search_space: dict, skip_arch: bool = False) -> dict:
+    """sample hyperparameters from an Optuna trial using a YAML-derived search space."""
+    overrides: dict = {}
+    for name, spec in search_space.items():
+        if skip_arch and name in _ARCHITECTURE_PARAMS:
+            continue
+        param_type = spec["type"]
+        if param_type == "float":
+            overrides[name] = trial.suggest_float(
+                name, low=spec["low"], high=spec["high"], log=spec.get("log", False),
+            )
+        elif param_type == "int":
+            overrides[name] = trial.suggest_int(
+                name, low=spec["low"], high=spec["high"], step=spec.get("step", 1),
+            )
+        elif param_type == "categorical":
+            overrides[name] = trial.suggest_categorical(name, choices=spec["choices"])
+        else:
+            raise ValueError(f"Unknown param type '{param_type}' for '{name}'")
+    return overrides
+
+
+def train(overrides: dict | None = None) -> float:
+    """run a single training loop. returns best validation_hm_iou.
+
+    overrides: dict of arg names -> values that replace the CLI defaults
+    (used by Optuna to inject sampled hyperparams).
+    """
+    overrides = overrides or {}
+
+    # resolve effective values: CLI args with optional overrides
+    def _get(name: str):
+        return overrides[name] if name in overrides else getattr(args, name)
+
+    logger = None
     if not args.no_wandb:
-        LOGGER = WandbLogger(
-            entity=args.wandb_entity,
-            project=args.wandb_project,
-            name=args.run_name,
-            save_dir=args.wandb_dir,
-            log_model=False,
-        )
-        LOGGER.log_hyperparams(vars(args))
+        if overrides and "_trial" in overrides:
+            # optuna mode: WeightsAndBiasesCallback already created the run
+            import wandb
+            trial_num = overrides["_trial"].number
+            run_name = f"optuna-{args.run_name}-t{trial_num}" if args.run_name else f"optuna-t{trial_num}"
+            wandb.run.name = run_name
+            logger = WandbLogger(experiment=wandb.run)
+        else:
+            logger = WandbLogger(
+                entity=args.wandb_entity,
+                project=args.wandb_project,
+                name=args.run_name,
+                save_dir=args.wandb_dir,
+                log_model=False,
+            )
+        effective_args = {**vars(args), **overrides}
+        logger.log_hyperparams(effective_args)
 
     dataset_type = DatasetType(args.dataset)
-    train_loader = get_dataloader(Split.TRAIN, dataset_type=dataset_type)
+    train_loader = get_dataloader(
+        Split.TRAIN, dataset_type=dataset_type,
+        batch_size=_get("batch_size"),
+    )
     validation_loader = get_dataloader(Split.DEV, dataset_type=dataset_type, batch_size=1)
+
+    # optionally mix in DGS dev split for validation
+    if args.val_dgs and dataset_type != DatasetType.DGS:
+        from sign_language_segmentation.datasets.dgs.dataset import DGSSegmentationDataset
+        dgs_dev = DGSSegmentationDataset(
+            corpus_dir=args.corpus,
+            poses_dir=args.poses,
+            split=Split.DEV,
+            num_frames=args.num_frames,
+            velocity=args.velocity,
+            fps_aug=args.fps_aug,
+            frame_dropout=_get("frame_dropout"),
+            body_part_dropout=0.0,
+        )
+        combined_val = ConcatDataset([validation_loader.dataset, dgs_dev])
+        validation_loader = DataLoader(
+            combined_val,
+            batch_size=1,
+            shuffle=False,
+            collate_fn=collate_fn,
+            num_workers=8,
+            persistent_workers=True,
+            prefetch_factor=4,
+            pin_memory=True,
+        )
 
     example_datum = train_loader.dataset[0]
     pose_joints, pose_dims = example_datum["pose"].shape[1:3]
@@ -135,18 +209,19 @@ if __name__ == '__main__':
 
     model_kwargs = dict(
         pose_dims=(pose_joints, pose_dims),
-        hidden_dim=args.hidden_dim,
-        encoder_depth=args.encoder_depth,
-        learning_rate=args.learning_rate,
+        hidden_dim=_get("hidden_dim"),
+        encoder_depth=_get("encoder_depth"),
+        learning_rate=_get("learning_rate"),
+        lr_scale_backbone=_get("lr_scale_backbone"),
         steps_per_epoch=steps_per_epoch,
-        max_epochs=args.epochs,
-        dice_loss_weight=args.dice_loss_weight,
-        optimizer=args.optimizer,
-        attn_nhead=args.attn_nhead,
-        attn_ff_mult=args.attn_ff_mult,
-        attn_dropout=args.attn_dropout,
+        max_epochs=_get("epochs"),
+        dice_loss_weight=_get("dice_loss_weight"),
+        optimizer=_get("optimizer"),
+        attn_nhead=_get("attn_nhead"),
+        attn_ff_mult=_get("attn_ff_mult"),
+        attn_dropout=_get("attn_dropout"),
         fps_aug=args.fps_aug,
-        frame_dropout=args.frame_dropout,
+        frame_dropout=_get("frame_dropout"),
         num_frames=args.num_frames,
     )
 
@@ -188,20 +263,89 @@ if __name__ == '__main__':
         ),
     ]
 
+    # add Optuna pruning callback when running a sweep
+    if overrides and "_trial" in overrides:
+        from optuna_integration import PyTorchLightningPruningCallback
+        callbacks.append(PyTorchLightningPruningCallback(
+            trial=overrides["_trial"], monitor=monitor_metric,
+        ))
+
     trainer = pl.Trainer(
-        max_epochs=args.epochs,
+        max_epochs=_get("epochs"),
         max_time=args.max_time,
         precision="bf16-mixed",
-        logger=LOGGER,
+        logger=logger,
         callbacks=callbacks,
         log_every_n_steps=10,
         accelerator=args.device,
         devices=args.gpus,
+        enable_progress_bar=not overrides,
     )
 
     trainer.fit(model, train_dataloaders=train_loader, val_dataloaders=validation_loader)
 
-    best_ckpt = os.path.join(model_dir, "best.ckpt")
-    if os.path.exists(best_ckpt):
-        print(f"\nBest checkpoint: {best_ckpt}")
-        print("Copy to dist/2026/best.ckpt to deploy for inference.")
+    best_score = trainer.callback_metrics.get(monitor_metric)
+    best_val = float(best_score) if best_score is not None else 0.0
+
+    if not overrides:
+        best_ckpt = os.path.join(model_dir, "best.ckpt")
+        if os.path.exists(best_ckpt):
+            print(f"\nBest checkpoint: {best_ckpt}")
+            print("Copy to dist/2026/best.ckpt to deploy for inference.")
+
+    return best_val
+
+
+if __name__ == '__main__':
+    if args.optuna:
+        import optuna
+        import yaml
+
+        search_space_path = Path(args.optuna)
+        if not search_space_path.exists():
+            raise FileNotFoundError(f"Optuna search space file not found: {search_space_path}")
+
+        with open(search_space_path) as f:
+            search_space = yaml.safe_load(f)
+
+        skip_arch = args.finetune_from is not None
+        if skip_arch:
+            skipped = _ARCHITECTURE_PARAMS & search_space.keys()
+            if skipped:
+                print(f"Fine-tuning: skipping architecture params {skipped}")
+
+        wandb_kwargs = None
+        wandbc = None
+        if not args.no_wandb:
+            from optuna_integration import WeightsAndBiasesCallback
+            wandb_kwargs = {
+                "entity": args.wandb_entity,
+                "project": args.wandb_project,
+            }
+            wandbc = WeightsAndBiasesCallback(
+                metric_name="validation_hm_iou",
+                wandb_kwargs=wandb_kwargs,
+                as_multirun=True,
+            )
+
+        def objective(trial: optuna.Trial) -> float:
+            overrides = _sample_hyperparams(trial=trial, search_space=search_space, skip_arch=skip_arch)
+            overrides["_trial"] = trial
+            return train(overrides=overrides)
+
+        if wandbc:
+            objective = wandbc.track_in_wandb()(objective)
+
+        study = optuna.create_study(direction="maximize", study_name="segmentation-hpo")
+        study.optimize(
+            objective,
+            n_trials=args.optuna_trials,
+            callbacks=[wandbc] if wandbc else [],
+        )
+
+        print("\n--- Optuna results ---")
+        print(f"Best trial: {study.best_trial.number}")
+        print(f"Best validation_hm_iou: {study.best_value:.4f}")
+        print(f"Best params: {study.best_params}")
+    else:
+        train()
