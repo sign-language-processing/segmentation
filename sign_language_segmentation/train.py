@@ -7,7 +7,8 @@ from pytorch_lightning.loggers import WandbLogger
 from torch.utils.data import DataLoader
 
 from sign_language_segmentation.args import args
-from sign_language_segmentation.data.dataset import DGSSegmentationDataset, Split, collate_fn
+from sign_language_segmentation.datasets.dgs.dataset import DGSSegmentationDataset
+from sign_language_segmentation.datasets.common import Split, collate_fn
 from sign_language_segmentation.model.model import PoseTaggingModel
 
 
@@ -21,12 +22,12 @@ def get_dataloader(split: Split, batch_size: int = None, num_frames: int = None,
         velocity=args.velocity,
         fps_aug=args.fps_aug,
         frame_dropout=args.frame_dropout,
-        body_part_dropout=args.body_part_dropout if split == "train" else 0.0,
+        body_part_dropout=args.body_part_dropout if split == Split.TRAIN else 0.0,
     )
     return DataLoader(
         dataset,
         batch_size=batch_size or args.batch_size,
-        shuffle=(split == "train"),
+        shuffle=(split == Split.TRAIN),
         collate_fn=collate_fn,
         num_workers=8,
         persistent_workers=persistent_workers,
@@ -42,8 +43,8 @@ if __name__ == '__main__':
                              offline=False, name=args.run_name,
                              save_dir=args.wandb_dir)
 
-    train_loader = get_dataloader("train")
-    validation_loader = get_dataloader("dev", batch_size=1)
+    train_loader = get_dataloader(Split.TRAIN)
+    validation_loader = get_dataloader(Split.DEV, batch_size=1)
 
     example_datum = train_loader.dataset[0]
     pose_joints, pose_dims = example_datum["pose"].shape[1:3]

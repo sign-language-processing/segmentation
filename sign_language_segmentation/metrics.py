@@ -4,7 +4,7 @@ import numpy as np
 import torch
 from sklearn.metrics import f1_score
 
-from sign_language_segmentation.data.utils import BIO
+from sign_language_segmentation.utils.bio import BIO
 
 
 def bio_labels_to_segments(gold: torch.Tensor) -> List[dict]:
