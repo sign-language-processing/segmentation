@@ -21,8 +21,6 @@ class Split(StrEnum):
 
 class DatasetType(StrEnum):
     DGS = "dgs"
-    PLATFORM = "platform"
-    COMBINED = "combined"
 
 
 def md5sum(file_path: str) -> str:

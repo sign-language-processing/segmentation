@@ -29,14 +29,12 @@ class TestEnums:
 
     def test_dataset_type_values(self):
         assert DatasetType.DGS == "dgs"
-        assert DatasetType.PLATFORM == "platform"
-        assert DatasetType.COMBINED == "combined"
 
     def test_split_from_string(self):
         assert Split("train") is Split.TRAIN
 
     def test_dataset_type_from_string(self):
-        assert DatasetType("combined") is DatasetType.COMBINED
+        assert DatasetType("dgs") is DatasetType.DGS
 
 
 # -- md5sum -------------------------------------------------------------------
