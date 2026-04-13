@@ -27,8 +27,13 @@ dgs = [
     "lxml",
     "webvtt-py",  # transitive: sign_language_datasets eagerly imports mediapi_skel
 ]
+platform = [
+    "httpx",
+    "python-dotenv",
+]
 train = [
     "sign-language-segmentation[dgs]",
+    "sign-language-segmentation[platform]",
     "wandb",
     "optuna",
     "optuna-integration[pytorch_lightning]",
