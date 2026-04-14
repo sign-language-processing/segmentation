@@ -42,7 +42,6 @@ training:
     type: float
     low: 0.01
     high: 1.0
-    log: true
 
   epochs:
     type: int
