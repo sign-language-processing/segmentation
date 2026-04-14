@@ -23,6 +23,7 @@ dgs = [
     "sign_language_datasets",
     "tensorflow<2.19",
     "tensorflow-datasets==4.9.2",
+    "pyarrow",  # transitive: tensorflow-datasets needs it at import time
     "lxml",
     "webvtt-py",  # transitive: sign_language_datasets eagerly imports mediapi_skel
 ]
