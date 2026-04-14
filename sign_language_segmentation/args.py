@@ -37,6 +37,8 @@ parser.add_argument('--optuna_trials', type=int, default=50,
                     help='number of Optuna trials (default: 50)')
 
 # Data
+parser.add_argument('--datasets', type=str, default='dgs',
+                    help='comma-separated dataset names to train on (e.g. dgs,platform)')
 parser.add_argument('--corpus', default='/mnt/nas/GCS/sign-external-datasets/dgs-corpus')
 parser.add_argument('--poses', default='/mnt/nas/GCS/sign-mediapipe-holistic-poses')
 parser.add_argument('--velocity', action='store_true', default=True,

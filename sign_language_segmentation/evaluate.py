@@ -8,8 +8,7 @@ import argparse
 import torch
 from torch.utils.data import DataLoader
 
-from sign_language_segmentation.datasets.dgs.dataset import DGSSegmentationDataset
-from sign_language_segmentation.datasets.common import collate_fn
+from sign_language_segmentation.datasets.common import Split, build_datasets, collate_fn
 from sign_language_segmentation.utils.bio import BIO
 from sign_language_segmentation.metrics import (
     frame_f1, likeliest_probs_to_segments,
@@ -70,6 +69,8 @@ def evaluate_model(model, dataloader, device, seg_fn=None):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--checkpoint", required=True, help="Path to model checkpoint")
+    parser.add_argument("--datasets", type=str, default="dgs",
+                        help="comma-separated dataset names (e.g. dgs,platform)")
     parser.add_argument("--corpus", default="/mnt/nas/GCS/sign-external-datasets/dgs-corpus")
     parser.add_argument("--poses", default="/mnt/nas/GCS/sign-mediapipe-holistic-poses")
     parser.add_argument("--split", choices=["dev", "test"], default="test")
@@ -93,12 +94,11 @@ if __name__ == "__main__":
     fps_aug = getattr(model.hparams, 'fps_aug', False)
     velocity = getattr(model.hparams, 'velocity', True)
 
-    dataset = DGSSegmentationDataset(
-        corpus_dir=eval_args.corpus,
-        poses_dir=eval_args.poses,
-        split=eval_args.split,
+    dataset = build_datasets(
+        names=eval_args.datasets,
+        split=Split(eval_args.split),
+        args=eval_args,
         num_frames=999999,
-        target_fps=eval_args.target_fps,
         fps_aug=fps_aug,
         velocity=velocity,
     )
@@ -113,7 +113,7 @@ if __name__ == "__main__":
     results = evaluate_model(model, dataloader, eval_args.device, seg_fn=seg_fn)
 
     print(f"\n{'='*50}")
-    print(f"Evaluation on {eval_args.split} set")
+    print(f"Evaluation on {eval_args.datasets} {eval_args.split} set")
     print(f"{'='*50}")
     print(f"Sign Frame F1:     {results['sign_frame_f1']:.4f}")
     print(f"Sign IoU:          {results['sign_IoU']:.4f}")

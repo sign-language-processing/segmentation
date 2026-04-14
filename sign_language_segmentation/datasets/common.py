@@ -1,4 +1,7 @@
+from __future__ import annotations
+
 from abc import ABC, abstractmethod
+from argparse import Namespace
 import hashlib
 import random
 from enum import StrEnum
@@ -7,7 +10,7 @@ import numpy as np
 import torch
 from pose_format import Pose
 from torch import Tensor
-from torch.utils.data import Dataset
+from torch.utils.data import ConcatDataset, Dataset
 
 from sign_language_segmentation.utils.bio import BIO, create_bio, create_bio_from_times
 from sign_language_segmentation.utils.pose import compute_velocity, preprocess_pose
@@ -19,8 +22,45 @@ class Split(StrEnum):
     TEST = "test"
 
 
-class DatasetType(StrEnum):
-    DGS = "dgs"
+# -- dataset registry ----------------------------------------------------------
+
+DATASET_REGISTRY: dict[str, type[BaseSegmentationDataset]] = {}
+
+
+def register_dataset(name: str, cls: type[BaseSegmentationDataset]) -> None:
+    """register a dataset class under *name* so build_datasets can find it."""
+    DATASET_REGISTRY[name] = cls
+
+
+def _ensure_datasets_registered() -> None:
+    """lazily import known dataset packages to trigger registration."""
+    if DATASET_REGISTRY:
+        return
+    # importing the modules registers the datasets
+    import sign_language_segmentation.datasets.dgs  # noqa: F401
+
+
+def build_datasets(names: str, split: Split, args: Namespace, **augment_kwargs) -> Dataset:
+    """build one or more datasets from a comma-separated *names* string.
+
+    Each name must be registered via register_dataset(). Dataset-specific
+    args are pulled from *args* inside each class's from_args classmethod.
+    augment_kwargs (num_frames, velocity, fps_aug, ...) are forwarded as-is.
+    """
+    _ensure_datasets_registered()
+
+    dataset_names = [n.strip() for n in names.split(",")]
+    datasets: list[Dataset] = []
+    for name in dataset_names:
+        if name not in DATASET_REGISTRY:
+            available = ", ".join(sorted(DATASET_REGISTRY.keys()))
+            raise ValueError(f"Unknown dataset: {name!r}. Available: {available}")
+        cls = DATASET_REGISTRY[name]
+        datasets.append(cls.from_args(split=split, args=args, **augment_kwargs))
+
+    if len(datasets) == 1:
+        return datasets[0]
+    return ConcatDataset(datasets)
 
 
 def md5sum(file_path: str) -> str:
@@ -50,6 +90,12 @@ class BaseSegmentationDataset(Dataset, ABC):
 
     @abstractmethod
     def __init__(self, *args, **kwargs) -> None: ...
+
+    @classmethod
+    @abstractmethod
+    def from_args(cls, split: Split, args: Namespace, **augment_kwargs) -> BaseSegmentationDataset:
+        """construct from a parsed argument namespace + shared augment kwargs."""
+        ...
 
     @abstractmethod
     def get_split_manifest(self) -> dict: ...

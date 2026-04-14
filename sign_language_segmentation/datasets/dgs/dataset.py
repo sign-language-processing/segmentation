@@ -1,3 +1,6 @@
+from __future__ import annotations
+
+from argparse import Namespace
 import json
 import os
 
@@ -154,6 +157,16 @@ class DGSSegmentationDataset(BaseSegmentationDataset):
                 json.dump(cache, f)
         except OSError:
             pass
+
+    @classmethod
+    def from_args(cls, split: Split, args: Namespace, **augment_kwargs) -> DGSSegmentationDataset:
+        return cls(
+            corpus_dir=args.corpus,
+            poses_dir=args.poses,
+            split=split,
+            target_fps=getattr(args, "target_fps", None),
+            **augment_kwargs,
+        )
 
     def get_split_manifest(self) -> dict:
         """return manifest of video IDs per split for reproducibility tracking."""
