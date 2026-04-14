@@ -7,9 +7,11 @@ import torch
 parser = ArgumentParser()
 
 # wandb
-parser.add_argument('--no_wandb', action='store_true', default=True)
+parser.add_argument('--no_wandb', action='store_true', default=False)
 parser.add_argument('--run_name', type=str, default=None)
 parser.add_argument('--wandb_dir', type=str, default='.')
+parser.add_argument('--wandb_entity', type=str, default=None)
+parser.add_argument('--wandb_project', type=str, default='segmentation')
 
 # Training
 parser.add_argument('--seed', type=int, default=42)
@@ -20,6 +22,8 @@ parser.add_argument('--patience', type=int, default=10)
 parser.add_argument('--batch_size', type=int, default=8)
 parser.add_argument('--num_frames', type=int, default=1024, help='frames per training sample')
 parser.add_argument('--learning_rate', type=float, default=1e-3)
+parser.add_argument('--lr_scale_backbone', type=float, default=1.0,
+                    help='LR multiplier for backbone (CNN + transformer). 1.0=same as head, 0.1=10x smaller')
 parser.add_argument('--max_time', type=str, default="00:00:30:00",
                     help='max wall time DD:HH:MM:SS (default: 30 min)')
 parser.add_argument('--optimizer',
@@ -27,6 +31,10 @@ parser.add_argument('--optimizer',
                     default='adamw-onecycle')
 parser.add_argument('--finetune_from', type=str, default=None,
                     help='checkpoint to fine-tune from')
+parser.add_argument('--optuna', type=str, default=None, metavar='YAML',
+                    help='run Optuna hyperparameter search using ranges from YAML file')
+parser.add_argument('--optuna_trials', type=int, default=50,
+                    help='number of Optuna trials (default: 50)')
 
 # Data
 parser.add_argument('--corpus', default='/mnt/nas/GCS/sign-external-datasets/dgs-corpus')
