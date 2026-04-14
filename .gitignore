@@ -10,3 +10,4 @@ lightning_logs/
 uv.lock
 annotations_cache.json
 video_map_cache.json
+run_hpo.sh
