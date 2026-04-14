@@ -1,13 +1,17 @@
 from sign_language_segmentation.datasets.common import (
+    DATASET_REGISTRY,
     BaseSegmentationDataset,
-    DatasetType,
     Split,
+    build_datasets,
     collate_fn,
+    register_dataset,
 )
 
 __all__ = [
     "BaseSegmentationDataset",
+    "DATASET_REGISTRY",
     "Split",
-    "DatasetType",
+    "build_datasets",
     "collate_fn",
+    "register_dataset",
 ]

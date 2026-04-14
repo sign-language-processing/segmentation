@@ -7,12 +7,14 @@ import pytest
 import torch
 
 from sign_language_segmentation.datasets.common import (
+    DATASET_REGISTRY,
     BaseSegmentationDataset,
-    DatasetType,
     Split,
+    build_datasets,
     collate_fn,
     load_and_augment,
     md5sum,
+    register_dataset,
 )
 from sign_language_segmentation.utils.bio import BIO
 
@@ -27,14 +29,30 @@ class TestEnums:
         assert Split.DEV == "dev"
         assert Split.TEST == "test"
 
-    def test_dataset_type_values(self):
-        assert DatasetType.DGS == "dgs"
-
     def test_split_from_string(self):
         assert Split("train") is Split.TRAIN
 
-    def test_dataset_type_from_string(self):
-        assert DatasetType("dgs") is DatasetType.DGS
+
+class TestDatasetRegistry:
+    def test_dgs_registered(self):
+        from sign_language_segmentation.datasets.dgs import DGSSegmentationDataset
+        assert DATASET_REGISTRY["dgs"] is DGSSegmentationDataset
+
+    def test_register_custom_dataset(self):
+        class _Dummy(BaseSegmentationDataset):
+            def __init__(self): ...
+            @classmethod
+            def from_args(cls, split, args, **kw): return cls()
+            def get_split_manifest(self): return {}
+
+        register_dataset("_test_dummy", _Dummy)
+        assert DATASET_REGISTRY["_test_dummy"] is _Dummy
+        del DATASET_REGISTRY["_test_dummy"]
+
+    def test_build_datasets_unknown_name(self):
+        import argparse
+        with pytest.raises(ValueError, match="Unknown dataset"):
+            build_datasets("nonexistent", Split.TRAIN, argparse.Namespace())
 
 
 # -- md5sum -------------------------------------------------------------------
@@ -275,6 +293,10 @@ class TestBaseSegmentationDataset:
                 self.fps_aug = False
                 self.frame_dropout = 0.0
                 self.body_part_dropout = 0.0
+
+            @classmethod
+            def from_args(cls, split, args, **kw):
+                return cls()
 
             def get_split_manifest(self) -> dict:
                 return {"dataset": "dummy"}

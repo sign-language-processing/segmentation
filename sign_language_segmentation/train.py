@@ -6,30 +6,44 @@ import pytorch_lightning as pl
 from pytorch_lightning.callbacks import ModelCheckpoint, LearningRateMonitor
 from pytorch_lightning.callbacks.early_stopping import EarlyStopping
 from pytorch_lightning.loggers import WandbLogger
-from torch.utils.data import DataLoader
+from torch.utils.data import ConcatDataset, DataLoader, Dataset
 
 from sign_language_segmentation.args import args
-from sign_language_segmentation.datasets.dgs.dataset import DGSSegmentationDataset
-from sign_language_segmentation.datasets.common import Split, collate_fn
+from sign_language_segmentation.datasets.common import Split, build_datasets, collate_fn
 from sign_language_segmentation.model.model import PoseTaggingModel
+
+
+def _collect_split_manifest(dataset: Dataset, dataset_names: str) -> dict:
+    """collect split manifest from dataset(s)."""
+    manifests: list[dict] = []
+    if isinstance(dataset, ConcatDataset):
+        for ds in dataset.datasets:
+            if hasattr(ds, "get_split_manifest"):
+                manifests.append(ds.get_split_manifest())
+    elif hasattr(dataset, "get_split_manifest"):
+        manifests.append(dataset.get_split_manifest())
+    return {
+        "created_at": datetime.now(tz=timezone.utc).isoformat(),
+        "datasets": dataset_names,
+        "manifests": manifests,
+    }
 
 
 def get_dataloader(
     split: Split,
+    dataset_names: str,
     batch_size: int | None = None,
     num_frames: int | None = None,
     persistent_workers: bool = True,
 ) -> DataLoader:
-    dataset = DGSSegmentationDataset(
-        corpus_dir=args.corpus,
-        poses_dir=args.poses,
-        split=split,
+    augment_kwargs = dict(
         num_frames=num_frames if num_frames is not None else args.num_frames,
         velocity=args.velocity,
         fps_aug=args.fps_aug,
         frame_dropout=args.frame_dropout,
         body_part_dropout=args.body_part_dropout if split == Split.TRAIN else 0.0,
     )
+    dataset = build_datasets(names=dataset_names, split=split, args=args, **augment_kwargs)
     return DataLoader(
         dataset,
         batch_size=batch_size or args.batch_size,
@@ -80,8 +94,8 @@ def train(overrides: dict | None = None, monitor_metric: str = _DEFAULT_MONITOR_
         effective_args = {**vars(args), **overrides}
         logger.log_hyperparams(effective_args)
 
-    train_loader = get_dataloader(Split.TRAIN, batch_size=_get("batch_size"))
-    validation_loader = get_dataloader(Split.DEV, batch_size=1)
+    train_loader = get_dataloader(Split.TRAIN, dataset_names=args.datasets, batch_size=_get("batch_size"))
+    validation_loader = get_dataloader(Split.DEV, dataset_names=args.datasets, batch_size=1)
 
     example_datum = train_loader.dataset[0]
     pose_joints, pose_dims = example_datum["pose"].shape[1:3]
@@ -120,10 +134,9 @@ def train(overrides: dict | None = None, monitor_metric: str = _DEFAULT_MONITOR_
     model_dir.mkdir(parents=True, exist_ok=True)
 
     # write split manifest
-    manifest = {
-        "created_at": datetime.now(tz=timezone.utc).isoformat(),
-        "dataset": "dgs",
-    }
+    manifest = _collect_split_manifest(train_loader.dataset, args.datasets)
+    val_manifest = _collect_split_manifest(validation_loader.dataset, args.datasets)
+    manifest["manifests"].extend(val_manifest["manifests"])
     manifest_path = model_dir / "split_manifest.json"
     manifest_path.write_text(json.dumps(manifest, indent=2))
     print(f"Split manifest: {manifest_path}")
