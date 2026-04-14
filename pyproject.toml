@@ -7,18 +7,28 @@ authors = [
     { name = "Zifan Jiang", email = "jiang@cl.uzh.ch" }
 ]
 readme = "README.md"
+requires-python = ">=3.11"
 dependencies = [
     "pose-format>=0.8.1",
-    "numpy",
+    "numpy<2",
     "pympi-ling",
     "torch",
-    "sign_language_datasets",
     "pose-anonymization",
     "scikit-learn",
     "pytorch-lightning",
 ]
 
 [project.optional-dependencies]
+dgs = [
+    "sign_language_datasets",
+    "tensorflow<2.19",
+    "tensorflow-datasets==4.9.2",
+    "lxml",
+    "webvtt-py",  # transitive: sign_language_datasets eagerly imports mediapi_skel
+]
+train = [
+    "sign-language-segmentation[dgs]",
+]
 dev = [
     "pytest",
     "ruff",
@@ -42,12 +52,9 @@ ignore = [
     "F401",  # unused imports in __init__.py re-exports
 ]
 
-[tool.setuptools]
-packages = [
-    "sign_language_segmentation",
-    "sign_language_segmentation.model",
-    "sign_language_segmentation.data",
-]
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["sign_language_segmentation*"]
 
 [tool.setuptools.package-data]
 sign_language_segmentation = ["**/*.json", "**/*.ckpt"]

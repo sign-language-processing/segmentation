@@ -3,7 +3,7 @@ import torch
 import torch.nn.functional as F
 from torch import nn
 
-from sign_language_segmentation.data.utils import BIO
+from sign_language_segmentation.utils.bio import BIO
 from sign_language_segmentation.metrics import likeliest_probs_to_segments, segment_IoU, bio_labels_to_segments
 from sign_language_segmentation.model.pose_encoder import ConvDef, PoseEncoderUNetBlock
 

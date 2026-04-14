@@ -7,3 +7,4 @@ build/
 models/
 logs/
 lightning_logs/
+uv.lock

@@ -19,7 +19,7 @@ jobs:
       - name: Setup uv
         uses: astral-sh/setup-uv@v7
         with:
-          python-version: "3.10"
+          python-version: "3.11"
           enable-cache: true
           activate-environment: true
 
