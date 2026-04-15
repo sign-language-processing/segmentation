@@ -1,3 +1,7 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "sign-language-segmentation"
 description = "Sign language pose segmentation model on both the sentence and sign level"
@@ -16,6 +20,7 @@ dependencies = [
     "pose-anonymization",
     "scikit-learn",
     "pytorch-lightning",
+    "safetensors",
 ]
 
 [project.optional-dependencies]
@@ -46,6 +51,14 @@ server = [
     "Flask-Compress",
     "Flask-Caching",
 ]
+hf = [
+    "huggingface_hub>=0.20.0",
+]
+publish = [
+    "sign-language-segmentation[hf]",
+    "sign-language-segmentation[train]",
+]
+
 
 [tool.ruff]
 line-length = 120
@@ -61,7 +74,7 @@ where = ["."]
 include = ["sign_language_segmentation*"]
 
 [tool.setuptools.package-data]
-sign_language_segmentation = ["**/*.json", "**/*.ckpt", "**/*.yaml"]
+sign_language_segmentation = ["**/*.json", "**/*.ckpt", "**/*.safetensors", "**/*.yaml", "model_card_template.md"]
 
 [tool.pytest.ini_options]
 addopts = "-v"
@@ -70,3 +83,4 @@ testpaths = ["sign_language_segmentation"]
 [project.scripts]
 pose_to_segments = "sign_language_segmentation.bin:main"
 slim_checkpoint = "sign_language_segmentation.slim_checkpoint:main"
+publish_model = "sign_language_segmentation.publish:main"

@@ -427,8 +427,8 @@ def main() -> None:
     parser.add_argument("--gcs_root", type=str, default="/mnt/nas/GCS")
     parser.add_argument("--output", type=Path, default=_DEFAULT_ANNOTATIONS_CACHE)
     parser.add_argument("--no_score", action="store_true", default=False, help="skip scoring after sync")
-    parser.add_argument("--model_path", type=str, default="sign_language_segmentation/dist/2026/best.ckpt",
-                        help="model checkpoint for scoring (default: dist/2026/best.ckpt)")
+    parser.add_argument("--model_path", type=str, default="sign_language_segmentation/dist/2026",
+                        help="model directory or .ckpt path for scoring")
     parser.add_argument("--device", type=str, default="gpu")
 
     args = parser.parse_args()
