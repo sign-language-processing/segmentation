@@ -10,7 +10,7 @@ import numpy as np
 import torch
 from pose_format import Pose
 from torch import Tensor
-from torch.utils.data import ConcatDataset, Dataset
+from torch.utils.data import ConcatDataset, DataLoader, Dataset
 
 from sign_language_segmentation.utils.bio import BIO, create_bio, create_bio_from_times
 from sign_language_segmentation.utils.pose import compute_velocity, preprocess_pose
@@ -62,6 +62,41 @@ def build_datasets(names: str, split: Split, args: Namespace, **augment_kwargs) 
     if len(datasets) == 1:
         return datasets[0]
     return ConcatDataset(datasets)
+
+
+def get_dataloader(
+    split: Split,
+    dataset_names: str,
+    args: Namespace,
+    batch_size: int | None = None,
+    num_frames: int | None = None,
+    persistent_workers: bool = True,
+    **augment_overrides,
+) -> DataLoader:
+    """build a DataLoader for one or more datasets.
+
+    augment kwargs default to values from *args* but can be overridden
+    via **augment_overrides (e.g. fps_aug=False for evaluation).
+    """
+    augment_kwargs = dict(
+        num_frames=num_frames if num_frames is not None else getattr(args, "num_frames", 999999),
+        velocity=getattr(args, "velocity", True),
+        fps_aug=getattr(args, "fps_aug", True),
+        frame_dropout=getattr(args, "frame_dropout", 0.0),
+        body_part_dropout=getattr(args, "body_part_dropout", 0.0) if split == Split.TRAIN else 0.0,
+    )
+    augment_kwargs.update(augment_overrides)
+    dataset = build_datasets(names=dataset_names, split=split, args=args, **augment_kwargs)
+    return DataLoader(
+        dataset,
+        batch_size=batch_size or getattr(args, "batch_size", 1),
+        shuffle=(split == Split.TRAIN),
+        collate_fn=collate_fn,
+        num_workers=8,
+        persistent_workers=persistent_workers,
+        prefetch_factor=4 if persistent_workers else 2,
+        pin_memory=True,
+    )
 
 
 def md5sum(file_path: str) -> str:
