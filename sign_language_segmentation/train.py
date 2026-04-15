@@ -109,6 +109,8 @@ def train(overrides: dict | None = None, monitor_metric: str = _DEFAULT_MONITOR_
 
     # write split manifest
     manifest = _collect_split_manifest(train_loader.dataset, args.datasets)
+    val_manifest = _collect_split_manifest(validation_loader.dataset, args.datasets)
+    manifest["manifests"].extend(val_manifest["manifests"])
     manifest_path = model_dir / "split_manifest.json"
     manifest_path.write_text(json.dumps(manifest, indent=2))
     print(f"Split manifest: {manifest_path}")
