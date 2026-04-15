@@ -52,6 +52,7 @@ def train(overrides: dict | None = None, monitor_metric: str = _DEFAULT_MONITOR_
     if not args.no_wandb:
         if overrides and "_trial" in overrides:
             import wandb
+
             trial_num = overrides["_trial"].number
             run_name = f"{args.run_name}-t{trial_num}"
             wandb.run.name = run_name
@@ -113,26 +114,30 @@ def train(overrides: dict | None = None, monitor_metric: str = _DEFAULT_MONITOR_
     print(f"Split manifest: {manifest_path}")
 
     callbacks = [
-        EarlyStopping(monitor=monitor_metric, patience=args.patience, verbose=True, mode='max'),
-        LearningRateMonitor(logging_interval='epoch'),
+        EarlyStopping(monitor=monitor_metric, patience=args.patience, verbose=True, mode="max"),
+        LearningRateMonitor(logging_interval="epoch"),
         ModelCheckpoint(
             dirpath=model_dir,
-            filename='best',
+            filename="best",
             verbose=True,
             save_top_k=1,
             save_last=True,
             monitor=monitor_metric,
             every_n_epochs=1,
-            mode='max',
+            mode="max",
         ),
     ]
 
     # add Optuna pruning callback when running a sweep
     if overrides and "_trial" in overrides:
         from optuna_integration import PyTorchLightningPruningCallback
-        callbacks.append(PyTorchLightningPruningCallback(
-            trial=overrides["_trial"], monitor=monitor_metric,
-        ))
+
+        callbacks.append(
+            PyTorchLightningPruningCallback(
+                trial=overrides["_trial"],
+                monitor=monitor_metric,
+            )
+        )
 
     trainer = pl.Trainer(
         max_epochs=_get("epochs"),
@@ -160,7 +165,7 @@ def train(overrides: dict | None = None, monitor_metric: str = _DEFAULT_MONITOR_
     return best_val
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     if args.optuna:
         if not args.run_name:
             raise ValueError("--run_name is required when using --optuna")
