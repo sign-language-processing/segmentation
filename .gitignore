@@ -11,3 +11,7 @@ uv.lock
 run_hpo.sh
 *.pose
 .cache/
+dist/
+wandb/
+*.log
+*.safetensors
