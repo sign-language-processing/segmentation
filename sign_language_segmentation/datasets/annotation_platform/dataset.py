@@ -64,15 +64,17 @@ class AnnotationPlatformSegmentationDataset(BaseSegmentationDataset):
             if not os.path.exists(pose_path):
                 continue
 
-            all_videos.append({
-                "id": video_id,
-                "pose_path": pose_path,
-                "fps": video_data["fps"],
-                "total_frames": video_data["total_frames"],
-                "glosses": video_data["signs"],
-                "sentences": video_data.get("phrases", []),
-                "quality_score": video_data.get("quality_score", 0.0),
-            })
+            all_videos.append(
+                {
+                    "id": video_id,
+                    "pose_path": pose_path,
+                    "fps": video_data["fps"],
+                    "total_frames": video_data["total_frames"],
+                    "glosses": video_data["signs"],
+                    "sentences": video_data.get("phrases", []),
+                    "quality_score": video_data.get("quality_score", 0.0),
+                }
+            )
 
         # quality filtering: keep top X%
         if quality_percentile < 1.0 and all_videos:
@@ -96,9 +98,7 @@ class AnnotationPlatformSegmentationDataset(BaseSegmentationDataset):
     def from_args(cls, split: Split, args: Namespace, **augment_kwargs) -> AnnotationPlatformSegmentationDataset:
         annotations_path = CACHE_DIR / cls.dataset_name / "annotations_cache.json"
         if not annotations_path.exists():
-            raise FileNotFoundError(
-                f"annotations cache not found at {annotations_path} — run the sync script first"
-            )
+            raise FileNotFoundError(f"annotations cache not found at {annotations_path} — run the sync script first")
         return cls(
             annotations_path=str(annotations_path),
             poses_dir=args.poses,
