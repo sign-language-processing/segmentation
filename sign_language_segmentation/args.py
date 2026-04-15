@@ -43,6 +43,9 @@ parser.add_argument('--corpus', default='/mnt/nas/GCS/sign-external-datasets/dgs
 parser.add_argument('--poses', default='/mnt/nas/GCS/sign-mediapipe-holistic-poses')
 parser.add_argument('--quality_percentile', type=float, default=1.0,
                     help='keep top X of platform annotations by quality score (1.0=all, 0.8=top 80%%)')
+parser.add_argument('--signtube_annotations_path', type=str,
+                    default='sign_language_segmentation/datasets/signtube/annotations_cache.json',
+                    help='path to signtube annotations cache JSON')
 parser.add_argument('--velocity', action='store_true', default=True,
                     help='append fps-normalised velocity to pose features')
 parser.add_argument('--fps_aug', action='store_true', default=True,
