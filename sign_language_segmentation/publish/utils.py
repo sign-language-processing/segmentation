@@ -7,7 +7,7 @@ from pathlib import Path
 import torch
 from safetensors.torch import save_file as save_safetensors
 
-_VERSION_RE = re.compile(r"^v(\d+)\.(\d+)\.(\d+)$")
+_VERSION_RE = re.compile(r"^v(\d{4})\.(\d{1,2})\.(\d{1,2})(?:\.(\d+))?$")
 
 _TEMPLATE_PATH = Path(__file__).resolve().parent / "model_card_template.md"
 
@@ -39,16 +39,19 @@ def find_split_manifest(checkpoint_path: str) -> dict | None:
     return None
 
 
-def _parse_version(tag_name: str) -> tuple[int, int, int] | None:
-    """Parse a vMAJOR.MINOR.PATCH tag. Returns None if not a version tag."""
+def _parse_version(tag_name: str) -> tuple[int, ...] | None:
+    """Parse a vYYYY.MM.DD[.N] tag. Returns None if not a version tag."""
     m = _VERSION_RE.match(tag_name)
     if not m:
         return None
-    return int(m.group(1)), int(m.group(2)), int(m.group(3))
+    parts = (int(m.group(1)), int(m.group(2)), int(m.group(3)))
+    if m.group(4) is not None:
+        return (*parts, int(m.group(4)))
+    return parts
 
 
 def get_latest_version(repo_id: str) -> str | None:
-    """Get the latest semver tag from the HF repo. Returns None if no version tags exist."""
+    """Get the latest date-based version tag from the HF repo. Returns None if no version tags exist."""
     from huggingface_hub import HfApi
 
     api = HfApi()
@@ -67,20 +70,26 @@ def get_latest_version(repo_id: str) -> str | None:
     return versions[-1][1]
 
 
-def get_next_version(repo_id: str, bump: str = "patch") -> str:
-    """Determine the next semver tag by bumping the latest version.
+def get_next_version(repo_id: str) -> str:
+    """Determine the next version tag based on today's date (vYYYY.MM.DD).
 
-    bump: "major", "minor", or "patch".
+    If a tag for today already exists, appends a suffix (vYYYY.MM.DD.1, .2, ...).
     """
+    today = datetime.now(tz=UTC)
+    base = f"v{today.year}.{today.month}.{today.day}"
+
     latest = get_latest_version(repo_id=repo_id)
     if latest is None:
-        return "v1.0.0"
-    major, minor, patch = _parse_version(latest)
-    if bump == "major":
-        return f"v{major + 1}.0.0"
-    if bump == "minor":
-        return f"v{major}.{minor + 1}.0"
-    return f"v{major}.{minor}.{patch + 1}"
+        return base
+
+    parsed = _parse_version(latest)
+    year, month, day = parsed[0], parsed[1], parsed[2]
+    if (year, month, day) != (today.year, today.month, today.day):
+        return base
+
+    # same day — increment suffix
+    suffix = parsed[3] + 1 if len(parsed) == 4 else 1
+    return f"{base}.{suffix}"
 
 
 def _add_hm_iou(metrics: dict) -> dict:

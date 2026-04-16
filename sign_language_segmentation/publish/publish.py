@@ -3,12 +3,11 @@
 Converts a PyTorch Lightning .ckpt to safetensors, optionally evaluates it,
 runs regression checks against the current production model, generates a
 model card, and pushes to the 'weekly' branch on HuggingFace Hub.
-A semver tag (vMAJOR.MINOR.PATCH) is only created on promotion
+A date-based tag (vYYYY.MM.DD) is only created on promotion
 (regression pass or explicit --promote).
 
 Usage:
     publish_model --checkpoint path/to/best.ckpt --repo org/model-name
-    publish_model --checkpoint path/to/best.ckpt --repo org/model-name --bump minor
     publish_model --repo org/model-name --promote
 """
 import argparse
@@ -123,10 +122,7 @@ def main():
     parser.add_argument("--repo", type=str, required=True,
                         help="HuggingFace repo ID (e.g. org/model-name)")
     parser.add_argument("--tag", type=str, default=None,
-                        help="version tag (default: auto-bump patch from latest)")
-    parser.add_argument("--bump", type=str, default="patch",
-                        choices=["major", "minor", "patch"],
-                        help="semver bump level when --tag is not set (default: patch)")
+                        help="version tag (default: vYYYY.MM.DD based on today's date)")
 
     # evaluation
     parser.add_argument("--datasets", type=str, default="dgs",
@@ -155,7 +151,7 @@ def main():
 
     # resolve version tag
     if args.tag is None:
-        args.tag = get_next_version(repo_id=args.repo, bump=args.bump)
+        args.tag = get_next_version(repo_id=args.repo)
     print(f"Version: {args.tag}")
 
     # standalone promote mode
