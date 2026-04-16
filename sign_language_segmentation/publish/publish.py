@@ -2,12 +2,14 @@
 
 Converts a PyTorch Lightning .ckpt to safetensors, optionally evaluates it,
 runs regression checks against the current production model, generates a
-model card, and pushes everything to HuggingFace Hub with versioning tags.
+model card, and pushes to the 'weekly' branch on HuggingFace Hub.
+A semver tag (vMAJOR.MINOR.PATCH) is only created on promotion
+(regression pass or explicit --promote).
 
 Usage:
     publish_model --checkpoint path/to/best.ckpt --repo org/model-name
-    publish_model --checkpoint path/to/best.ckpt --repo org/model-name --skip-eval
-    publish_model --repo org/model-name --promote-tag weekly-2026-04-08
+    publish_model --checkpoint path/to/best.ckpt --repo org/model-name --bump minor
+    publish_model --repo org/model-name --promote
 """
 import argparse
 import json
@@ -25,6 +27,7 @@ from sign_language_segmentation.publish.utils import (
     check_regression,
     generate_model_card,
     promote,
+    get_next_version,
 )
 
 
@@ -46,7 +49,10 @@ def publish(checkpoint: str, repo_id: str, tag: str,
         config = convert_to_safetensors(checkpoint_path=checkpoint, output_dir=tmp_path)
         print(f"  model.safetensors + config.json written to {tmp_path}")
 
-        # 2. evaluation
+        # 2. load split manifest (needed for eval quality_percentile)
+        manifest = find_split_manifest(checkpoint_path=checkpoint)
+
+        # 3. evaluation
         eval_results = None
         if not skip_eval:
             if metrics_json:
@@ -58,7 +64,7 @@ def publish(checkpoint: str, repo_id: str, tag: str,
                 eval_results = run_evaluation(
                     checkpoint_path=checkpoint, datasets=datasets, split=split,
                     corpus=corpus, poses=poses, annotations_path=annotations_path,
-                    device=device,
+                    device=device, split_manifest=manifest,
                 )
                 for key, value in eval_results.items():
                     print(f"  {key}: {value:.4f}")
@@ -68,20 +74,18 @@ def publish(checkpoint: str, repo_id: str, tag: str,
             with open(tmp_path / "eval_results.json", "w") as f:
                 json.dump(eval_results, f, indent=2)
 
-        # 3. regression check
+        # 4. regression check
         regression_status = "skipped"
         if eval_results and not skip_eval:
             regression_status, _ = check_regression(
                 new_metrics=eval_results, repo_id=repo_id, threshold=regression_threshold,
             )
-
-        # 4. copy split manifest if available
-        manifest = find_split_manifest(checkpoint_path=checkpoint)
+        # 5. save split manifest
         if manifest:
             with open(tmp_path / "split_manifest.json", "w") as f:
                 json.dump(manifest, f, indent=2)
 
-        # 5. generate model card
+        # 6. generate model card
         model_card = generate_model_card(
             config=config, eval_results=eval_results,
             regression_status=regression_status, tag=tag,
@@ -90,26 +94,24 @@ def publish(checkpoint: str, repo_id: str, tag: str,
         with open(tmp_path / "README.md", "w") as f:
             f.write(model_card)
 
-        # 6. push to hub
-        print(f"Pushing to {repo_id}...")
+        # 7. push to weekly branch
+        print(f"Pushing to {repo_id} branch 'weekly'...")
         api.create_repo(repo_id=repo_id, exist_ok=True, repo_type="model")
+        api.create_branch(repo_id=repo_id, branch="weekly", exist_ok=True)
         api.upload_folder(
             folder_path=str(tmp_path),
             repo_id=repo_id,
+            revision="weekly",
             commit_message=f"publish {tag} (regression: {regression_status})",
         )
 
-        # 7. tag the commit
-        api.create_tag(repo_id=repo_id, tag=tag, revision="main")
-        print(f"Tagged as '{tag}'")
-
-        # 8. promote to production if regression passed
+        # 8. promote if regression passed — creates a date tag on the weekly branch
         if regression_status == "fail":
-            print("NOT promoting to production — regression check failed")
+            print("NOT promoting — regression check failed")
         elif no_promote:
             print("Skipping promotion (--no-promote)")
         else:
-            promote(repo_id=repo_id, revision="main")
+            promote(repo_id=repo_id, tag=tag, revision="weekly")
 
     print("Done.")
 
@@ -122,9 +124,11 @@ def main():
                         help="path to .ckpt checkpoint to publish")
     parser.add_argument("--repo", type=str, required=True,
                         help="HuggingFace repo ID (e.g. org/model-name)")
-    parser.add_argument("--tag", type=str,
-                        default=f"weekly-{datetime.now(tz=UTC).strftime('%Y-%m-%d')}",
-                        help="version tag (default: weekly-YYYY-MM-DD)")
+    parser.add_argument("--tag", type=str, default=None,
+                        help="version tag (default: auto-bump patch from latest)")
+    parser.add_argument("--bump", type=str, default="patch",
+                        choices=["major", "minor", "patch"],
+                        help="semver bump level when --tag is not set (default: patch)")
 
     # evaluation
     parser.add_argument("--datasets", type=str, default="dgs",
@@ -147,19 +151,24 @@ def main():
     parser.add_argument("--regression-threshold", type=float, default=0.02,
                         help="IoU drop tolerance for regression check (default: 0.02)")
     parser.add_argument("--no-promote", action="store_true",
-                        help="push and tag but do not move the production tag")
-    parser.add_argument("--promote-tag", type=str,
-                        help="promote an existing tag to production (no upload, just moves the tag)")
+                        help="push without tagging or promoting")
+    parser.add_argument("--promote", action="store_true",
+                        help="tag the current weekly branch (no upload)")
 
     args = parser.parse_args()
 
+    # resolve version tag
+    if args.tag is None:
+        args.tag = get_next_version(repo_id=args.repo, bump=args.bump)
+    print(f"Version: {args.tag}")
+
     # standalone promote mode
-    if args.promote_tag:
-        promote(repo_id=args.repo, revision=args.promote_tag)
+    if args.promote:
+        promote(repo_id=args.repo, tag=args.tag, revision="weekly")
         return
 
     if not args.checkpoint:
-        parser.error("--checkpoint is required (unless using --promote-tag)")
+        parser.error("--checkpoint is required (unless using --promote)")
 
     publish(
         checkpoint=args.checkpoint,

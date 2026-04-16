@@ -51,7 +51,9 @@ def _download_from_hf(repo_id: str) -> str:
             "huggingface_hub is required for HF_MODEL_REPO. "
             "Install with: pip install sign-language-segmentation[hf]"
         )
-    revision = os.environ.get("HF_MODEL_REVISION", "production")
+    revision = os.environ.get("HF_MODEL_REVISION")
+    if not revision:
+        raise ValueError("HF_MODEL_REVISION must be set when using HF_MODEL_REPO")
     return snapshot_download(
         repo_id=repo_id,
         revision=revision,
