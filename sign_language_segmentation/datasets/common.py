@@ -108,13 +108,43 @@ def md5sum(file_path: str) -> str:
     return h.hexdigest()
 
 
+def split_bucket(video_id: str, seed: int) -> int:
+    """deterministic hash-based split assignment. returns 0-999."""
+    h = hashlib.sha256(f"{video_id}_{seed}".encode()).hexdigest()
+    return int(h, 16) % 1000
+
+
+def assign_split(
+    video_id: str,
+    split_seed: int,
+    dev_ratio: float = 0.1,
+    test_ratio: float = 0.1,
+) -> Split:
+    """assign a split to a video ID based on deterministic hashing."""
+    train_threshold = int((1.0 - dev_ratio - test_ratio) * 1000)
+    dev_threshold = int((1.0 - test_ratio) * 1000)
+    bucket = split_bucket(video_id=video_id, seed=split_seed)
+    if bucket < train_threshold:
+        return Split.TRAIN
+    if bucket < dev_threshold:
+        return Split.DEV
+    return Split.TEST
+
+
 class BaseSegmentationDataset(Dataset, ABC):
     """base class for segmentation datasets.
 
     Subclasses must populate self.items in __init__ — a list of dicts with keys:
     id, pose_path, fps, total_frames, glosses (sign spans), sentences (phrase spans).
     All span times must be in milliseconds.
+
+    Split tracking via _init_split_tracking / _track_and_filter / get_split_manifest.
+    Default get_split_manifest uses split_seed (for hash-based splits); subclasses
+    with fixed splits (e.g. DGS) can override get_split_manifest.
     """
+
+    # dataset name used in manifests — subclasses should set this
+    dataset_name: str = "base"
 
     items: list[dict]
     split: Split
@@ -123,9 +153,24 @@ class BaseSegmentationDataset(Dataset, ABC):
     fps_aug: bool
     frame_dropout: float
     body_part_dropout: float
+    _all_split_ids: dict[str, list[str]]
 
     @abstractmethod
     def __init__(self, *args, **kwargs) -> None: ...
+
+    def _init_split_tracking(self) -> None:
+        """initialize split tracking — call at the start of subclass __init__."""
+        self._all_split_ids = {
+            Split.TRAIN: [],
+            Split.DEV: [],
+            Split.TEST: [],
+        }
+
+    def _track_and_filter(self, video_id: str, video_split: Split, item: dict) -> None:
+        """track a video's split assignment and append to self.items if it matches."""
+        self._all_split_ids[video_split].append(video_id)
+        if video_split == self.split:
+            self.items.append(item)
 
     @classmethod
     @abstractmethod
@@ -133,8 +178,15 @@ class BaseSegmentationDataset(Dataset, ABC):
         """construct from a parsed argument namespace + shared augment kwargs."""
         ...
 
-    @abstractmethod
-    def get_split_manifest(self) -> dict: ...
+    def get_split_manifest(self) -> dict:
+        """return manifest of video IDs per split for reproducibility tracking."""
+        return {
+            "dataset": self.dataset_name,
+            "split_seed": self.split_seed,
+            "splits": {
+                s.value: sorted(ids) for s, ids in self._all_split_ids.items()
+            },
+        }
 
     def __len__(self) -> int:
         return len(self.items)
