@@ -28,6 +28,7 @@ def evaluate_model(model, dataloader, device, seg_fn=None):
     all_metrics = {
         "sign_frame_f1": [], "sign_IoU": [], "sign_segment_f1": [],
         "sentence_frame_f1": [], "sentence_IoU": [], "sentence_segment_f1": [],
+        "hm_IoU": [],
     }
 
     with torch.no_grad():
@@ -36,6 +37,7 @@ def evaluate_model(model, dataloader, device, seg_fn=None):
             log_probs = model(pose, timestamps=batch.get("timestamps"))
 
             for i in range(pose.shape[0]):
+                item_ious = {}
                 for level, key_prefix in [("sign", "sign"), ("sentence", "sentence")]:
                     gold = batch["bio"][level][i]
                     probs = log_probs[level][i].cpu()
@@ -54,10 +56,17 @@ def evaluate_model(model, dataloader, device, seg_fn=None):
                     pred_segments = seg_fn(probs[:num_frames])
                     gold_segments = bio_labels_to_segments(gold[:num_frames])
 
-                    all_metrics[f"{key_prefix}_IoU"].append(
-                        segment_IoU(pred_segments, gold_segments, num_frames))
+                    iou = segment_IoU(pred_segments, gold_segments, num_frames)
+                    all_metrics[f"{key_prefix}_IoU"].append(iou)
+                    item_ious[key_prefix] = iou
+
                     all_metrics[f"{key_prefix}_segment_f1"].append(
                         segment_f1(pred_segments, gold_segments))
+
+                # per-item HM IoU (matches training validation_step)
+                s, p = item_ious.get("sign", 0), item_ious.get("sentence", 0)
+                if s > 0 and p > 0:
+                    all_metrics["hm_IoU"].append(2 * s * p / (s + p))
 
     results = {}
     for key, values in all_metrics.items():
@@ -84,6 +93,8 @@ if __name__ == "__main__":
                         help="drop predicted segments shorter than this many frames (0=off)")
     parser.add_argument("--merge_gap", type=int, default=0,
                         help="merge predicted segments separated by ≤ this many frames (0=off)")
+    parser.add_argument("--quality_percentile", type=float, default=1.0,
+                        help="keep top X%% of videos by quality score (default: 1.0 = all)")
     eval_args = parser.parse_args()
 
     model = PoseTaggingModel.load_from_checkpoint(eval_args.checkpoint, map_location=eval_args.device, strict=False)
@@ -123,4 +134,5 @@ if __name__ == "__main__":
     print(f"Phrase Frame F1:   {results['sentence_frame_f1']:.4f}")
     print(f"Phrase IoU:        {results['sentence_IoU']:.4f}")
     print(f"Phrase Segment F1: {results['sentence_segment_f1']:.4f}")
+    print(f"HM IoU:            {results['hm_IoU']:.4f}")
     print(f"{'='*50}")
