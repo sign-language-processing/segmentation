@@ -23,11 +23,11 @@ import httpx
 from pose_format import Pose
 from pose_format.pose_body import EmptyPoseBody
 
-from sign_language_segmentation.datasets.common import md5sum
+from sign_language_segmentation.datasets.common import CACHE_DIR, md5sum
 
-_PACKAGE_DIR = Path(__file__).resolve().parent
-_DEFAULT_ANNOTATIONS_CACHE = _PACKAGE_DIR / "annotations_cache.json"
-_DEFAULT_VIDEO_MAP_CACHE = _PACKAGE_DIR / "video_map_cache.json"
+_DATASET_CACHE_DIR = CACHE_DIR / "annotation_platform"
+_DEFAULT_ANNOTATIONS_CACHE = _DATASET_CACHE_DIR / "annotations_cache.json"
+_DEFAULT_VIDEO_MAP_CACHE = _DATASET_CACHE_DIR / "video_map_cache.json"
 
 
 def _build_auth_header(token: str) -> str:

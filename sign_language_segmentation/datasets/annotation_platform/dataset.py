@@ -4,7 +4,7 @@ from argparse import Namespace
 import json
 import os
 
-from sign_language_segmentation.datasets.common import BaseSegmentationDataset, Split, assign_split
+from sign_language_segmentation.datasets.common import CACHE_DIR, BaseSegmentationDataset, Split, assign_split
 
 
 class AnnotationPlatformSegmentationDataset(BaseSegmentationDataset):
@@ -94,10 +94,13 @@ class AnnotationPlatformSegmentationDataset(BaseSegmentationDataset):
 
     @classmethod
     def from_args(cls, split: Split, args: Namespace, **augment_kwargs) -> AnnotationPlatformSegmentationDataset:
-        if not getattr(args, "annotations_path", None):
-            raise ValueError("--annotations_path required for platform dataset")
+        annotations_path = CACHE_DIR / cls.dataset_name / "annotations_cache.json"
+        if not annotations_path.exists():
+            raise FileNotFoundError(
+                f"annotations cache not found at {annotations_path} — run the sync script first"
+            )
         return cls(
-            annotations_path=args.annotations_path,
+            annotations_path=str(annotations_path),
             poses_dir=args.poses,
             split=split,
             quality_percentile=getattr(args, "quality_percentile", 1.0),
