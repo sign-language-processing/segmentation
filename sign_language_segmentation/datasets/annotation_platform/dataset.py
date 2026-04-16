@@ -1,11 +1,10 @@
 from __future__ import annotations
 
 from argparse import Namespace
-import hashlib
 import json
 import os
 
-from sign_language_segmentation.datasets.common import BaseSegmentationDataset, Split
+from sign_language_segmentation.datasets.common import BaseSegmentationDataset, Split, assign_split
 
 
 class AnnotationPlatformSegmentationDataset(BaseSegmentationDataset):
@@ -14,6 +13,8 @@ class AnnotationPlatformSegmentationDataset(BaseSegmentationDataset):
     Reads a local annotations_cache.json produced by sync.py, resolves pose files,
     and produces the same output format as DGSSegmentationDataset.
     """
+
+    dataset_name = "annotation_platform"
 
     def __init__(
         self,
@@ -38,9 +39,10 @@ class AnnotationPlatformSegmentationDataset(BaseSegmentationDataset):
         self.frame_dropout = frame_dropout
         self.body_part_dropout = body_part_dropout
         self.split_seed = split_seed
-        self.dev_ratio = dev_ratio
-        self.test_ratio = test_ratio
         self.quality_percentile = quality_percentile
+
+        self._init_split_tracking()
+        self.items = []
 
         with open(annotations_path) as f:
             cache = json.load(f)
@@ -78,29 +80,9 @@ class AnnotationPlatformSegmentationDataset(BaseSegmentationDataset):
             keep_count = max(1, int(len(all_videos) * quality_percentile))
             all_videos = all_videos[:keep_count]
 
-        # deterministic split by video ID
-        train_threshold = int((1.0 - dev_ratio - test_ratio) * 1000)
-        dev_threshold = int((1.0 - test_ratio) * 1000)
-
-        self.items: list[dict] = []
-        self._all_split_ids: dict[str, list[str]] = {
-            Split.TRAIN: [],
-            Split.DEV: [],
-            Split.TEST: [],
-        }
-
         for video in all_videos:
-            bucket = _split_bucket(video_id=video["id"], seed=split_seed)
-            if bucket < train_threshold:
-                video_split = Split.TRAIN
-            elif bucket < dev_threshold:
-                video_split = Split.DEV
-            else:
-                video_split = Split.TEST
-
-            self._all_split_ids[video_split].append(video["id"])
-            if video_split == split:
-                self.items.append(video)
+            video_split = assign_split(video["id"], split_seed=split_seed, dev_ratio=dev_ratio, test_ratio=test_ratio)
+            self._track_and_filter(video["id"], video_split, video)
 
         print(
             f"AnnotationPlatformSegmentationDataset({split}): "
@@ -123,17 +105,6 @@ class AnnotationPlatformSegmentationDataset(BaseSegmentationDataset):
         )
 
     def get_split_manifest(self) -> dict:
-        """return manifest of video IDs per split for reproducibility tracking."""
-        return {
-            "dataset": "annotation_platform",
-            "split_seed": self.split_seed,
-            "quality_percentile": self.quality_percentile,
-            "splits": {
-                split.value: sorted(ids) for split, ids in self._all_split_ids.items()
-            },
-        }
-
-def _split_bucket(video_id: str, seed: int) -> int:
-    """deterministic hash-based split assignment. returns 0-999."""
-    h = hashlib.sha256(f"{video_id}_{seed}".encode()).hexdigest()
-    return int(h, 16) % 1000
+        manifest = super().get_split_manifest()
+        manifest["quality_percentile"] = self.quality_percentile
+        return manifest

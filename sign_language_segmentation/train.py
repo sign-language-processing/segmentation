@@ -6,10 +6,10 @@ import pytorch_lightning as pl
 from pytorch_lightning.callbacks import ModelCheckpoint, LearningRateMonitor
 from pytorch_lightning.callbacks.early_stopping import EarlyStopping
 from pytorch_lightning.loggers import WandbLogger
-from torch.utils.data import ConcatDataset, DataLoader, Dataset
+from torch.utils.data import ConcatDataset, Dataset
 
 from sign_language_segmentation.args import args
-from sign_language_segmentation.datasets.common import Split, collate_fn, get_dataloader
+from sign_language_segmentation.datasets.common import Split, get_dataloader
 from sign_language_segmentation.model.model import PoseTaggingModel
 
 
@@ -108,8 +108,6 @@ def train(overrides: dict | None = None, monitor_metric: str = _DEFAULT_MONITOR_
 
     # write split manifest
     manifest = _collect_split_manifest(train_loader.dataset, args.datasets)
-    val_manifest = _collect_split_manifest(validation_loader.dataset, args.datasets)
-    manifest["manifests"].extend(val_manifest["manifests"])
     manifest_path = model_dir / "split_manifest.json"
     manifest_path.write_text(json.dumps(manifest, indent=2))
     print(f"Split manifest: {manifest_path}")

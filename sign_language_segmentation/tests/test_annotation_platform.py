@@ -8,14 +8,13 @@ import pytest
 
 from sign_language_segmentation.datasets.annotation_platform.dataset import (
     AnnotationPlatformSegmentationDataset,
-    _split_bucket,
 )
 from sign_language_segmentation.datasets.annotation_platform.sync import (
     _gcs_url_to_local,
     convex_query,
     fetch_ontology_class_map,
 )
-from sign_language_segmentation.datasets.common import Split
+from sign_language_segmentation.datasets.common import Split, split_bucket as _split_bucket
 
 EXAMPLE_POSE = Path(__file__).parent / "example.pose"
 
