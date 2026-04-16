@@ -9,12 +9,7 @@ from safetensors.torch import save_file as save_safetensors
 
 _VERSION_RE = re.compile(r"^v(\d+)\.(\d+)\.(\d+)$")
 
-_TEMPLATE_PATH = Path(__file__).resolve().parent.parent / "model_card_template.md"
-
-_ARCH_KEYS = ["hidden_dim", "encoder_depth", "attn_nhead", "attn_ff_mult",
-              "attn_dropout", "num_frames", "pose_dims", "num_classes"]
-_TRAIN_KEYS = ["learning_rate", "optimizer", "dice_loss_weight",
-               "fps_aug", "frame_dropout"]
+_TEMPLATE_PATH = Path(__file__).resolve().parent / "model_card_template.md"
 
 
 def convert_to_safetensors(checkpoint_path: str, output_dir: Path) -> dict:
@@ -345,12 +340,17 @@ def generate_model_card(config: dict, eval_results: dict | None,
     """Generate a HuggingFace model card from template."""
     template = _TEMPLATE_PATH.read_text()
 
+    arch_keys = ["hidden_dim", "encoder_depth", "attn_nhead", "attn_ff_mult",
+                 "attn_dropout", "num_frames", "pose_dims", "num_classes"]
+    train_keys = ["learning_rate", "optimizer", "dice_loss_weight",
+                  "fps_aug", "frame_dropout"]
+
     replacements = {
         "{{published_at}}": datetime.now(tz=UTC).strftime("%Y-%m-%d %H:%M UTC"),
         "{{tag}}": tag,
         "{{regression_status}}": regression_status,
-        "{{architecture_rows}}": _build_config_table(config=config, keys=_ARCH_KEYS),
-        "{{training_rows}}": _build_config_table(config=config, keys=_TRAIN_KEYS),
+        "{{architecture_rows}}": _build_config_table(config=config, keys=arch_keys),
+        "{{training_rows}}": _build_config_table(config=config, keys=train_keys),
         "{{model_index}}": _build_model_index(eval_results=eval_results) if eval_results else "",
         "{{eval_section}}": _build_eval_section(eval_results=eval_results) if eval_results else "",
         "{{dataset_section}}": _build_dataset_section(split_manifest=split_manifest) if split_manifest else "",
