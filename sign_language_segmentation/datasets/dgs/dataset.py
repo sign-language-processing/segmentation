@@ -14,7 +14,7 @@ if not hasattr(_tfds_resource, "get_dl_dirname"):
 
 from sign_language_datasets.datasets.dgs_corpus.dgs_utils import get_elan_sentences
 
-from sign_language_segmentation.datasets.common import BaseSegmentationDataset, Split, md5sum
+from sign_language_segmentation.datasets.common import CACHE_DIR, BaseSegmentationDataset, Split, md5sum
 
 EXCLUDED_IDS: set[str] = {"1289910", "1245887", "1289868", "1246064", "1584617"}
 
@@ -64,6 +64,11 @@ class DGSSegmentationDataset(BaseSegmentationDataset):
 
         self._init_split_tracking()
         self.items = []
+
+        if cache_path is None:
+            dgs_cache_dir = CACHE_DIR / "dgs"
+            dgs_cache_dir.mkdir(parents=True, exist_ok=True)
+            cache_path = str(dgs_cache_dir / "segmentation_cache.json")
 
         cache_file = Path(cache_path) if cache_path else self.corpus_dir / ".segmentation_cache.json"
         cache = self._load_cache(cache_file)
