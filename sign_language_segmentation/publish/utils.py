@@ -105,19 +105,18 @@ def _eval_single(model, datasets: str, split: str, eval_args, fps_aug: bool,
                  velocity: bool, device: str) -> dict:
     """Evaluate on a single dataset+split combination."""
     from sign_language_segmentation.evaluate import evaluate_model
-    from sign_language_segmentation.datasets.common import Split, build_datasets, collate_fn
-    from torch.utils.data import DataLoader
+    from sign_language_segmentation.datasets.common import Split, get_dataloader
 
-    eval_args.datasets = datasets
-    dataset = build_datasets(
-        names=datasets,
+    dataloader = get_dataloader(
         split=Split(split),
+        dataset_names=datasets,
         args=eval_args,
+        batch_size=1,
         num_frames=999999,
+        persistent_workers=False,
         fps_aug=fps_aug,
         velocity=velocity,
     )
-    dataloader = DataLoader(dataset=dataset, batch_size=1, collate_fn=collate_fn)
     return _add_hm_iou(evaluate_model(model=model, dataloader=dataloader, device=device))
 
 
