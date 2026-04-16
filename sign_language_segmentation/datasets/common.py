@@ -3,6 +3,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from argparse import Namespace
 import hashlib
+from pathlib import Path
 import random
 from enum import StrEnum
 
@@ -14,6 +15,9 @@ from torch.utils.data import ConcatDataset, DataLoader, Dataset
 
 from sign_language_segmentation.utils.bio import BIO, create_bio, create_bio_from_times
 from sign_language_segmentation.utils.pose import compute_velocity, preprocess_pose
+
+# project-level cache directory — each dataset stores its annotations_cache.json under .cache/{dataset_name}/
+CACHE_DIR = Path(__file__).resolve().parents[2] / ".cache"
 
 
 class Split(StrEnum):
