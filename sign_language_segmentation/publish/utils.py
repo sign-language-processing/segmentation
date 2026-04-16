@@ -262,8 +262,15 @@ def promote(repo_id: str, tag: str, revision: str) -> None:
     print(f"Promoted: tagged '{tag}' at {target_sha[:8]}")
 
 
-def _build_table_rows(config: dict, keys: list[str]) -> str:
-    return "\n".join(f"| {k} | {config[k]} |" for k in keys if k in config)
+def _build_config_table(config: dict, keys: list[str]) -> str:
+    """Render config keys as a single-row transposed table (keys as columns)."""
+    present = [(k, config[k]) for k in keys if k in config]
+    if not present:
+        return ""
+    header = "| " + " | ".join(k for k, _ in present) + " |"
+    separator = "| " + " | ".join("---" for _ in present) + " |"
+    values = "| " + " | ".join(str(v) for _, v in present) + " |"
+    return f"{header}\n{separator}\n{values}"
 
 
 def _build_model_index(eval_results: dict) -> str:
@@ -279,29 +286,51 @@ def _build_model_index(eval_results: dict) -> str:
     return "\n".join(lines)
 
 
-def _build_metrics_table(metrics: dict) -> str:
-    """Render a single metrics dict as a markdown table."""
-    rows = "\n".join(
-        f"| {k.replace('_', ' ').title()} | {v:.4f} |"
-        for k, v in metrics.items()
-    )
-    return f"| Metric | Value |\n|--------|-------|\n{rows}"
+_METRIC_COLUMNS = [
+    ("sign_IoU", "Sign IoU"),
+    ("sentence_IoU", "Sentence IoU"),
+    ("hm_IoU", "HM IoU"),
+    ("sign_frame_f1", "Sign Frame F1"),
+    ("sign_segment_f1", "Sign Segment F1"),
+    ("sentence_frame_f1", "Sentence Frame F1"),
+    ("sentence_segment_f1", "Sentence Segment F1"),
+]
 
 
 def _build_eval_section(eval_results: dict) -> str:
-    sections = ["## Evaluation Results\n"]
-    for ds_name, splits in eval_results.items():
+    headers = ["Dataset", "Split"] + [display for _, display in _METRIC_COLUMNS]
+    header_row = "| " + " | ".join(headers) + " |"
+    separator = "| " + " | ".join(["---"] * len(headers)) + " |"
+
+    rows = []
+    # separate per-dataset entries from "combined"
+    ds_names = [k for k in eval_results if k != "combined" and isinstance(eval_results[k], dict)]
+    if "combined" in eval_results:
+        ds_names.append("combined")
+
+    for ds_name in ds_names:
+        splits = eval_results[ds_name]
         if not isinstance(splits, dict) or "test" not in splits:
             continue
-        title = ds_name.replace("_", " ").title()
-        sections.append(f"### {title}\n")
-        for split_name in ["dev", "test"]:
+        is_combined = ds_name == "combined"
+        display_name = ds_name.replace("_", " ").title()
+        if is_combined:
+            display_name = f"**{display_name}**"
+
+        for i, split_name in enumerate(["dev", "test"]):
             if split_name not in splits:
                 continue
-            sections.append(f"**{split_name}**\n")
-            sections.append(_build_metrics_table(splits[split_name]))
-            sections.append("")
-    return "\n".join(sections)
+            metrics = splits[split_name]
+            name_cell = display_name if i == 0 else ""
+            split_cell = split_name
+            if is_combined:
+                split_cell = f"**{split_name}**"
+            values = [f"{metrics.get(key, 0):.4f}" for key, _ in _METRIC_COLUMNS]
+            if is_combined:
+                values = [f"**{v}**" for v in values]
+            rows.append("| " + " | ".join([name_cell, split_cell] + values) + " |")
+
+    return f"## Evaluation Results\n\n{header_row}\n{separator}\n" + "\n".join(rows)
 
 
 def _build_dataset_section(split_manifest: dict) -> str:
@@ -320,8 +349,8 @@ def generate_model_card(config: dict, eval_results: dict | None,
         "{{published_at}}": datetime.now(tz=UTC).strftime("%Y-%m-%d %H:%M UTC"),
         "{{tag}}": tag,
         "{{regression_status}}": regression_status,
-        "{{architecture_rows}}": _build_table_rows(config=config, keys=_ARCH_KEYS),
-        "{{training_rows}}": _build_table_rows(config=config, keys=_TRAIN_KEYS),
+        "{{architecture_rows}}": _build_config_table(config=config, keys=_ARCH_KEYS),
+        "{{training_rows}}": _build_config_table(config=config, keys=_TRAIN_KEYS),
         "{{model_index}}": _build_model_index(eval_results=eval_results) if eval_results else "",
         "{{eval_section}}": _build_eval_section(eval_results=eval_results) if eval_results else "",
         "{{dataset_section}}": _build_dataset_section(split_manifest=split_manifest) if split_manifest else "",

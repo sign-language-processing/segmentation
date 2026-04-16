@@ -22,16 +22,12 @@ Jointly trained on sign (gloss) and phrase (sentence) BIO tagging.
 
 ## Architecture
 
-| Parameter | Value |
-|-----------|-------|
 {{architecture_rows}}
 
 {{eval_section}}
 
 ## Training Config
 
-| Parameter | Value |
-|-----------|-------|
 {{training_rows}}
 
 {{dataset_section}}
