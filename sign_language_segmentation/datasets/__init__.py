@@ -4,6 +4,7 @@ from sign_language_segmentation.datasets.common import (
     Split,
     build_datasets,
     collate_fn,
+    get_dataloader,
     register_dataset,
 )
 
@@ -13,5 +14,6 @@ __all__ = [
     "Split",
     "build_datasets",
     "collate_fn",
+    "get_dataloader",
     "register_dataset",
 ]

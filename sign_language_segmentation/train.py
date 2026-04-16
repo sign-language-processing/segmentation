@@ -9,7 +9,7 @@ from pytorch_lightning.loggers import WandbLogger
 from torch.utils.data import ConcatDataset, DataLoader, Dataset
 
 from sign_language_segmentation.args import args
-from sign_language_segmentation.datasets.common import Split, build_datasets, collate_fn
+from sign_language_segmentation.datasets.common import Split, collate_fn, get_dataloader
 from sign_language_segmentation.model.model import PoseTaggingModel
 
 
@@ -27,33 +27,6 @@ def _collect_split_manifest(dataset: Dataset, dataset_names: str) -> dict:
         "datasets": dataset_names,
         "manifests": manifests,
     }
-
-
-def get_dataloader(
-    split: Split,
-    dataset_names: str,
-    batch_size: int | None = None,
-    num_frames: int | None = None,
-    persistent_workers: bool = True,
-) -> DataLoader:
-    augment_kwargs = dict(
-        num_frames=num_frames if num_frames is not None else args.num_frames,
-        velocity=args.velocity,
-        fps_aug=args.fps_aug,
-        frame_dropout=args.frame_dropout,
-        body_part_dropout=args.body_part_dropout if split == Split.TRAIN else 0.0,
-    )
-    dataset = build_datasets(names=dataset_names, split=split, args=args, **augment_kwargs)
-    return DataLoader(
-        dataset,
-        batch_size=batch_size or args.batch_size,
-        shuffle=(split == Split.TRAIN),
-        collate_fn=collate_fn,
-        num_workers=8,
-        persistent_workers=persistent_workers,
-        prefetch_factor=4 if persistent_workers else 2,
-        pin_memory=True,
-    )
 
 
 _DEFAULT_MONITOR_METRIC = "validation_hm_iou"
@@ -94,8 +67,8 @@ def train(overrides: dict | None = None, monitor_metric: str = _DEFAULT_MONITOR_
         effective_args = {**vars(args), **overrides}
         logger.log_hyperparams(effective_args)
 
-    train_loader = get_dataloader(Split.TRAIN, dataset_names=args.datasets, batch_size=_get("batch_size"))
-    validation_loader = get_dataloader(Split.DEV, dataset_names=args.datasets, batch_size=1)
+    train_loader = get_dataloader(Split.TRAIN, dataset_names=args.datasets, args=args, batch_size=_get("batch_size"))
+    validation_loader = get_dataloader(Split.DEV, dataset_names=args.datasets, args=args, batch_size=1)
 
     example_datum = train_loader.dataset[0]
     pose_joints, pose_dims = example_datum["pose"].shape[1:3]
