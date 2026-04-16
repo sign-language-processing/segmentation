@@ -74,7 +74,7 @@ where = ["."]
 include = ["sign_language_segmentation*"]
 
 [tool.setuptools.package-data]
-sign_language_segmentation = ["**/*.json", "**/*.ckpt", "**/*.safetensors", "**/*.yaml", "model_card_template.md"]
+sign_language_segmentation = ["**/*.json", "**/*.safetensors", "**/*.yaml", "**/*.md"]
 
 [tool.pytest.ini_options]
 addopts = "-v"
