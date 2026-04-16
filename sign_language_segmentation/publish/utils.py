@@ -88,14 +88,44 @@ def get_next_version(repo_id: str, bump: str = "patch") -> str:
     return f"v{major}.{minor}.{patch + 1}"
 
 
-def run_evaluation(checkpoint_path: str, datasets: str, split: str,
-                   corpus: str, poses: str, annotations_path: str,
-                   device: str, split_manifest: dict | None = None) -> dict:
-    """Run model evaluation and return metrics dict."""
+def _add_hm_iou(metrics: dict) -> dict:
+    """Add harmonic mean of sign and sentence IoU to a metrics dict."""
+    sign_iou = metrics.get("sign_IoU", 0)
+    sentence_iou = metrics.get("sentence_IoU", 0)
+    if sign_iou > 0 and sentence_iou > 0:
+        metrics["hm_IoU"] = 2 * sign_iou * sentence_iou / (sign_iou + sentence_iou)
+    return metrics
+
+
+def _eval_single(model, datasets: str, split: str, eval_args, fps_aug: bool,
+                 velocity: bool, device: str) -> dict:
+    """Evaluate on a single dataset+split combination."""
     from sign_language_segmentation.evaluate import evaluate_model
     from sign_language_segmentation.datasets.common import Split, build_datasets, collate_fn
-    from sign_language_segmentation.model.model import PoseTaggingModel
     from torch.utils.data import DataLoader
+
+    eval_args.datasets = datasets
+    dataset = build_datasets(
+        names=datasets,
+        split=Split(split),
+        args=eval_args,
+        num_frames=999999,
+        fps_aug=fps_aug,
+        velocity=velocity,
+    )
+    dataloader = DataLoader(dataset=dataset, batch_size=1, collate_fn=collate_fn)
+    return _add_hm_iou(evaluate_model(model=model, dataloader=dataloader, device=device))
+
+
+def run_evaluation(checkpoint_path: str, datasets: str,
+                   corpus: str, poses: str, annotations_path: str,
+                   device: str, split_manifest: dict | None = None) -> dict:
+    """Run model evaluation on each dataset individually and combined, for dev and test.
+
+    Returns nested dict: {dataset_name: {split: {metric: value}}}.
+    Top-level keys include each individual dataset, plus "combined".
+    """
+    from sign_language_segmentation.model.model import PoseTaggingModel
 
     model = PoseTaggingModel.load_from_checkpoint(checkpoint_path=checkpoint_path, map_location=device, strict=False)
     model = model.to(device)
@@ -112,35 +142,52 @@ def run_evaluation(checkpoint_path: str, datasets: str, split: str,
                 quality_percentile = qp
                 break
 
-    # build a namespace matching evaluate.py's expected args
     class EvalArgs:
         pass
     eval_args = EvalArgs()
-    eval_args.datasets = datasets
     eval_args.corpus = corpus
     eval_args.poses = poses
     eval_args.annotations_path = annotations_path
     eval_args.target_fps = None
     eval_args.quality_percentile = quality_percentile
 
-    dataset = build_datasets(
-        names=datasets,
-        split=Split(split),
-        args=eval_args,
-        num_frames=999999,
-        fps_aug=fps_aug,
-        velocity=velocity,
-    )
-    dataloader = DataLoader(dataset=dataset, batch_size=1, collate_fn=collate_fn)
-    results = evaluate_model(model=model, dataloader=dataloader, device=device)
+    dataset_names = [d.strip() for d in datasets.split(",")]
+    splits = ["dev", "test"]
+    results = {}
 
-    # compute harmonic mean of sign and sentence IoU
-    sign_iou = results.get("sign_IoU", 0)
-    sentence_iou = results.get("sentence_IoU", 0)
-    if sign_iou > 0 and sentence_iou > 0:
-        results["hm_IoU"] = 2 * sign_iou * sentence_iou / (sign_iou + sentence_iou)
+    # per-dataset evaluation
+    for ds_name in dataset_names:
+        results[ds_name] = {}
+        for s in splits:
+            print(f"  evaluating {ds_name} {s}...")
+            results[ds_name][s] = _eval_single(
+                model=model, datasets=ds_name, split=s, eval_args=eval_args,
+                fps_aug=fps_aug, velocity=velocity, device=device,
+            )
+
+    # combined evaluation (only if multiple datasets)
+    if len(dataset_names) > 1:
+        results["combined"] = {}
+        for s in splits:
+            print(f"  evaluating combined {s}...")
+            results["combined"][s] = _eval_single(
+                model=model, datasets=datasets, split=s, eval_args=eval_args,
+                fps_aug=fps_aug, velocity=velocity, device=device,
+            )
 
     return results
+
+
+def _get_test_metrics(eval_results: dict) -> dict:
+    """Extract flat test metrics from eval_results (handles both nested and legacy flat format)."""
+    if "combined" in eval_results:
+        return eval_results["combined"].get("test", {})
+    # single dataset
+    for key, val in eval_results.items():
+        if isinstance(val, dict) and "test" in val:
+            return val["test"]
+    # legacy flat format (no nesting)
+    return eval_results
 
 
 def check_regression(new_metrics: dict, repo_id: str,
@@ -167,11 +214,15 @@ def check_regression(new_metrics: dict, repo_id: str,
         print(f"Could not download eval_results.json from {latest_tag} — skipping regression check")
         return "no_baseline", None
 
+    # extract flat test metrics for comparison
+    new_test = _get_test_metrics(new_metrics)
+    old_test = _get_test_metrics(prod_metrics)
+
     # check key metrics for regression
     regressions = []
     for key in ("sign_IoU", "sentence_IoU"):
-        old_val = prod_metrics.get(key, 0.0)
-        new_val = new_metrics.get(key, 0.0)
+        old_val = old_test.get(key, 0.0)
+        new_val = new_test.get(key, 0.0)
         if new_val < old_val - threshold:
             regressions.append(f"  {key}: {old_val:.4f} -> {new_val:.4f} (delta: {new_val - old_val:+.4f})")
 
@@ -216,10 +267,11 @@ def _build_table_rows(config: dict, keys: list[str]) -> str:
 
 
 def _build_model_index(eval_results: dict) -> str:
+    test_metrics = _get_test_metrics(eval_results)
     lines = ["model-index:", "  - name: sign-language-segmentation", "    results:",
              "      - task:", "          type: other",
              "          name: Sign Language Segmentation", "        metrics:"]
-    for key, value in eval_results.items():
+    for key, value in test_metrics.items():
         display_name = key.replace("_", " ").title()
         lines.append(f"          - name: {display_name}")
         lines.append(f"            type: {key}")
@@ -227,12 +279,29 @@ def _build_model_index(eval_results: dict) -> str:
     return "\n".join(lines)
 
 
-def _build_eval_section(eval_results: dict) -> str:
+def _build_metrics_table(metrics: dict) -> str:
+    """Render a single metrics dict as a markdown table."""
     rows = "\n".join(
         f"| {k.replace('_', ' ').title()} | {v:.4f} |"
-        for k, v in eval_results.items()
+        for k, v in metrics.items()
     )
-    return f"## Evaluation Results\n\n| Metric | Value |\n|--------|-------|\n{rows}"
+    return f"| Metric | Value |\n|--------|-------|\n{rows}"
+
+
+def _build_eval_section(eval_results: dict) -> str:
+    sections = ["## Evaluation Results\n"]
+    for ds_name, splits in eval_results.items():
+        if not isinstance(splits, dict) or "test" not in splits:
+            continue
+        title = ds_name.replace("_", " ").title()
+        sections.append(f"### {title}\n")
+        for split_name in ["dev", "test"]:
+            if split_name not in splits:
+                continue
+            sections.append(f"**{split_name}**\n")
+            sections.append(_build_metrics_table(splits[split_name]))
+            sections.append("")
+    return "\n".join(sections)
 
 
 def _build_dataset_section(split_manifest: dict) -> str:

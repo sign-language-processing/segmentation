@@ -32,7 +32,7 @@ from sign_language_segmentation.publish.utils import (
 
 
 def publish(checkpoint: str, repo_id: str, tag: str,
-            datasets: str, split: str, corpus: str, poses: str,
+            datasets: str, corpus: str, poses: str,
             annotations_path: str, device: str,
             skip_eval: bool, metrics_json: str | None,
             regression_threshold: float, no_promote: bool) -> None:
@@ -60,14 +60,12 @@ def publish(checkpoint: str, repo_id: str, tag: str,
                 with open(metrics_json) as f:
                     eval_results = json.load(f)
             else:
-                print(f"Evaluating on {datasets} {split} set...")
+                print(f"Evaluating on {datasets} dev+test sets...")
                 eval_results = run_evaluation(
-                    checkpoint_path=checkpoint, datasets=datasets, split=split,
+                    checkpoint_path=checkpoint, datasets=datasets,
                     corpus=corpus, poses=poses, annotations_path=annotations_path,
                     device=device, split_manifest=manifest,
                 )
-                for key, value in eval_results.items():
-                    print(f"  {key}: {value:.4f}")
 
         # save eval results
         if eval_results:
@@ -133,8 +131,6 @@ def main():
     # evaluation
     parser.add_argument("--datasets", type=str, default="dgs",
                         help="comma-separated dataset names for evaluation")
-    parser.add_argument("--split", type=str, default="test",
-                        help="evaluation split (default: test)")
     parser.add_argument("--corpus", type=str,
                         default="/mnt/nas/GCS/sign-external-datasets/dgs-corpus")
     parser.add_argument("--poses", type=str,
@@ -175,7 +171,6 @@ def main():
         repo_id=args.repo,
         tag=args.tag,
         datasets=args.datasets,
-        split=args.split,
         corpus=args.corpus,
         poses=args.poses,
         annotations_path=args.annotations_path,
