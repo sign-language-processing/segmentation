@@ -54,7 +54,7 @@ def build_datasets(names: str, split: Split, args: Namespace, **augment_kwargs) 
     """
     _ensure_datasets_registered()
 
-    dataset_names = [n.strip() for n in names.split(",")]
+    dataset_names = sorted(DATASET_REGISTRY.keys()) if names == "all" else [n.strip() for n in names.split(",")]
     datasets: list[Dataset] = []
     for name in dataset_names:
         if name not in DATASET_REGISTRY:
