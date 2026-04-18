@@ -72,8 +72,6 @@ if __name__ == "__main__":
                         help="comma-separated dataset names (e.g. dgs,platform)")
     parser.add_argument("--corpus", default="/mnt/nas/GCS/sign-external-datasets/dgs-corpus")
     parser.add_argument("--poses", default="/mnt/nas/GCS/sign-mediapipe-holistic-poses")
-    parser.add_argument("--annotations_path", type=str,
-                        default="sign_language_segmentation/datasets/annotation_platform/annotations_cache.json")
     parser.add_argument("--split", choices=["dev", "test"], default="test")
     parser.add_argument("--device", default="cuda" if torch.cuda.is_available() else "cpu")
     parser.add_argument("--target_fps", type=float, default=None,
