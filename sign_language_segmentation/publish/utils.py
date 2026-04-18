@@ -92,15 +92,6 @@ def get_next_version(repo_id: str) -> str:
     return f"{base}.{suffix}"
 
 
-def _add_hm_iou(metrics: dict) -> dict:
-    """Add harmonic mean of sign and sentence IoU to a metrics dict."""
-    sign_iou = metrics.get("sign_IoU", 0)
-    sentence_iou = metrics.get("sentence_IoU", 0)
-    if sign_iou > 0 and sentence_iou > 0:
-        metrics["hm_IoU"] = 2 * sign_iou * sentence_iou / (sign_iou + sentence_iou)
-    return metrics
-
-
 def _eval_single(model, datasets: str, split: str, eval_args, fps_aug: bool,
                  velocity: bool, device: str) -> dict:
     """Evaluate on a single dataset+split combination."""
@@ -117,7 +108,7 @@ def _eval_single(model, datasets: str, split: str, eval_args, fps_aug: bool,
         fps_aug=fps_aug,
         velocity=velocity,
     )
-    return _add_hm_iou(evaluate_model(model=model, dataloader=dataloader, device=device))
+    return evaluate_model(model=model, dataloader=dataloader, device=device)
 
 
 def run_evaluation(checkpoint_path: str, datasets: str,
