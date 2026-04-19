@@ -1,4 +1,5 @@
 """Utility functions for model publishing: conversion, evaluation, regression, model card."""
+
 import json
 import re
 from datetime import datetime, UTC
@@ -7,19 +8,12 @@ from pathlib import Path
 import torch
 from safetensors.torch import save_file as save_safetensors
 
-_VERSION_RE = re.compile(r"^v(\d{4})\.(\d{1,2})\.(\d{1,2})(?:\.(\d+))?$")
-
-_TEMPLATE_PATH = Path(__file__).resolve().parent / "model_card_template.md"
-
 
 def convert_to_safetensors(checkpoint_path: str, output_dir: Path) -> dict:
     """Convert .ckpt to safetensors + config.json. Returns hyper_parameters dict."""
     ckpt = torch.load(checkpoint_path, map_location="cpu", weights_only=False)
 
-    sd_bf16 = {
-        k: v.to(torch.bfloat16) if v.is_floating_point() else v
-        for k, v in ckpt["state_dict"].items()
-    }
+    sd_bf16 = {k: v.to(torch.bfloat16) if v.is_floating_point() else v for k, v in ckpt["state_dict"].items()}
     save_safetensors(tensors=sd_bf16, filename=str(output_dir / "model.safetensors"))
 
     config = ckpt["hyper_parameters"]
@@ -41,7 +35,8 @@ def find_split_manifest(checkpoint_path: str) -> dict | None:
 
 def _parse_version(tag_name: str) -> tuple[int, ...] | None:
     """Parse a vYYYY.MM.DD[.N] tag. Returns None if not a version tag."""
-    m = _VERSION_RE.match(tag_name)
+    version_re = re.compile(r"^v(\d{4})\.(\d{1,2})\.(\d{1,2})(?:\.(\d+))?$")
+    m = version_re.match(tag_name)
     if not m:
         return None
     parts = (int(m.group(1)), int(m.group(2)), int(m.group(3)))
@@ -92,8 +87,7 @@ def get_next_version(repo_id: str) -> str:
     return f"{base}.{suffix}"
 
 
-def _eval_single(model, datasets: str, split: str, eval_args, fps_aug: bool,
-                 velocity: bool, device: str) -> dict:
+def _eval_single(model, datasets: str, split: str, eval_args, fps_aug: bool, velocity: bool, device: str) -> dict:
     """Evaluate on a single dataset+split combination."""
     from sign_language_segmentation.evaluate import evaluate_model
     from sign_language_segmentation.datasets.common import Split, get_dataloader
@@ -111,9 +105,15 @@ def _eval_single(model, datasets: str, split: str, eval_args, fps_aug: bool,
     return evaluate_model(model=model, dataloader=dataloader, device=device)
 
 
-def run_evaluation(checkpoint_path: str, datasets: str,
-                   corpus: str, poses: str, annotations_path: str,
-                   device: str, split_manifest: dict | None = None) -> dict:
+def run_evaluation(
+    checkpoint_path: str,
+    datasets: str,
+    corpus: str,
+    poses: str,
+    annotations_path: str,
+    device: str,
+    split_manifest: dict | None = None,
+) -> dict:
     """Run model evaluation on each dataset individually and combined, for dev and test.
 
     Returns nested dict: {dataset_name: {split: {metric: value}}}.
@@ -139,6 +139,7 @@ def run_evaluation(checkpoint_path: str, datasets: str,
 
     class EvalArgs:
         pass
+
     eval_args = EvalArgs()
     eval_args.corpus = corpus
     eval_args.poses = poses
@@ -147,8 +148,7 @@ def run_evaluation(checkpoint_path: str, datasets: str,
     eval_args.quality_percentile = quality_percentile
 
     _ensure_datasets_registered()
-    dataset_names = (sorted(DATASET_REGISTRY.keys()) if datasets == "all"
-                     else [d.strip() for d in datasets.split(",")])
+    dataset_names = sorted(DATASET_REGISTRY.keys()) if datasets == "all" else [d.strip() for d in datasets.split(",")]
     splits = ["dev", "test"]
     results = {}
 
@@ -158,8 +158,13 @@ def run_evaluation(checkpoint_path: str, datasets: str,
         for s in splits:
             print(f"  evaluating {ds_name} {s}...")
             results[ds_name][s] = _eval_single(
-                model=model, datasets=ds_name, split=s, eval_args=eval_args,
-                fps_aug=fps_aug, velocity=velocity, device=device,
+                model=model,
+                datasets=ds_name,
+                split=s,
+                eval_args=eval_args,
+                fps_aug=fps_aug,
+                velocity=velocity,
+                device=device,
             )
 
     # combined evaluation (only if multiple datasets)
@@ -168,8 +173,13 @@ def run_evaluation(checkpoint_path: str, datasets: str,
         for s in splits:
             print(f"  evaluating combined {s}...")
             results["combined"][s] = _eval_single(
-                model=model, datasets=datasets, split=s, eval_args=eval_args,
-                fps_aug=fps_aug, velocity=velocity, device=device,
+                model=model,
+                datasets=datasets,
+                split=s,
+                eval_args=eval_args,
+                fps_aug=fps_aug,
+                velocity=velocity,
+                device=device,
             )
 
     return results
@@ -187,8 +197,7 @@ def _get_test_metrics(eval_results: dict) -> dict:
     return eval_results
 
 
-def check_regression(new_metrics: dict, repo_id: str,
-                     threshold: float) -> tuple[str, dict | None]:
+def check_regression(new_metrics: dict, repo_id: str, threshold: float) -> tuple[str, dict | None]:
     """Compare new metrics against the latest tagged model.
 
     Returns (status, baseline_metrics) where status is "pass", "fail", or "no_baseline".
@@ -203,7 +212,9 @@ def check_regression(new_metrics: dict, repo_id: str,
     try:
         print(f"Comparing against latest tag: {latest_tag}")
         baseline_path = api.hf_hub_download(
-            repo_id=repo_id, filename="eval_results.json", revision=latest_tag,
+            repo_id=repo_id,
+            filename="eval_results.json",
+            revision=latest_tag,
         )
         with open(baseline_path) as f:
             prod_metrics = json.load(f)
@@ -272,9 +283,15 @@ def _build_config_table(config: dict, keys: list[str]) -> str:
 
 def _build_model_index(eval_results: dict) -> str:
     test_metrics = _get_test_metrics(eval_results)
-    lines = ["model-index:", "  - name: sign-language-segmentation", "    results:",
-             "      - task:", "          type: other",
-             "          name: Sign Language Segmentation", "        metrics:"]
+    lines = [
+        "model-index:",
+        "  - name: sign-language-segmentation",
+        "    results:",
+        "      - task:",
+        "          type: other",
+        "          name: Sign Language Segmentation",
+        "        metrics:",
+    ]
     for key, value in test_metrics.items():
         display_name = key.replace("_", " ").title()
         lines.append(f"          - name: {display_name}")
@@ -283,19 +300,17 @@ def _build_model_index(eval_results: dict) -> str:
     return "\n".join(lines)
 
 
-_METRIC_COLUMNS = [
-    ("sign_IoU", "Sign IoU"),
-    ("sentence_IoU", "Sentence IoU"),
-    ("hm_IoU", "HM IoU"),
-    ("sign_frame_f1", "Sign Frame F1"),
-    ("sign_segment_f1", "Sign Segment F1"),
-    ("sentence_frame_f1", "Sentence Frame F1"),
-    ("sentence_segment_f1", "Sentence Segment F1"),
-]
-
-
 def _build_eval_section(eval_results: dict) -> str:
-    headers = ["Dataset", "Split"] + [display for _, display in _METRIC_COLUMNS]
+    metric_columns = [
+        ("sign_IoU", "Sign IoU"),
+        ("sentence_IoU", "Sentence IoU"),
+        ("hm_IoU", "HM IoU"),
+        ("sign_frame_f1", "Sign Frame F1"),
+        ("sign_segment_f1", "Sign Segment F1"),
+        ("sentence_frame_f1", "Sentence Frame F1"),
+        ("sentence_segment_f1", "Sentence Segment F1"),
+    ]
+    headers = ["Dataset", "Split"] + [display for _, display in metric_columns]
     header_row = "| " + " | ".join(headers) + " |"
     separator = "| " + " | ".join(["---"] * len(headers)) + " |"
 
@@ -322,7 +337,7 @@ def _build_eval_section(eval_results: dict) -> str:
             split_cell = split_name
             if is_combined:
                 split_cell = f"**{split_name}**"
-            values = [f"{metrics.get(key, 0):.4f}" for key, _ in _METRIC_COLUMNS]
+            values = [f"{metrics.get(key, 0):.4f}" for key, _ in metric_columns]
             if is_combined:
                 values = [f"**{v}**" for v in values]
             rows.append("| " + " | ".join([name_cell, split_cell] + values) + " |")
@@ -336,16 +351,24 @@ def _build_dataset_section(split_manifest: dict) -> str:
     return f"## Dataset\n\n- **Datasets:** {datasets}\n- **Created at:** {created_at}"
 
 
-def generate_model_card(config: dict, eval_results: dict | None,
-                        regression_status: str, tag: str,
-                        split_manifest: dict | None) -> str:
+def generate_model_card(
+    config: dict, eval_results: dict | None, regression_status: str, tag: str, split_manifest: dict | None
+) -> str:
     """Generate a HuggingFace model card from template."""
-    template = _TEMPLATE_PATH.read_text()
+    template_path = Path(__file__).resolve().parent / "model_card_template.md"
+    template = template_path.read_text()
 
-    arch_keys = ["hidden_dim", "encoder_depth", "attn_nhead", "attn_ff_mult",
-                 "attn_dropout", "num_frames", "pose_dims", "num_classes"]
-    train_keys = ["learning_rate", "optimizer", "dice_loss_weight",
-                  "fps_aug", "frame_dropout"]
+    arch_keys = [
+        "hidden_dim",
+        "encoder_depth",
+        "attn_nhead",
+        "attn_ff_mult",
+        "attn_dropout",
+        "num_frames",
+        "pose_dims",
+        "num_classes",
+    ]
+    train_keys = ["learning_rate", "optimizer", "dice_loss_weight", "fps_aug", "frame_dropout"]
 
     replacements = {
         "{{published_at}}": datetime.now(tz=UTC).strftime("%Y-%m-%d %H:%M UTC"),
