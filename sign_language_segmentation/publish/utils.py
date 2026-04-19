@@ -119,6 +119,7 @@ def run_evaluation(checkpoint_path: str, datasets: str,
     Returns nested dict: {dataset_name: {split: {metric: value}}}.
     Top-level keys include each individual dataset, plus "combined".
     """
+    from sign_language_segmentation.datasets.common import DATASET_REGISTRY, _ensure_datasets_registered
     from sign_language_segmentation.model.model import PoseTaggingModel
 
     model = PoseTaggingModel.load_from_checkpoint(checkpoint_path=checkpoint_path, map_location=device, strict=False)
@@ -145,7 +146,9 @@ def run_evaluation(checkpoint_path: str, datasets: str,
     eval_args.target_fps = None
     eval_args.quality_percentile = quality_percentile
 
-    dataset_names = [d.strip() for d in datasets.split(",")]
+    _ensure_datasets_registered()
+    dataset_names = (sorted(DATASET_REGISTRY.keys()) if datasets == "all"
+                     else [d.strip() for d in datasets.split(",")])
     splits = ["dev", "test"]
     results = {}
 
