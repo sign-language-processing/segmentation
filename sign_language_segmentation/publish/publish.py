@@ -30,11 +30,19 @@ from sign_language_segmentation.publish.utils import (
 )
 
 
-def publish(checkpoint: str, repo_id: str, tag: str,
-            datasets: str, corpus: str, poses: str,
-            annotations_path: str, device: str,
-            skip_eval: bool, metrics_json: str | None,
-            regression_threshold: float, no_promote: bool) -> None:
+def publish(
+    checkpoint: str,
+    repo_id: str,
+    tag: str,
+    datasets: str,
+    corpus: str,
+    poses: str,
+    device: str,
+    skip_eval: bool,
+    metrics_json: str | None,
+    regression_threshold: float,
+    no_promote: bool
+) -> None:
     """Main publish workflow."""
     from huggingface_hub import HfApi
 
@@ -62,7 +70,7 @@ def publish(checkpoint: str, repo_id: str, tag: str,
                 print(f"Evaluating on {datasets} dev+test sets...")
                 eval_results = run_evaluation(
                     checkpoint_path=checkpoint, datasets=datasets,
-                    corpus=corpus, poses=poses, annotations_path=annotations_path,
+                    corpus=corpus, poses=poses,
                     device=device, split_manifest=manifest,
                 )
 
@@ -131,8 +139,6 @@ def main():
                         default="/mnt/nas/GCS/sign-external-datasets/dgs-corpus")
     parser.add_argument("--poses", type=str,
                         default="/mnt/nas/GCS/sign-mediapipe-holistic-poses")
-    parser.add_argument("--annotations_path", type=str,
-                        default="sign_language_segmentation/datasets/annotation_platform/annotations_cache.json")
     parser.add_argument("--device", type=str, default="cuda")
     parser.add_argument("--skip-eval", action="store_true",
                         help="skip evaluation and regression check")
@@ -169,7 +175,6 @@ def main():
         datasets=args.datasets,
         corpus=args.corpus,
         poses=args.poses,
-        annotations_path=args.annotations_path,
         device=args.device,
         skip_eval=args.skip_eval,
         metrics_json=args.metrics_json,

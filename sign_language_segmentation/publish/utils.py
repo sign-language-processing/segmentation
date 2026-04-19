@@ -110,7 +110,6 @@ def run_evaluation(
     datasets: str,
     corpus: str,
     poses: str,
-    annotations_path: str,
     device: str,
     split_manifest: dict | None = None,
 ) -> dict:
@@ -143,7 +142,6 @@ def run_evaluation(
     eval_args = EvalArgs()
     eval_args.corpus = corpus
     eval_args.poses = poses
-    eval_args.annotations_path = annotations_path
     eval_args.target_fps = None
     eval_args.quality_percentile = quality_percentile
 
