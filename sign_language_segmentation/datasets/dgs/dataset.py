@@ -65,7 +65,9 @@ class DGSSegmentationDataset(BaseSegmentationDataset):
         cache_dirty = False
 
         videos_dir = self.corpus_dir / "videos"
-        doc_ids = sorted(d.name for d in videos_dir.iterdir() if d.is_dir())
+        doc_ids = sorted(
+            d.name for d in videos_dir.iterdir() if d.is_dir()
+        )
 
         for doc_id in doc_ids:
             if doc_id in EXCLUDED_IDS or is_joke(self.corpus_dir, doc_id):
@@ -115,7 +117,8 @@ class DGSSegmentationDataset(BaseSegmentationDataset):
                     continue
 
                 person_sentences = [
-                    s for s in sentences if s["participant"].lower() == person and len(s["glosses"]) > 0
+                    s for s in sentences
+                    if s["participant"].lower() == person and len(s["glosses"]) > 0
                 ]
                 if not person_sentences:
                     continue
@@ -123,18 +126,14 @@ class DGSSegmentationDataset(BaseSegmentationDataset):
                 all_glosses = [g for s in person_sentences for g in s["glosses"]]
                 sentence_spans = [{"start": s["start"], "end": s["end"]} for s in person_sentences]
 
-                self._track_and_filter(
-                    cache_key,
-                    doc_split,
-                    {
-                        "id": cache_key,
-                        "pose_path": str(pose_path),
-                        "fps": fps,
-                        "total_frames": total_frames,
-                        "glosses": all_glosses,
-                        "sentences": sentence_spans,
-                    },
-                )
+                self._track_and_filter(cache_key, doc_split, {
+                    "id": cache_key,
+                    "pose_path": str(pose_path),
+                    "fps": fps,
+                    "total_frames": total_frames,
+                    "glosses": all_glosses,
+                    "sentences": sentence_spans,
+                })
 
         if cache_dirty:
             self._save_cache(cache_file, cache)
@@ -151,7 +150,9 @@ class DGSSegmentationDataset(BaseSegmentationDataset):
         return {
             "dataset": self.dataset_name,
             "splits_path": self.splits_path,
-            "splits": {s.value: sorted(ids) for s, ids in self._all_split_ids.items()},
+            "splits": {
+                s.value: sorted(ids) for s, ids in self._all_split_ids.items()
+            },
         }
 
     def _load_cache(self, path: Path) -> dict:
