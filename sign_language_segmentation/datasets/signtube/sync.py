@@ -5,9 +5,9 @@ and writes a local JSON cache that SignTubeSegmentationDataset can read.
 
 Usage:
     python -m sign_language_segmentation.datasets.signtube.sync \
-        --poses /mnt/nas/GCS/sign-mt-poses \
-        --output sign_language_segmentation/datasets/signtube/annotations_cache.json
+        --output .cache/signtube/annotations_cache.json
 """
+
 from __future__ import annotations
 
 import argparse
@@ -22,10 +22,13 @@ from pose_format import Pose
 from pose_format.pose_body import EmptyPoseBody
 from tqdm import tqdm
 
+from sign_language_segmentation.datasets.common import CACHE_DIR
+
 load_dotenv()
 
 _PACKAGE_DIR = Path(__file__).resolve().parent
-_DEFAULT_CACHE = _PACKAGE_DIR / "annotations_cache.json"
+_DATASET_CACHE_DIR = CACHE_DIR / "signtube"
+_DEFAULT_CACHE = _DATASET_CACHE_DIR / "annotations_cache.json"
 _QUERY_PATH = _PACKAGE_DIR / "captions.sql"
 
 
@@ -69,12 +72,13 @@ def _is_sign_annotation(row: dict) -> bool:
     return False
 
 
-def _build_cache(videos: dict[str, list[dict]], poses_dir: str) -> dict:
+def _build_cache(videos: dict[str, list[dict]]) -> dict:
     """build annotations cache from DB rows + pose metadata."""
     cache: dict[str, dict] = {}
     skipped = 0
 
-    poses_dir_path = Path(poses_dir)
+    poses_dir_path = _DATASET_CACHE_DIR / "poses"
+    poses_dir_path.mkdir(parents=True, exist_ok=True)
 
     for video_id, video_annotations in tqdm(videos.items()):
         pose_path = poses_dir_path / f"{video_id}.pose"
@@ -118,11 +122,8 @@ def _build_cache(videos: dict[str, list[dict]], poses_dir: str) -> dict:
 
 def main():
     parser = argparse.ArgumentParser(description="Sync SignTube annotations to local cache")
-    parser.add_argument("--poses", required=True, help="directory containing {video_id}.pose files")
-    parser.add_argument("--output", type=str, default=str(_DEFAULT_CACHE),
-                        help="output annotations cache path")
-    parser.add_argument("--force", action="store_true", default=False,
-                        help="overwrite existing cache file")
+    parser.add_argument("--output", type=str, default=str(_DEFAULT_CACHE), help="output annotations cache path")
+    parser.add_argument("--force", action="store_true", default=False, help="overwrite existing cache file")
     args = parser.parse_args()
 
     output_path = Path(args.output)
@@ -131,7 +132,7 @@ def main():
         return
 
     videos = _fetch_annotations()
-    cache = _build_cache(videos=videos, poses_dir=args.poses)
+    cache = _build_cache(videos=videos)
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
     with open(output_path, "w") as f:

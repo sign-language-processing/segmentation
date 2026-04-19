@@ -4,7 +4,7 @@ from argparse import Namespace
 import json
 from pathlib import Path
 
-from sign_language_segmentation.datasets.common import BaseSegmentationDataset, Split, assign_split
+from sign_language_segmentation.datasets.common import CACHE_DIR, BaseSegmentationDataset, Split, assign_split
 
 
 class SignTubeSegmentationDataset(BaseSegmentationDataset):
@@ -37,6 +37,7 @@ class SignTubeSegmentationDataset(BaseSegmentationDataset):
         self.frame_dropout = frame_dropout
         self.body_part_dropout = body_part_dropout
         self.split_seed = split_seed
+        poses_dir = CACHE_DIR / self.dataset_name / "poses"
 
         self._init_split_tracking()
         self.items = []
@@ -45,19 +46,27 @@ class SignTubeSegmentationDataset(BaseSegmentationDataset):
             cache = json.load(f)
 
         for video_id, video_data in cache.get("videos", {}).items():
-            pose_path = video_data.get("pose_path", "")
-            if not Path(pose_path).exists():
+            pose_path = Path(video_data.get("pose_path") or poses_dir / f"{video_id}.pose")
+            if not pose_path.exists():
+                fallback_pose_path = poses_dir / f"{video_id}.pose"
+                if fallback_pose_path.exists():
+                    pose_path = fallback_pose_path
+            if not pose_path.exists():
                 continue
 
             video_split = assign_split(video_id, split_seed=split_seed, dev_ratio=dev_ratio, test_ratio=test_ratio)
-            self._track_and_filter(video_id, video_split, {
-                "id": video_id,
-                "pose_path": pose_path,
-                "fps": video_data["fps"],
-                "total_frames": video_data["total_frames"],
-                "glosses": video_data["signs"],
-                "sentences": video_data.get("sentences", []),
-            })
+            self._track_and_filter(
+                video_id,
+                video_split,
+                {
+                    "id": video_id,
+                    "pose_path": pose_path,
+                    "fps": video_data["fps"],
+                    "total_frames": video_data["total_frames"],
+                    "glosses": video_data["signs"],
+                    "sentences": video_data.get("sentences", []),
+                },
+            )
 
         print(
             f"SignTubeSegmentationDataset({split}): "
@@ -69,11 +78,11 @@ class SignTubeSegmentationDataset(BaseSegmentationDataset):
 
     @classmethod
     def from_args(cls, split: Split, args: Namespace, **augment_kwargs) -> SignTubeSegmentationDataset:
-        signtube_path = getattr(args, "signtube_annotations_path", None)
-        if not signtube_path:
-            raise ValueError("--signtube_annotations_path required for signtube dataset")
+        signtube_path = CACHE_DIR / cls.dataset_name / "annotations_cache.json"
+        if not signtube_path.exists():
+            raise FileNotFoundError(f"annotations cache not found at {signtube_path} — run the sync script first")
         return cls(
-            annotations_path=signtube_path,
+            annotations_path=str(signtube_path),
             split=split,
             **augment_kwargs,
         )
