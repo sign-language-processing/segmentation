@@ -82,5 +82,3 @@ testpaths = ["sign_language_segmentation"]
 
 [project.scripts]
 pose_to_segments = "sign_language_segmentation.bin:main"
-slim_checkpoint = "sign_language_segmentation.slim_checkpoint:main"
-publish_model = "sign_language_segmentation.publish:main"

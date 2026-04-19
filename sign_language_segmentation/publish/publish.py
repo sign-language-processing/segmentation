@@ -7,16 +7,18 @@ A date-based tag (vYYYY.MM.DD) is only created on promotion
 (regression pass or explicit --promote).
 
 Usage:
-    publish_model --checkpoint path/to/best.ckpt --repo org/model-name
-    publish_model --repo org/model-name --promote
+    uv run --extra publish python -m sign_language_segmentation.publish.publish \
+        --checkpoint path/to/best.ckpt --repo org/model-name
+    uv run --extra publish python -m sign_language_segmentation.publish.publish \
+        --repo org/model-name --promote
 """
+
 import argparse
 import json
 import os
 import tempfile
 from datetime import datetime, UTC
 from pathlib import Path
-
 
 
 from sign_language_segmentation.publish.utils import (
@@ -41,7 +43,7 @@ def publish(
     skip_eval: bool,
     metrics_json: str | None,
     regression_threshold: float,
-    no_promote: bool
+    no_promote: bool,
 ) -> None:
     """Main publish workflow."""
     from huggingface_hub import HfApi
@@ -69,9 +71,12 @@ def publish(
             else:
                 print(f"Evaluating on {datasets} dev+test sets...")
                 eval_results = run_evaluation(
-                    checkpoint_path=checkpoint, datasets=datasets,
-                    corpus=corpus, poses=poses,
-                    device=device, split_manifest=manifest,
+                    checkpoint_path=checkpoint,
+                    datasets=datasets,
+                    corpus=corpus,
+                    poses=poses,
+                    device=device,
+                    split_manifest=manifest,
                 )
 
         # save eval results
@@ -83,7 +88,9 @@ def publish(
         regression_status = "skipped"
         if eval_results and not skip_eval:
             regression_status, _ = check_regression(
-                new_metrics=eval_results, repo_id=repo_id, threshold=regression_threshold,
+                new_metrics=eval_results,
+                repo_id=repo_id,
+                threshold=regression_threshold,
             )
         # 5. save split manifest
         if manifest:
@@ -92,8 +99,10 @@ def publish(
 
         # 6. generate model card
         model_card = generate_model_card(
-            config=config, eval_results=eval_results,
-            regression_status=regression_status, tag=tag,
+            config=config,
+            eval_results=eval_results,
+            regression_status=regression_status,
+            tag=tag,
             split_manifest=manifest,
         )
         with open(tmp_path / "README.md", "w") as f:
@@ -125,33 +134,31 @@ def main():
     parser = argparse.ArgumentParser(
         description="Publish a model checkpoint to HuggingFace Hub",
     )
-    parser.add_argument("--checkpoint", type=str,
-                        help="path to .ckpt checkpoint to publish")
-    parser.add_argument("--repo", type=str, required=True,
-                        help="HuggingFace repo ID (e.g. org/model-name)")
-    parser.add_argument("--tag", type=str, default=None,
-                        help="version tag (default: vYYYY.MM.DD based on today's date)")
+    parser.add_argument("--checkpoint", type=str, help="path to .ckpt checkpoint to publish")
+    parser.add_argument("--repo", type=str, required=True, help="HuggingFace repo ID (e.g. org/model-name)")
+    parser.add_argument(
+        "--tag", type=str, default=None, help="version tag (default: vYYYY.MM.DD based on today's date)"
+    )
 
     # evaluation
-    parser.add_argument("--datasets", type=str, default="dgs",
-                        help="comma-separated dataset names for evaluation")
-    parser.add_argument("--corpus", type=str,
-                        default="/mnt/nas/GCS/sign-external-datasets/dgs-corpus")
-    parser.add_argument("--poses", type=str,
-                        default="/mnt/nas/GCS/sign-mediapipe-holistic-poses")
+    parser.add_argument("--datasets", type=str, default="dgs", help="comma-separated dataset names for evaluation")
+    parser.add_argument("--corpus", type=str, default="/mnt/nas/GCS/sign-external-datasets/dgs-corpus")
+    parser.add_argument("--poses", type=str, default="/mnt/nas/GCS/sign-mediapipe-holistic-poses")
     parser.add_argument("--device", type=str, default="cuda")
-    parser.add_argument("--skip-eval", action="store_true",
-                        help="skip evaluation and regression check")
-    parser.add_argument("--metrics-json", type=str,
-                        help="path to pre-computed metrics JSON (alternative to running eval)")
+    parser.add_argument("--skip-eval", action="store_true", help="skip evaluation and regression check")
+    parser.add_argument(
+        "--metrics-json", type=str, help="path to pre-computed metrics JSON (alternative to running eval)"
+    )
 
     # regression / promotion
-    parser.add_argument("--regression-threshold", type=float, default=0.02,
-                        help="IoU drop tolerance for regression check (default: 0.02)")
-    parser.add_argument("--no-promote", action="store_true",
-                        help="push without tagging or promoting")
-    parser.add_argument("--promote", action="store_true",
-                        help="tag the current weekly branch (no upload)")
+    parser.add_argument(
+        "--regression-threshold",
+        type=float,
+        default=0.02,
+        help="IoU drop tolerance for regression check (default: 0.02)",
+    )
+    parser.add_argument("--no-promote", action="store_true", help="push without tagging or promoting")
+    parser.add_argument("--promote", action="store_true", help="tag the current weekly branch (no upload)")
 
     args = parser.parse_args()
 
