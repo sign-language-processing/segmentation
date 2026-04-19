@@ -158,7 +158,6 @@ class BaseSegmentationDataset(Dataset, ABC):
     fps_aug: bool
     frame_dropout: float
     body_part_dropout: float
-    split_seed: int
     _all_split_ids: dict[str, list[str]]
 
     @abstractmethod
@@ -189,7 +188,9 @@ class BaseSegmentationDataset(Dataset, ABC):
         return {
             "dataset": self.dataset_name,
             "split_seed": self.split_seed,
-            "splits": {s.value: sorted(ids) for s, ids in self._all_split_ids.items()},
+            "splits": {
+                s.value: sorted(ids) for s, ids in self._all_split_ids.items()
+            },
         }
 
     def __len__(self) -> int:
@@ -263,11 +264,9 @@ def load_and_augment(
     effective_fps = fps
     if effective_target_fps and fps > effective_target_fps * 1.05:
         target_len = max(1, round(actual_frames * effective_target_fps / fps))
-        src_indices = (
-            np.round(np.arange(target_len) * (actual_frames - 1) / max(1, target_len - 1))
-            .astype(int)
-            .clip(0, actual_frames - 1)
-        )
+        src_indices = np.round(
+            np.arange(target_len) * (actual_frames - 1) / max(1, target_len - 1)
+        ).astype(int).clip(0, actual_frames - 1)
         pose_data = pose_data[src_indices]
         frame_times = src_indices.astype(np.float32) / fps
         frame_times_ms = frame_times * 1000
@@ -354,15 +353,15 @@ def collate_fn(batch: list[dict]) -> dict[str, torch.Tensor]:
         pad_len = max_len - seq_len
 
         if pad_len > 0:
-            padded_poses.append(torch.cat([item["pose"], torch.zeros(pad_len, *pose_dim)]))
-            padded_sign_bio.append(
-                torch.cat([item["bio"]["sign"], torch.full((pad_len,), BIO["UNK"], dtype=torch.long)])
-            )
-            padded_sentence_bio.append(
-                torch.cat([item["bio"]["sentence"], torch.full((pad_len,), BIO["UNK"], dtype=torch.long)])
-            )
+            padded_poses.append(torch.cat([item["pose"],
+                                           torch.zeros(pad_len, *pose_dim)]))
+            padded_sign_bio.append(torch.cat([item["bio"]["sign"],
+                                              torch.full((pad_len,), BIO["UNK"], dtype=torch.long)]))
+            padded_sentence_bio.append(torch.cat([item["bio"]["sentence"],
+                                                  torch.full((pad_len,), BIO["UNK"], dtype=torch.long)]))
             if has_timestamps:
-                padded_timestamps.append(torch.cat([item["timestamps"], torch.zeros(pad_len)]))
+                padded_timestamps.append(torch.cat([item["timestamps"],
+                                                    torch.zeros(pad_len)]))
         else:
             padded_poses.append(item["pose"])
             padded_sign_bio.append(item["bio"]["sign"])
