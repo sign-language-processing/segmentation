@@ -7,23 +7,13 @@ from pathlib import Path
 from pose_format import Pose
 from pose_format.pose_body import EmptyPoseBody
 
-# shim: sign_language_datasets imports get_dl_dirname which was renamed in tfds >=4.9
-import tensorflow_datasets.core.download.resource as _tfds_resource
-if not hasattr(_tfds_resource, "get_dl_dirname"):
-    _tfds_resource.get_dl_dirname = _tfds_resource.get_dl_fname
-
-from sign_language_datasets.datasets.dgs_corpus.dgs_utils import get_elan_sentences
-
+from sign_language_segmentation.datasets.dgs.utils import (
+    get_elan_sentences,
+    is_joke,
+)
 from sign_language_segmentation.datasets.common import CACHE_DIR, BaseSegmentationDataset, Split, md5sum
 
 EXCLUDED_IDS: set[str] = {"1289910", "1245887", "1289868", "1246064", "1584617"}
-
-
-def is_joke(corpus_dir: Path, doc_id: str) -> bool:
-    cmdi_path = corpus_dir / "videos" / doc_id / "data.cmdi"
-    if not cmdi_path.exists():
-        return False
-    return "<cmdp:Task>Joke</cmdp:Task>" in cmdi_path.read_text()
 
 
 class DGSSegmentationDataset(BaseSegmentationDataset):
