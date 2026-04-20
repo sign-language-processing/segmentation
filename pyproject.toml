@@ -54,6 +54,10 @@ server = [
 hf = [
     "huggingface_hub>=0.20.0",
 ]
+publish = [
+    "sign-language-segmentation[hf]",
+    "sign-language-segmentation[train]",
+]
 
 [tool.ruff]
 line-length = 120
