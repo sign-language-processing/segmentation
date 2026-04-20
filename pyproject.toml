@@ -66,7 +66,7 @@ where = ["."]
 include = ["sign_language_segmentation*"]
 
 [tool.setuptools.package-data]
-sign_language_segmentation = ["**/*.json", "**/*.safetensors", "**/*.yaml"]
+sign_language_segmentation = ["**/*.json", "**/*.safetensors", "**/*.yaml", "**/*.md"]
 
 [tool.pytest.ini_options]
 addopts = "-v"
