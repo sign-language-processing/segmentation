@@ -51,6 +51,9 @@ server = [
     "Flask-Compress",
     "Flask-Caching",
 ]
+hf = [
+    "huggingface_hub>=0.20.0",
+]
 
 [tool.ruff]
 line-length = 120

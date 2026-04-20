@@ -1,5 +1,6 @@
-"""Pure helpers for model publishing: conversion, versioning, model card rendering."""
+"""Utility functions for model publishing: conversion, evaluation, regression, model card."""
 
+import argparse
 import json
 import re
 from datetime import datetime, UTC
@@ -231,3 +232,170 @@ def generate_model_card(
         template = template.replace(placeholder, value)
 
     return template
+
+
+def _eval_single(model, datasets: str, split: str, eval_args, fps_aug: bool, velocity: bool, device: str) -> dict:
+    """Evaluate on a single dataset+split combination."""
+    from sign_language_segmentation.evaluate import evaluate_model
+    from sign_language_segmentation.datasets.common import Split, get_dataloader
+
+    dataloader = get_dataloader(
+        split=Split(split),
+        dataset_names=datasets,
+        args=eval_args,
+        batch_size=1,
+        num_frames=999999,
+        persistent_workers=False,
+        fps_aug=fps_aug,
+        velocity=velocity,
+    )
+    return evaluate_model(model=model, dataloader=dataloader, device=device)
+
+
+def run_evaluation(
+    checkpoint_path: str,
+    datasets: str,
+    corpus: str,
+    poses: str,
+    device: str,
+    split_manifest: dict | None = None,
+) -> dict:
+    """Run model evaluation on each dataset individually and combined, for dev and test.
+
+    Returns nested dict: {dataset_name: {split: {metric: value}}}.
+    Top-level keys include each individual dataset, plus "combined".
+    """
+    from sign_language_segmentation.datasets.common import DATASET_REGISTRY, ensure_datasets_registered
+    from sign_language_segmentation.model.model import PoseTaggingModel
+
+    model = PoseTaggingModel.load_from_checkpoint(checkpoint_path=checkpoint_path, map_location=device, strict=False)
+    model = model.to(device)
+
+    fps_aug = getattr(model.hparams, "fps_aug", False)
+    velocity = getattr(model.hparams, "velocity", True)
+
+    # extract quality_percentile from manifest if available
+    quality_percentile = 1.0
+    if split_manifest:
+        for m in split_manifest.get("manifests", []):
+            qp = m.get("quality_percentile")
+            if qp is not None:
+                quality_percentile = qp
+                break
+
+    eval_args = argparse.Namespace(
+        corpus=corpus,
+        poses=poses,
+        target_fps=None,
+        quality_percentile=quality_percentile,
+    )
+
+    ensure_datasets_registered()
+    dataset_names = sorted(DATASET_REGISTRY.keys()) if datasets == "all" else [d.strip() for d in datasets.split(",")]
+    splits = ["dev", "test"]
+    results = {}
+
+    # per-dataset evaluation
+    for ds_name in dataset_names:
+        results[ds_name] = {}
+        for s in splits:
+            print(f"  evaluating {ds_name} {s}...")
+            results[ds_name][s] = _eval_single(
+                model=model,
+                datasets=ds_name,
+                split=s,
+                eval_args=eval_args,
+                fps_aug=fps_aug,
+                velocity=velocity,
+                device=device,
+            )
+
+    # combined evaluation (only if multiple datasets)
+    if len(dataset_names) > 1:
+        results["combined"] = {}
+        for s in splits:
+            print(f"  evaluating combined {s}...")
+            results["combined"][s] = _eval_single(
+                model=model,
+                datasets=datasets,
+                split=s,
+                eval_args=eval_args,
+                fps_aug=fps_aug,
+                velocity=velocity,
+                device=device,
+            )
+
+    return results
+
+
+def check_regression(new_metrics: dict, repo_id: str, threshold: float) -> tuple[str, dict | None]:
+    """Compare new metrics against the latest tagged model.
+
+    Returns (status, baseline_metrics) where status is "pass", "fail", or "no_baseline".
+    """
+    from huggingface_hub import HfApi
+
+    api = HfApi()
+    latest_tag = get_latest_version(repo_id=repo_id)
+    if latest_tag is None:
+        print("No version tags found — skipping regression check")
+        return "no_baseline", None
+    try:
+        print(f"Comparing against latest tag: {latest_tag}")
+        baseline_path = api.hf_hub_download(
+            repo_id=repo_id,
+            filename="eval_results.json",
+            revision=latest_tag,
+        )
+        with open(baseline_path) as f:
+            prod_metrics = json.load(f)
+    except Exception:
+        print(f"Could not download eval_results.json from {latest_tag} — skipping regression check")
+        return "no_baseline", None
+
+    # extract flat test metrics for comparison
+    new_test = _get_test_metrics(new_metrics)
+    old_test = _get_test_metrics(prod_metrics)
+
+    # check key metrics for regression
+    regressions = []
+    for key in ("sign_IoU", "sentence_IoU"):
+        old_val = old_test.get(key, 0.0)
+        new_val = new_test.get(key, 0.0)
+        if new_val < old_val - threshold:
+            regressions.append(f"  {key}: {old_val:.4f} -> {new_val:.4f} (delta: {new_val - old_val:+.4f})")
+
+    # TODO: add slack notifications
+    if regressions:
+        print("REGRESSION DETECTED:")
+        for r in regressions:
+            print(r)
+        return "fail", prod_metrics
+
+    print("Regression check passed")
+    return "pass", prod_metrics
+
+
+def promote(repo_id: str, tag: str, revision: str) -> None:
+    """Tag a revision to mark it as promoted."""
+    from huggingface_hub import HfApi
+
+    api = HfApi()
+
+    # resolve the revision to a commit sha
+    refs = api.list_repo_refs(repo_id=repo_id)
+    target_sha = None
+    for ref_tag in refs.tags:
+        if ref_tag.name == revision:
+            target_sha = ref_tag.target_commit
+            break
+    if target_sha is None:
+        for branch in refs.branches:
+            if branch.name == revision:
+                target_sha = branch.target_commit
+                break
+    if target_sha is None:
+        raise ValueError(f"Could not resolve revision {revision!r} to a commit on {repo_id}")
+
+    api.create_tag(repo_id=repo_id, tag=tag, revision=target_sha)
+    print(f"Promoted: tagged '{tag}' at {target_sha[:8]}")
