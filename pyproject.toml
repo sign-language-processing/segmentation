@@ -26,6 +26,9 @@ platform = [
     "httpx",
     "python-dotenv",
 ]
+slack = [
+    "httpx",
+]
 train = [
     "sign-language-segmentation[dgs]",
     "sign-language-segmentation[platform]",
