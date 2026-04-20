@@ -46,15 +46,16 @@ def _get_connection():
 
 def _fetch_annotations() -> dict[str, list[dict]]:
     """query DB and group captions by video ID."""
-    with open(_QUERY_PATH) as f:
-        query = f.read()
+    query = _QUERY_PATH.read_text()
 
     print("Fetching annotations from SignTube DB...")
-    conn = _get_connection()
-    with conn.cursor(row_factory=psycopg.rows.dict_row) as cur:
-        cur.execute(query)
-        rows = cur.fetchall()
-    conn.close()
+    try:
+        with _get_connection() as conn:
+            with conn.cursor(row_factory=psycopg.rows.dict_row) as cur:
+                cur.execute(query)
+                rows = cur.fetchall()
+    except psycopg.Error as e:
+        raise RuntimeError(f"Failed to fetch annotations from SignTube DB: {e}") from e
 
     videos: dict[str, list[dict]] = {}
     for row in rows:
@@ -65,11 +66,7 @@ def _fetch_annotations() -> dict[str, list[dict]]:
 
 
 def _is_sign_annotation(row: dict) -> bool:
-    if row["language"] in ("Sgnw", "hns"):
-        return True
-    if row["language"] == "gloss" and " " not in row["text"]:
-        return True
-    return False
+    return row["language"] in ("Sgnw", "hns")
 
 
 def _build_cache(videos: dict[str, list[dict]]) -> dict:
@@ -90,15 +87,22 @@ def _build_cache(videos: dict[str, list[dict]]) -> dict:
                 with gcsfs.GCSFileSystem().open(bucket_url, "rb") as f:
                     pose_path.write_bytes(f.read())
             except FileNotFoundError:
+                print(f"skipping {video_id}: pose not found in GCS ({bucket_url})")
                 skipped += 1
                 continue
 
-        meta = Pose.read(pose_path.read_bytes(), pose_body=EmptyPoseBody)
+        try:
+            meta = Pose.read(pose_path.read_bytes(), pose_body=EmptyPoseBody)
+        except Exception as e:
+            print(f"skipping {video_id}: failed to read pose file ({e})")
+            skipped += 1
+            continue
 
         fps = float(meta.body.fps)
         total_frames = len(meta.body.data)
 
         if total_frames < 2:
+            print(f"skipping {video_id}: total_frames={total_frames} < 2")
             skipped += 1
             continue
 

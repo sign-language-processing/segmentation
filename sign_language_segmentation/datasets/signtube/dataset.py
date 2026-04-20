@@ -45,13 +45,19 @@ class SignTubeSegmentationDataset(BaseSegmentationDataset):
         with open(annotations_path) as f:
             cache = json.load(f)
 
-        for video_id, video_data in cache.get("videos", {}).items():
+        if "videos" not in cache:
+            raise ValueError(f"Corrupted annotations cache at {annotations_path}: missing 'videos' key")
+
+        for video_id, video_data in cache["videos"].items():
             pose_path = Path(video_data.get("pose_path") or poses_dir / f"{video_id}.pose")
             if not pose_path.exists():
                 fallback_pose_path = poses_dir / f"{video_id}.pose"
                 if fallback_pose_path.exists():
                     pose_path = fallback_pose_path
             if not pose_path.exists():
+                continue
+
+            if video_data.get("total_frames", 0) < 2:
                 continue
 
             video_split = assign_split(video_id, split_seed=split_seed, dev_ratio=dev_ratio, test_ratio=test_ratio)
