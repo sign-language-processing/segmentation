@@ -11,11 +11,11 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import csv
 import json
 import os
 from pathlib import Path
 
-import gcsfs
 import psycopg
 from dotenv import load_dotenv
 from pose_format import Pose
@@ -30,6 +30,10 @@ _PACKAGE_DIR = Path(__file__).resolve().parent
 _DATASET_CACHE_DIR = CACHE_DIR / "signtube"
 _DEFAULT_CACHE = _DATASET_CACHE_DIR / "annotations_cache.json"
 _QUERY_PATH = _PACKAGE_DIR / "captions.sql"
+
+# NAS-mounted pose files, keyed by md5 of the source video (see _NAS_VIDEO_LIST)
+_NAS_POSES_DIR = Path("/mnt/nas/GCS/sign-mediapipe-holistic-poses")
+_NAS_VIDEO_LIST = Path("/mnt/nas/transformations/videos/video_list.csv")
 
 
 def _get_connection():
@@ -69,27 +73,40 @@ def _is_sign_annotation(row: dict) -> bool:
     return row["language"] in ("Sgnw", "hns")
 
 
+def _build_signtube_md5_lookup() -> dict[str, str]:
+    """map signtube video IDs to md5 hashes via the NAS video list."""
+    lookup: dict[str, str] = {}
+    with open(_NAS_VIDEO_LIST, newline="") as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            name = row["name"]
+            if not name.startswith("sign-tube/"):
+                continue
+            lookup[Path(name).stem] = row["md5Hash"]
+    return lookup
+
+
 def _build_cache(videos: dict[str, list[dict]]) -> dict:
-    """build annotations cache from DB rows + pose metadata."""
+    """build annotations cache from DB rows + pose metadata (poses resolved on NAS)."""
     cache: dict[str, dict] = {}
     skipped = 0
 
-    poses_dir_path = _DATASET_CACHE_DIR / "poses"
-    poses_dir_path.mkdir(parents=True, exist_ok=True)
+    print(f"Building signtube md5 lookup from {_NAS_VIDEO_LIST}...")
+    md5_lookup = _build_signtube_md5_lookup()
+    print(f"Loaded {len(md5_lookup)} signtube md5 entries")
 
     for video_id, video_annotations in tqdm(videos.items()):
-        pose_path = poses_dir_path / f"{video_id}.pose"
+        md5 = md5_lookup.get(video_id)
+        if md5 is None:
+            print(f"skipping {video_id}: no md5 entry in {_NAS_VIDEO_LIST}")
+            skipped += 1
+            continue
 
+        pose_path = _NAS_POSES_DIR / f"{md5}.pose"
         if not pose_path.exists():
-            # download from GCS bucket if not available locally
-            bucket_url = f"gs://sign-mt-poses/{video_id}.pose"
-            try:
-                with gcsfs.GCSFileSystem().open(bucket_url, "rb") as f:
-                    pose_path.write_bytes(f.read())
-            except FileNotFoundError:
-                print(f"skipping {video_id}: pose not found in GCS ({bucket_url})")
-                skipped += 1
-                continue
+            print(f"skipping {video_id}: pose not found on NAS ({pose_path})")
+            skipped += 1
+            continue
 
         try:
             meta = Pose.read(pose_path.read_bytes(), pose_body=EmptyPoseBody)
