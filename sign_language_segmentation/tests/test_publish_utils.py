@@ -37,6 +37,7 @@ class TestParseVersion:
         assert _parse_version("") is None
 
     def test_legacy_semver_returns_none(self):
+        # YYYY.MM.DD regex requires a 4-digit year, so semver-style v1.0.0 won't match
         assert _parse_version("v1.0.0") is None
         assert _parse_version("v1.0.abc") is None
 
