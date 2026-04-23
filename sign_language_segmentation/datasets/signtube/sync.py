@@ -14,6 +14,8 @@ import argparse
 import csv
 import json
 import os
+import struct
+from collections import Counter
 from pathlib import Path
 
 import psycopg
@@ -89,7 +91,7 @@ def _build_signtube_md5_lookup() -> dict[str, str]:
 def _build_cache(videos: dict[str, list[dict]]) -> dict:
     """build annotations cache from DB rows + pose metadata (poses resolved on NAS)."""
     cache: dict[str, dict] = {}
-    skipped = 0
+    skipped: Counter[str] = Counter()
 
     print(f"Building signtube md5 lookup from {_NAS_VIDEO_LIST}...")
     md5_lookup = _build_signtube_md5_lookup()
@@ -98,29 +100,29 @@ def _build_cache(videos: dict[str, list[dict]]) -> dict:
     for video_id, video_annotations in tqdm(videos.items()):
         md5 = md5_lookup.get(video_id)
         if md5 is None:
-            print(f"skipping {video_id}: no md5 entry in {_NAS_VIDEO_LIST}")
-            skipped += 1
+            skipped["no_md5"] += 1
             continue
 
         pose_path = _NAS_POSES_DIR / f"{md5}.pose"
         if not pose_path.exists():
-            print(f"skipping {video_id}: pose not found on NAS ({pose_path})")
-            skipped += 1
+            skipped["pose_missing"] += 1
             continue
 
         try:
             meta = Pose.read(pose_path.read_bytes(), pose_body=EmptyPoseBody)
-        except Exception as e:
-            print(f"skipping {video_id}: failed to read pose file ({e})")
-            skipped += 1
+        except (struct.error, EOFError, ValueError) as e:
+            # pose_format fails modes: struct.error on binary corruption, EOFError on
+            # truncation, ValueError on malformed headers/dims — skip those and let
+            # real bugs (AttributeError, ImportError, etc.) surface instead of a bare Exception.
+            print(f"skipping {pose_path}: {type(e).__name__}: {e}")
+            skipped["pose_unreadable"] += 1
             continue
 
         fps = float(meta.body.fps)
         total_frames = len(meta.body.data)
 
         if total_frames < 2:
-            print(f"skipping {video_id}: total_frames={total_frames} < 2")
-            skipped += 1
+            skipped["frames_lt_2"] += 1
             continue
 
         sign_annotations = [r for r in video_annotations if _is_sign_annotation(r)]
@@ -137,7 +139,10 @@ def _build_cache(videos: dict[str, list[dict]]) -> dict:
             "sentences": sentences,
         }
 
-    print(f"Built cache: {len(cache)} videos ({skipped} skipped)")
+    total_skipped = sum(skipped.values())
+    print(f"Built cache: {len(cache)} videos ({total_skipped} skipped)")
+    for reason, count in skipped.most_common():
+        print(f"  {count} skipped: {reason}")
     return {"videos": cache}
 
 

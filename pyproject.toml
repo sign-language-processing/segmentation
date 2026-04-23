@@ -33,7 +33,6 @@ platform = [
 ]
 signtube = [
     "psycopg[binary]",
-    "gcsfs",
     "python-dotenv",
     "tqdm",
 ]

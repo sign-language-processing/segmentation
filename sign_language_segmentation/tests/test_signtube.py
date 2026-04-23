@@ -6,6 +6,7 @@ from pathlib import Path
 import pytest
 
 from sign_language_segmentation.datasets.common import Split
+from sign_language_segmentation.datasets.signtube import sync
 from sign_language_segmentation.datasets.signtube.dataset import SignTubeSegmentationDataset
 from sign_language_segmentation.datasets.signtube.sync import _is_sign_annotation
 
@@ -117,8 +118,8 @@ class TestSignTubeSegmentationDataset:
             frame_dropout=0.0,
             body_part_dropout=0.0,
         )
-        if len(ds) == 0:
-            pytest.skip("no items in train split for this seed")
+        # invariant: 10-video fixture + split_seed=42 + default ratios place ≥1 in TRAIN — re-verify if any of those change.
+        assert len(ds) > 0
         sample = ds[0]
         assert "pose" in sample
         assert "timestamps" in sample
@@ -242,3 +243,52 @@ class TestIsSignAnnotation:
     def test_other_languages_are_sentences(self):
         for lang in ("en", "de", "gloss", "", "Sgnw-other"):
             assert _is_sign_annotation({"language": lang}) is False
+
+
+class _FakeBody:
+    def __init__(self, fps: float, n_frames: int):
+        self.fps = fps
+        self.data = [None] * n_frames
+
+
+class _FakeMeta:
+    def __init__(self, fps: float, n_frames: int):
+        self.body = _FakeBody(fps, n_frames)
+
+
+class TestBuildCache:
+    def test_happy_path(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+        md5 = "abc123"
+        video_id = "swn_vid_001"
+        pose_file = tmp_path / f"{md5}.pose"
+        pose_file.write_bytes(b"fake-bytes")
+
+        monkeypatch.setattr(sync, "_NAS_POSES_DIR", tmp_path)
+        monkeypatch.setattr(sync, "_build_signtube_md5_lookup", lambda: {video_id: md5})
+        monkeypatch.setattr(sync.Pose, "read", lambda *a, **kw: _FakeMeta(fps=30.0, n_frames=130))
+
+        videos = {
+            video_id: [
+                {"language": "Sgnw", "start": 500, "end": 1500},
+                {"language": "en", "start": 0, "end": 3000},
+            ]
+        }
+        cache = sync._build_cache(videos)
+
+        assert set(cache.keys()) == {"videos"}
+        assert video_id in cache["videos"]
+        entry = cache["videos"][video_id]
+        assert entry["pose_path"] == str(pose_file)
+        assert entry["fps"] == 30.0
+        assert entry["total_frames"] == 130
+        assert entry["signs"] == [{"start": 500.0, "end": 1500.0}]
+        assert entry["sentences"] == [{"start": 0.0, "end": 3000.0}]
+
+    def test_skips_when_md5_missing(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+        monkeypatch.setattr(sync, "_NAS_POSES_DIR", tmp_path)
+        monkeypatch.setattr(sync, "_build_signtube_md5_lookup", lambda: {})
+
+        videos = {"swn_vid_nomatch": [{"language": "Sgnw", "start": 500, "end": 1500}]}
+        cache = sync._build_cache(videos)
+
+        assert cache == {"videos": {}}
