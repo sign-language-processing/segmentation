@@ -100,6 +100,7 @@ def publish(
             eval_results=eval_results,
             regression_status=regression_status,
             tag=tag,
+            repo_id=repo_id,
             split_manifest=manifest,
         )
         with open(tmp_path / "README.md", "w") as f:
