@@ -37,9 +37,7 @@ class TestParseVersion:
         assert _parse_version("") is None
 
     def test_legacy_semver_returns_none(self):
-        # legacy vA.B.C style with single-digit parts matches the regex (vYYYY.MM.DD),
-        # but real semver like v1.0.0 happens to parse as (1,0,0) — that's fine because
-        # real tags will always be real dates. Only clearly non-numeric garbage returns None.
+        assert _parse_version("v1.0.0") is None
         assert _parse_version("v1.0.abc") is None
 
 
@@ -68,11 +66,31 @@ class TestGetLatestVersion:
         with patch("huggingface_hub.HfApi", return_value=mock_api):
             assert get_latest_version(repo_id="fake/repo") is None
 
-    def test_api_error_returns_none(self):
+    def _make_hf_http_error(self, status_code: int, msg: str):
+        # HfHubHTTPError's __init__ touches response.headers; build a rich enough mock
+        from huggingface_hub.utils import HfHubHTTPError
+        response = MagicMock()
+        response.status_code = status_code
+        response.headers = {}
+        return HfHubHTTPError(msg, response=response)
+
+    def test_404_returns_none(self):
+        # first-publish: repo doesn't exist yet on HF
+        err = self._make_hf_http_error(status_code=404, msg="Repo not found")
         mock_api = MagicMock()
-        mock_api.list_repo_refs.side_effect = RuntimeError("401")
+        mock_api.list_repo_refs.side_effect = err
         with patch("huggingface_hub.HfApi", return_value=mock_api):
             assert get_latest_version(repo_id="fake/repo") is None
+
+    def test_non_404_propagates(self):
+        # auth/network errors must surface — they're not "no versions", they're real failures
+        from huggingface_hub.utils import HfHubHTTPError
+        err = self._make_hf_http_error(status_code=401, msg="Unauthorized")
+        mock_api = MagicMock()
+        mock_api.list_repo_refs.side_effect = err
+        with patch("huggingface_hub.HfApi", return_value=mock_api):
+            with pytest.raises(HfHubHTTPError):
+                get_latest_version(repo_id="fake/repo")
 
     def test_suffix_beats_base_same_day(self):
         mock_refs = SimpleNamespace(
@@ -175,7 +193,7 @@ class TestBuildModelIndex:
         results = {"combined": {"test": {"sign_IoU": 0.8765, "sentence_IoU": 0.5}}}
         out = _build_model_index(eval_results=results)
         assert "model-index:" in out
-        assert "- name: Sign Iou" in out
+        assert "- name: Sign IoU" in out
         assert "type: sign_IoU" in out
         assert "value: 0.8765" in out
         assert "value: 0.5000" in out
@@ -252,12 +270,14 @@ class TestGenerateModelCard:
             eval_results=self._fixture_eval(),
             regression_status="pass",
             tag="v2026.4.20",
+            repo_id="test/repo",
             split_manifest={"datasets": "ds_a", "created_at": "2026-04-20"},
         )
         assert "{{" not in out
         assert "}}" not in out
         assert "v2026.4.20" in out
         assert "pass" in out
+        assert "test/repo" in out
 
     def test_omits_optional_sections_when_missing(self):
         out = generate_model_card(
@@ -265,6 +285,7 @@ class TestGenerateModelCard:
             eval_results=None,
             regression_status="no_baseline",
             tag="v2026.4.20",
+            repo_id="test/repo",
             split_manifest=None,
         )
         assert "{{" not in out
@@ -277,6 +298,7 @@ class TestGenerateModelCard:
             eval_results=None,
             regression_status="pass",
             tag="v2026.4.20",
+            repo_id="test/repo",
             split_manifest=None,
         )
         # frontmatter is the first `---...---` block

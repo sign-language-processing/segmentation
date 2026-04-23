@@ -9,8 +9,22 @@ import torch
 from safetensors.torch import save_file as save_safetensors
 
 
+# display names for metrics used in both the YAML model-index and the markdown eval table.
+# keys are the raw metric keys emitted by evaluation; values are the human-readable labels.
+_METRIC_DISPLAY_NAMES: dict[str, str] = {
+    "sign_IoU": "Sign IoU",
+    "sentence_IoU": "Sentence IoU",
+    "hm_IoU": "HM IoU",
+    "sign_frame_f1": "Sign Frame F1",
+    "sign_segment_f1": "Sign Segment F1",
+    "sentence_frame_f1": "Sentence Frame F1",
+    "sentence_segment_f1": "Sentence Segment F1",
+}
+
+
 def convert_to_safetensors(checkpoint_path: str, output_dir: Path) -> dict:
     """Convert .ckpt to safetensors + config.json. Returns hyper_parameters dict."""
+    # Lightning .ckpt files carry hyper_parameters alongside weights; weights_only=True would reject them.
     ckpt = torch.load(checkpoint_path, map_location="cpu", weights_only=False)
 
     sd_bf16 = {k: v.to(torch.bfloat16) if v.is_floating_point() else v for k, v in ckpt["state_dict"].items()}
@@ -48,12 +62,17 @@ def _parse_version(tag_name: str) -> tuple[int, ...] | None:
 def get_latest_version(repo_id: str) -> str | None:
     """Get the latest date-based version tag from the HF repo. Returns None if no version tags exist."""
     from huggingface_hub import HfApi
+    from huggingface_hub.utils import HfHubHTTPError
 
     api = HfApi()
     try:
         refs = api.list_repo_refs(repo_id=repo_id)
-    except Exception:
-        return None
+    except HfHubHTTPError as e:
+        # catch HfHubHTTPError (not bare Exception) so auth/network errors surface;
+        # only 404 (repo not found — first publish) is legitimately "no versions".
+        if e.response.status_code == 404:
+            return None
+        raise
     versions = []
     for tag in refs.tags:
         parsed = _parse_version(tag.name)
@@ -122,7 +141,7 @@ def _build_model_index(eval_results: dict) -> str:
         "        metrics:",
     ]
     for key, value in test_metrics.items():
-        display_name = key.replace("_", " ").title()
+        display_name = _METRIC_DISPLAY_NAMES.get(key, key)
         lines.append(f"          - name: {display_name}")
         lines.append(f"            type: {key}")
         lines.append(f"            value: {value:.4f}")
@@ -130,16 +149,8 @@ def _build_model_index(eval_results: dict) -> str:
 
 
 def _build_eval_section(eval_results: dict) -> str:
-    metric_columns = [
-        ("sign_IoU", "Sign IoU"),
-        ("sentence_IoU", "Sentence IoU"),
-        ("hm_IoU", "HM IoU"),
-        ("sign_frame_f1", "Sign Frame F1"),
-        ("sign_segment_f1", "Sign Segment F1"),
-        ("sentence_frame_f1", "Sentence Frame F1"),
-        ("sentence_segment_f1", "Sentence Segment F1"),
-    ]
-    headers = ["Dataset", "Split"] + [display for _, display in metric_columns]
+    metric_keys = list(_METRIC_DISPLAY_NAMES.keys())
+    headers = ["Dataset", "Split"] + [_METRIC_DISPLAY_NAMES[k] for k in metric_keys]
     header_row = "| " + " | ".join(headers) + " |"
     separator = "| " + " | ".join(["---"] * len(headers)) + " |"
 
@@ -166,7 +177,7 @@ def _build_eval_section(eval_results: dict) -> str:
             split_cell = split_name
             if is_combined:
                 split_cell = f"**{split_name}**"
-            values = [f"{metrics.get(key, 0):.4f}" for key, _ in metric_columns]
+            values = [f"{metrics.get(key, 0):.4f}" for key in metric_keys]
             if is_combined:
                 values = [f"**{v}**" for v in values]
             rows.append("| " + " | ".join([name_cell, split_cell] + values) + " |")
@@ -181,7 +192,12 @@ def _build_dataset_section(split_manifest: dict) -> str:
 
 
 def generate_model_card(
-    config: dict, eval_results: dict | None, regression_status: str, tag: str, split_manifest: dict | None
+    config: dict,
+    eval_results: dict | None,
+    regression_status: str,
+    tag: str,
+    repo_id: str,
+    split_manifest: dict | None,
 ) -> str:
     """Generate a HuggingFace model card from template."""
     template_path = Path(__file__).resolve().parent / "model_card_template.md"
@@ -202,6 +218,7 @@ def generate_model_card(
     replacements = {
         "{{published_at}}": datetime.now(tz=UTC).strftime("%Y-%m-%d %H:%M UTC"),
         "{{tag}}": tag,
+        "{{repo_id}}": repo_id,
         "{{regression_status}}": regression_status,
         "{{architecture_rows}}": _build_config_table(config=config, keys=arch_keys),
         "{{training_rows}}": _build_config_table(config=config, keys=train_keys),

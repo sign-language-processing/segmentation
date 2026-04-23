@@ -35,5 +35,6 @@ Jointly trained on sign (gloss) and phrase (sentence) BIO tagging.
 
 ```bash
 pip install sign-language-segmentation
+export HF_MODEL_REPO={{repo_id}} HF_MODEL_REVISION={{tag}}
 pose_to_segments --pose input.pose --elan output.eaf
 ```
