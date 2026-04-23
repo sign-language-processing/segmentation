@@ -268,20 +268,23 @@ def run_evaluation(
     from sign_language_segmentation.datasets.common import DATASET_REGISTRY, ensure_datasets_registered
     from sign_language_segmentation.model.model import PoseTaggingModel
 
-    model = PoseTaggingModel.load_from_checkpoint(checkpoint_path=checkpoint_path, map_location=device, strict=False)
+    model = PoseTaggingModel.load_from_checkpoint(checkpoint_path=checkpoint_path, map_location=device)
     model = model.to(device)
 
-    fps_aug = getattr(model.hparams, "fps_aug", False)
+    # fall back to training defaults from args.py (both default to True there) when a legacy
+    # ckpt doesn't carry these in hparams — keeps eval consistent with how the model was trained.
+    fps_aug = getattr(model.hparams, "fps_aug", True)
     velocity = getattr(model.hparams, "velocity", True)
 
-    # extract quality_percentile from manifest if available
+    # extract quality_percentile from manifest if available; all per-dataset manifests
+    # must agree on this value — the eval pipeline only carries a single value downstream.
     quality_percentile = 1.0
     if split_manifest:
-        for m in split_manifest.get("manifests", []):
-            qp = m.get("quality_percentile")
-            if qp is not None:
-                quality_percentile = qp
-                break
+        percentiles = {m["quality_percentile"] for m in split_manifest.get("manifests", []) if "quality_percentile" in m}
+        if len(percentiles) > 1:
+            raise ValueError(f"inconsistent quality_percentile across manifests: {percentiles}")
+        if percentiles:
+            quality_percentile = percentiles.pop()
 
     eval_args = argparse.Namespace(
         corpus=corpus,
@@ -334,6 +337,7 @@ def check_regression(new_metrics: dict, repo_id: str, threshold: float) -> tuple
     Returns (status, baseline_metrics) where status is "pass", "fail", or "no_baseline".
     """
     from huggingface_hub import HfApi
+    from huggingface_hub.utils import HfHubHTTPError
 
     api = HfApi()
     latest_tag = get_latest_version(repo_id=repo_id)
@@ -349,9 +353,12 @@ def check_regression(new_metrics: dict, repo_id: str, threshold: float) -> tuple
         )
         with open(baseline_path) as f:
             prod_metrics = json.load(f)
-    except Exception:
-        print(f"Could not download eval_results.json from {latest_tag} — skipping regression check")
-        return "no_baseline", None
+    except HfHubHTTPError as e:
+        # only a missing baseline file (404) is "no baseline"; auth/network errors must surface.
+        if e.response.status_code == 404:
+            print(f"No eval_results.json at {latest_tag} — skipping regression check")
+            return "no_baseline", None
+        raise
 
     # extract flat test metrics for comparison
     new_test = _get_test_metrics(new_metrics)
@@ -359,13 +366,12 @@ def check_regression(new_metrics: dict, repo_id: str, threshold: float) -> tuple
 
     # check key metrics for regression
     regressions = []
-    for key in ("sign_IoU", "sentence_IoU"):
+    for key in ("sign_IoU", "sentence_IoU", "hm_IoU"):
         old_val = old_test.get(key, 0.0)
         new_val = new_test.get(key, 0.0)
         if new_val < old_val - threshold:
             regressions.append(f"  {key}: {old_val:.4f} -> {new_val:.4f} (delta: {new_val - old_val:+.4f})")
 
-    # TODO: add slack notifications
     if regressions:
         print("REGRESSION DETECTED:")
         for r in regressions:

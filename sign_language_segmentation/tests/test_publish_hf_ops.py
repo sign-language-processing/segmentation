@@ -18,12 +18,20 @@ class TestCheckRegression:
         assert status == "no_baseline"
         assert baseline is None
 
-    def test_no_baseline_when_download_fails(self):
+    def _make_hf_http_error(self, status_code: int, msg: str):
+        from huggingface_hub.utils import HfHubHTTPError
+        response = MagicMock()
+        response.status_code = status_code
+        response.headers = {}
+        return HfHubHTTPError(msg, response=response)
+
+    def test_no_baseline_when_download_404s(self):
+        # tag exists but eval_results.json was never uploaded — legitimate "no baseline"
         mock_api = MagicMock()
         mock_api.list_repo_refs.return_value = SimpleNamespace(
             tags=[SimpleNamespace(name="v2026.1.1")], branches=[]
         )
-        mock_api.hf_hub_download.side_effect = RuntimeError("404")
+        mock_api.hf_hub_download.side_effect = self._make_hf_http_error(status_code=404, msg="File not found")
         with patch("huggingface_hub.HfApi", return_value=mock_api):
             status, baseline = check_regression(
                 new_metrics={"combined": {"test": {"sign_IoU": 0.8}}},
@@ -32,6 +40,22 @@ class TestCheckRegression:
             )
         assert status == "no_baseline"
         assert baseline is None
+
+    def test_non_404_download_error_propagates(self):
+        # auth/network errors are real failures, not "no baseline"
+        from huggingface_hub.utils import HfHubHTTPError
+        mock_api = MagicMock()
+        mock_api.list_repo_refs.return_value = SimpleNamespace(
+            tags=[SimpleNamespace(name="v2026.1.1")], branches=[]
+        )
+        mock_api.hf_hub_download.side_effect = self._make_hf_http_error(status_code=401, msg="Unauthorized")
+        with patch("huggingface_hub.HfApi", return_value=mock_api):
+            with pytest.raises(HfHubHTTPError):
+                check_regression(
+                    new_metrics={"combined": {"test": {"sign_IoU": 0.8}}},
+                    repo_id="fake/repo",
+                    threshold=0.005,
+                )
 
     def test_pass_when_within_threshold(self, tmp_path):
         baseline_file = tmp_path / "eval_results.json"
