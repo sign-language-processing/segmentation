@@ -26,6 +26,7 @@ from sign_language_segmentation.publish.utils import (
     generate_model_card,
     promote,
     get_next_version,
+    get_latest_version,
 )
 
 
@@ -41,6 +42,7 @@ def publish(
     metrics_json: str | None,
     regression_threshold: float,
     no_promote: bool,
+    dry_run: bool = False,
 ) -> None:
     """Main publish workflow."""
     from huggingface_hub import HfApi
@@ -106,6 +108,17 @@ def publish(
         with open(tmp_path / "README.md", "w") as f:
             f.write(model_card)
 
+        if dry_run:
+            preview_path = Path("publish_dry_run.md").resolve()
+            preview_path.write_text(model_card)
+            prev_tag = get_latest_version(repo_id=repo_id)
+            print(
+                f"Dry run — new tag: {tag} (previous: {prev_tag or 'none'}), "
+                f"revision: weekly, regression: {regression_status}"
+            )
+            print(f"Model card written to: {preview_path}")
+            return
+
         # 7. push to weekly branch
         print(f"Pushing to {repo_id} branch 'weekly'...")
         api.create_repo(repo_id=repo_id, exist_ok=True, repo_type="model")
@@ -157,6 +170,9 @@ def main():
     )
     parser.add_argument("--no-promote", action="store_true", help="push without tagging or promoting")
     parser.add_argument("--promote", action="store_true", help="tag the current weekly branch (no upload)")
+    parser.add_argument(
+        "--dry-run", action="store_true", help="print the generated model card and skip all HF writes"
+    )
 
     args = parser.parse_args()
 
@@ -185,6 +201,7 @@ def main():
         metrics_json=args.metrics_json,
         regression_threshold=args.regression_threshold,
         no_promote=args.no_promote,
+        dry_run=args.dry_run,
     )
 
 
