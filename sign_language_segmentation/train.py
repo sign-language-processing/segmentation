@@ -33,6 +33,12 @@ def _collect_split_manifest(dataset: Dataset, dataset_names: str) -> dict:
 _DEFAULT_MONITOR_METRIC = "validation_hm_iou"
 
 
+def _model_load_device(accelerator: str) -> str:
+    if accelerator == "gpu":
+        return "cuda"
+    return accelerator
+
+
 def train(overrides: dict | None = None, monitor_metric: str = _DEFAULT_MONITOR_METRIC) -> float:
     """run a single training loop. returns best monitor_metric value.
 
@@ -99,7 +105,7 @@ def train(overrides: dict | None = None, monitor_metric: str = _DEFAULT_MONITOR_
         print(f"Fine-tuning from: {args.finetune_from}")
         model = load_model(
             model_dir=args.finetune_from,
-            device="cpu",
+            device=_model_load_device(accelerator=args.device),
             config_overrides=model_kwargs,
             eval_mode=False,
         )
