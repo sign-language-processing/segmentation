@@ -123,6 +123,8 @@ def train(overrides: dict | None = None, monitor_metric: str = _DEFAULT_MONITOR_
     print(f"Parameters: {total_params:,}")
 
     model_dir = Path("dist") / effective_run_name
+    if overrides and "_trial" in overrides:
+        model_dir = model_dir / f"trial-{overrides['_trial'].number}"
     model_dir.mkdir(parents=True, exist_ok=True)
 
     # write split manifest
