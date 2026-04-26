@@ -12,3 +12,6 @@ run_hpo.sh
 *.pose
 *.safetensors
 .cache/
+dist/
+wandb/
+*.log

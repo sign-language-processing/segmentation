@@ -126,3 +126,4 @@ class TestPromote:
             with pytest.raises(ValueError, match="Could not resolve revision"):
                 promote(repo_id="fake/repo", tag="v2026.4.20", revision="nonexistent")
         mock_api.create_tag.assert_not_called()
+
