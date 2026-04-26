@@ -126,3 +126,32 @@ def test_load_model_ckpt_with_config_overrides(tmp_path: Path, tiny_model_config
     assert loaded.hparams.pose_dims == tiny_model_config["pose_dims"]
     for name, tensor in model.state_dict().items():
         assert torch.equal(input=loaded.state_dict()[name], other=tensor)
+
+
+def test_load_model_raises_when_config_missing_and_no_overrides(tmp_path: Path, tiny_model_config: dict):
+    from sign_language_segmentation.bin import load_model
+
+    model = PoseTaggingModel(**tiny_model_config)
+    save_safetensors(tensors=model.state_dict(), filename=str(tmp_path / "model.safetensors"))
+
+    with pytest.raises(FileNotFoundError, match="config.json"):
+        load_model(model_dir=str(tmp_path), device="cpu")
+
+
+def test_load_model_safetensors_dir_without_config_uses_overrides(tmp_path: Path, tiny_model_config: dict):
+    from sign_language_segmentation.bin import load_model
+
+    model = PoseTaggingModel(**tiny_model_config)
+    save_safetensors(tensors=model.state_dict(), filename=str(tmp_path / "model.safetensors"))
+
+    loaded = load_model(
+        model_dir=str(tmp_path),
+        device="cpu",
+        config_overrides=tiny_model_config,
+        eval_mode=False,
+    )
+
+    assert loaded.training is True
+    assert loaded.hparams.pose_dims == tiny_model_config["pose_dims"]
+    for name, tensor in model.state_dict().items():
+        assert torch.equal(input=loaded.state_dict()[name], other=tensor)
