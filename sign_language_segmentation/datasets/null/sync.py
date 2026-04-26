@@ -1,7 +1,7 @@
 """generate null pose files and an annotations cache.
 
 Usage:
-    uv run python -m sign_language_segmentation.datasets.null.sync
+    uv run python -m sign_language_segmentation.datasets.null.sync --max_frames 1024 --sample_count 10
 """
 
 from __future__ import annotations
@@ -82,13 +82,12 @@ _HAND_POINTS = [
 ]
 
 
-def _parse_fps_values(value: str) -> tuple[float, ...]:
-    fps_values = tuple(float(fps) for fps in value.split(",") if fps.strip())
-    if not fps_values:
-        raise ValueError("at least one fps value is required")
-    if any(fps < 24 for fps in fps_values):
-        raise ValueError("fps values must be at least 24")
-    return fps_values
+def _sample_frame_counts(max_frames: int, sample_count: int) -> tuple[int, ...]:
+    if max_frames < 2:
+        raise ValueError("max_frames must be at least 2")
+    if sample_count < 1:
+        raise ValueError("sample_count must be positive")
+    return tuple(max(2, round(max_frames * index / sample_count)) for index in range(1, sample_count + 1))
 
 
 def _pose_header() -> PoseHeader:
@@ -103,14 +102,12 @@ def _pose_header() -> PoseHeader:
     )
 
 
-def _make_blank_pose(num_frames: int, fps: float, seed: int) -> Pose:
+def _make_blank_pose(num_frames: int, fps: float) -> Pose:
     header = _pose_header()
     shape = (num_frames, 1, header.total_points(), 3)
-    rng = np.random.default_rng(seed=seed)
-    data = rng.normal(loc=0.0, scale=1e-4, size=shape).astype(np.float32)
+    data = np.zeros(shape, dtype=np.float32)
     confidence = np.zeros(shape[:-1], dtype=np.float32)
-    masked_data = ma.masked_array(data, mask=np.ones(shape, dtype=bool))
-    body = NumPyPoseBody(fps=int(round(fps)), data=masked_data, confidence=confidence)
+    body = NumPyPoseBody(fps=int(round(fps)), data=data, confidence=confidence)
     return Pose(header=header, body=body)
 
 
@@ -135,50 +132,45 @@ def _make_static_pose(source_frame: Pose, num_frames: int, fps: float) -> Pose:
 def build_cache(
     output_path: Path,
     poses_dir: Path,
-    blank_count: int,
-    static_count: int,
-    fps_values: tuple[float, ...],
-    duration_seconds: float,
+    max_frames: int,
+    sample_count: int,
+    fps: float,
     force: bool,
     static_source_pose: Path | None = None,
     static_source_frame: int = 0,
 ) -> dict:
-    if blank_count < 0 or static_count < 0:
-        raise ValueError("clip counts must be non-negative")
-    if duration_seconds <= 0:
-        raise ValueError("duration must be positive")
+    if fps < 24:
+        raise ValueError("fps must be at least 24")
+    frame_counts = _sample_frame_counts(max_frames=max_frames, sample_count=sample_count)
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
     poses_dir.mkdir(parents=True, exist_ok=True)
     static_frame = _load_static_frame(
         source_pose_path=static_source_pose,
         frame_index=static_source_frame,
-    ) if static_count > 0 and static_source_pose is not None else None
-    if static_count > 0 and static_frame is None:
-        raise ValueError("--static_source_pose is required when --static_count is greater than 0")
+    ) if static_source_pose is not None else None
 
     videos: dict[str, dict] = {}
-    for kind, count in (("blank", blank_count), ("static", static_count)):
-        for index in range(count):
-            fps = fps_values[index % len(fps_values)]
-            total_frames = max(20, round(duration_seconds * fps))
-            video_id = f"null_{kind}_{index:06d}_{int(round(fps)):03d}fps"
-            pose_path = poses_dir / f"{video_id}.pose"
-            if force or not pose_path.exists():
-                if kind == "blank":
-                    pose = _make_blank_pose(num_frames=total_frames + 1, fps=fps, seed=index)
-                else:
-                    pose = _make_static_pose(source_frame=static_frame, num_frames=total_frames + 1, fps=fps)
-                with open(pose_path, "wb") as f:
-                    pose.write(f)
-            videos[video_id] = {
-                "pose_path": str(pose_path),
-                "kind": kind,
-                "fps": fps,
-                "total_frames": total_frames,
-                "signs": [],
-                "sentences": [],
-            }
+    kinds = ("blank", "static") if static_frame is not None else ("blank",)
+    for index, total_frames in enumerate(frame_counts, start=1):
+        kind = kinds[(index - 1) % len(kinds)]
+        video_id = f"null_{kind}_{index:02d}_{total_frames:06d}frames_{int(round(fps)):03d}fps"
+        pose_path = poses_dir / f"{video_id}.pose"
+        if force or not pose_path.exists():
+            if kind == "blank":
+                pose = _make_blank_pose(num_frames=total_frames + 1, fps=fps)
+            else:
+                pose = _make_static_pose(source_frame=static_frame, num_frames=total_frames + 1, fps=fps)
+            with open(pose_path, "wb") as f:
+                pose.write(f)
+        videos[video_id] = {
+            "pose_path": str(pose_path),
+            "kind": kind,
+            "fps": fps,
+            "total_frames": total_frames,
+            "signs": [],
+            "sentences": [],
+        }
 
     cache = {"videos": videos}
     with open(output_path, "w") as f:
@@ -190,10 +182,9 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Generate null segmentation pose files")
     parser.add_argument("--output", type=str, default=str(_DEFAULT_OUTPUT), help="output annotations cache path")
     parser.add_argument("--poses_dir", type=str, default=str(_DEFAULT_POSES_DIR), help="directory for generated pose files")
-    parser.add_argument("--blank_count", type=int, default=8, help="number of blank clips to generate")
-    parser.add_argument("--static_count", type=int, default=8, help="number of static clips to generate")
-    parser.add_argument("--fps", type=str, default="24,25,30,50", help="comma-separated fps values, minimum 24")
-    parser.add_argument("--duration", type=float, default=15.0, help="clip duration in seconds")
+    parser.add_argument("--max_frames", type=int, default=1024, help="maximum frame count for the null samples")
+    parser.add_argument("--sample_count", type=int, default=10, help="number of null samples from short to max_frames")
+    parser.add_argument("--fps", type=float, default=30.0, help="fps for generated pose files, minimum 24")
     parser.add_argument("--static_source_pose", type=str, default=None, help="pose file to duplicate for static clips")
     parser.add_argument("--static_source_frame", type=int, default=0, help="frame index to duplicate from static source pose")
     parser.add_argument("--force", action="store_true", default=False, help="overwrite existing pose files")
@@ -202,10 +193,9 @@ def main() -> None:
     cache = build_cache(
         output_path=Path(args.output),
         poses_dir=Path(args.poses_dir),
-        blank_count=args.blank_count,
-        static_count=args.static_count,
-        fps_values=_parse_fps_values(value=args.fps),
-        duration_seconds=args.duration,
+        max_frames=args.max_frames,
+        sample_count=args.sample_count,
+        fps=args.fps,
         force=args.force,
         static_source_pose=Path(args.static_source_pose) if args.static_source_pose else None,
         static_source_frame=args.static_source_frame,
