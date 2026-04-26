@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """Inference entry point for 2026 sign language segmentation models.
 
-Loads a PyTorch Lightning checkpoint (.ckpt), runs inference on a .pose file,
+Loads a PyTorch Lightning checkpoint or safetensors model, runs inference on a .pose file,
 and writes an ELAN (.eaf) annotation file with SIGN and SENTENCE tiers.
 """
 import argparse
@@ -61,36 +61,100 @@ def _download_from_hf(repo_id: str) -> str:
     )
 
 
-def _load_from_safetensors(model_dir: str, device: str) -> PoseTaggingModel:
-    """Load model from safetensors + config.json directory."""
-    model_dir_path = Path(model_dir)
-    with open(model_dir_path / "config.json") as f:
-        config = json.load(f)
+def _resolve_safetensors_paths(model_path: str) -> tuple[Path, Path]:
+    model_path_obj = Path(model_path)
+    if model_path_obj.suffix == ".safetensors":
+        return model_path_obj, model_path_obj.parent / "config.json"
+    return model_path_obj / "model.safetensors", model_path_obj / "config.json"
+
+
+def _load_model_config(config_path: Path, config_overrides: dict | None = None) -> dict:
+    config = {}
+    if config_path.exists():
+        with open(config_path) as f:
+            config = json.load(f)
+    elif config_overrides is None:
+        raise FileNotFoundError(f"Missing model config: {config_path}")
+
+    if config_overrides:
+        config.update(config_overrides)
+
     # config.json stores tuples as lists — convert pose_dims back
     if "pose_dims" in config:
         config["pose_dims"] = tuple(config["pose_dims"])
-    model = PoseTaggingModel(**config)
-    state_dict = load_safetensors(filename=str(model_dir_path / "model.safetensors"), device=device)
-    model.load_state_dict(state_dict)
-    model = model.to(device)
-    model.eval()
+    return config
+
+
+def _set_model_mode(model: PoseTaggingModel, eval_mode: bool) -> PoseTaggingModel:
+    if eval_mode:
+        model.eval()
+    else:
+        model.train()
     return model
+
+
+def _load_from_safetensors(
+    model_dir: str,
+    device: str,
+    config_overrides: dict | None = None,
+    eval_mode: bool = True,
+) -> PoseTaggingModel:
+    """Load model from safetensors + config.json directory or explicit config."""
+    safetensors_path, config_path = _resolve_safetensors_paths(model_path=model_dir)
+    config = _load_model_config(config_path=config_path, config_overrides=config_overrides)
+    model = PoseTaggingModel(**config)
+    state_dict = load_safetensors(filename=str(safetensors_path), device=device)
+    model.load_state_dict(state_dict=state_dict)
+    model = model.to(device)
+    return _set_model_mode(model=model, eval_mode=eval_mode)
 
 
 @lru_cache(maxsize=1)
-def load_model(model_dir: str, device: str = "cpu", revision: str = "") -> PoseTaggingModel:
-    # revision is part of the cache key only — callers pass HF_MODEL_REVISION so a mid-process
-    # env change invalidates the cache entry instead of silently returning a stale model.
+def _load_model_cached(model_dir: str, device: str = "cpu") -> PoseTaggingModel:
+    return _load_model_uncached(model_dir=model_dir, device=device)
+
+
+def _load_model_uncached(
+    model_dir: str,
+    device: str = "cpu",
+    config_overrides: dict | None = None,
+    eval_mode: bool = True,
+) -> PoseTaggingModel:
     model_dir_path = Path(model_dir)
     # prefer safetensors if available, fall back to .ckpt
-    if (model_dir_path / "model.safetensors").exists():
-        return _load_from_safetensors(model_dir=str(model_dir), device=device)
+    if model_dir_path.suffix == ".safetensors" or (model_dir_path / "model.safetensors").exists():
+        return _load_from_safetensors(
+            model_dir=str(model_dir),
+            device=device,
+            config_overrides=config_overrides,
+            eval_mode=eval_mode,
+        )
     # backward compat: load .ckpt directly (model_dir might be a file path)
     ckpt_path = model_dir_path if model_dir_path.suffix == ".ckpt" else model_dir_path / "best.ckpt"
-    model = PoseTaggingModel.load_from_checkpoint(checkpoint_path=str(ckpt_path), map_location=device)
+    model = PoseTaggingModel.load_from_checkpoint(
+        checkpoint_path=str(ckpt_path),
+        map_location=device,
+        **(config_overrides or {}),
+    )
     model = model.to(device)
-    model.eval()
-    return model
+    return _set_model_mode(model=model, eval_mode=eval_mode)
+
+
+def load_model(
+    model_dir: str,
+    device: str = "cpu",
+    config_overrides: dict | None = None,
+    eval_mode: bool = True,
+) -> PoseTaggingModel:
+    # skip cache for overrides/train-mode: dicts aren't hashable, and a cached eval-mode model must not leak into fine-tune callers
+    if config_overrides or not eval_mode:
+        return _load_model_uncached(
+            model_dir=model_dir,
+            device=device,
+            config_overrides=config_overrides,
+            eval_mode=eval_mode,
+        )
+    return _load_model_cached(model_dir=model_dir, device=device)
 
 
 @torch.inference_mode()
@@ -122,8 +186,7 @@ def segment_pose(pose: Pose, model_dir: str = None, device: str = "cpu",
         tiers: dict mapping tier name to list of {start, end} segment dicts
     """
     model_dir = model_dir or resolve_model_path()
-    revision = os.environ.get("HF_MODEL_REVISION", "")
-    model = load_model(model_dir=model_dir, device=device, revision=revision)
+    model = load_model(model_dir=model_dir, device=device)
 
     log_probs = run_inference(model=model, pose=pose, device=device)
 
