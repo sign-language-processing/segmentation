@@ -146,6 +146,7 @@ def load_model(
     config_overrides: dict | None = None,
     eval_mode: bool = True,
 ) -> PoseTaggingModel:
+    # skip cache for overrides/train-mode: dicts aren't hashable, and a cached eval-mode model must not leak into fine-tune callers
     if config_overrides or not eval_mode:
         return _load_model_uncached(
             model_dir=model_dir,

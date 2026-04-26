@@ -3,6 +3,7 @@ import json
 from pathlib import Path
 
 import pytest
+import pytorch_lightning as pl
 import torch
 from pose_format import Pose
 from safetensors.torch import save_file as save_safetensors
@@ -93,6 +94,35 @@ def test_load_model_accepts_external_safetensors_config(tmp_path: Path, tiny_mod
     )
 
     assert loaded.training is True
+    assert loaded.hparams.pose_dims == tiny_model_config["pose_dims"]
+    for name, tensor in model.state_dict().items():
+        assert torch.equal(input=loaded.state_dict()[name], other=tensor)
+
+
+def test_load_model_ckpt_with_config_overrides(tmp_path: Path, tiny_model_config: dict):
+    from sign_language_segmentation.bin import load_model
+
+    model = PoseTaggingModel(**tiny_model_config)
+    ckpt_path = tmp_path / "best.ckpt"
+    torch.save(
+        obj={
+            "state_dict": model.state_dict(),
+            "hyper_parameters": tiny_model_config,
+            "pytorch-lightning_version": pl.__version__,
+        },
+        f=str(ckpt_path),
+    )
+
+    overrides = {**tiny_model_config, "learning_rate": 5e-4}
+    loaded = load_model(
+        model_dir=str(ckpt_path),
+        device="cpu",
+        config_overrides=overrides,
+        eval_mode=False,
+    )
+
+    assert loaded.training is True
+    assert loaded.hparams.learning_rate == 5e-4
     assert loaded.hparams.pose_dims == tiny_model_config["pose_dims"]
     for name, tensor in model.state_dict().items():
         assert torch.equal(input=loaded.state_dict()[name], other=tensor)
