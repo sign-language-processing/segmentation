@@ -38,7 +38,7 @@ parser.add_argument('--optuna_trials', type=int, default=50,
 
 # Data
 parser.add_argument('--datasets', type=str, default='all',
-                    help='comma-separated dataset names to train on (e.g. dgs,platform), or "all" for every registered dataset')
+                    help='comma-separated dataset names to train on (e.g. dgs,platform,null), or "all" for every registered dataset')
 parser.add_argument('--corpus', default='/mnt/nas/GCS/sign-external-datasets/dgs-corpus')
 parser.add_argument('--poses', default='/mnt/nas/GCS/sign-mediapipe-holistic-poses')
 parser.add_argument('--quality_percentile', type=float, default=1.0,
