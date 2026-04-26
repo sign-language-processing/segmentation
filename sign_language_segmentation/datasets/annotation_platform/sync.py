@@ -14,6 +14,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import time
 from datetime import datetime, timezone
 from pathlib import Path
 from urllib.parse import urlparse
@@ -47,13 +48,34 @@ def _build_auth_header(token: str) -> str:
     return f"Bearer {token}"
 
 
-def convex_query(url: str, path: str, args: dict | None = None, token: str | None = None) -> dict:
+def convex_query(
+    url: str,
+    path: str,
+    args: dict | None = None,
+    token: str | None = None,
+    client: httpx.Client | None = None,
+    retries: int = 3,
+) -> dict:
     """call a Convex query function."""
     headers = {"Content-Type": "application/json"}
     if token:
         headers["Authorization"] = _build_auth_header(token)
     body = {"path": path, "args": args or {}, "format": "json"}
-    resp = httpx.post(f"{url}/api/query", json=body, headers=headers, timeout=30)
+
+    for attempt in range(retries + 1):
+        try:
+            if client is None:
+                resp = httpx.post(f"{url}/api/query", json=body, headers=headers, timeout=30)
+            else:
+                resp = client.post(f"{url}/api/query", json=body, headers=headers)
+            break
+        except httpx.TransportError as e:
+            if attempt >= retries:
+                raise RuntimeError(f"Convex transport error on {path} after {retries + 1} attempts: {e}") from e
+            wait_seconds = min(2 ** attempt, 10)
+            print(f"  WARNING: Convex query {path} failed ({e}); retrying in {wait_seconds}s")
+            time.sleep(wait_seconds)
+
     resp.raise_for_status()
     result = resp.json()
     if result.get("status") == "error":
@@ -61,19 +83,64 @@ def convex_query(url: str, path: str, args: dict | None = None, token: str | Non
     return result["value"]
 
 
-def fetch_ontology_class_map(convex_url: str, ontology_id: str, token: str | None = None) -> dict[str, str]:
-    """fetch ontology and build objectClassId -> type mapping (sign, phrase, or skip)."""
-    ontology = convex_query(url=convex_url, path="ontologies:get", args={"id": ontology_id}, token=token)
+def fetch_ontology_class_map(
+    convex_url: str,
+    ontology_id: str,
+    token: str | None = None,
+    client: httpx.Client | None = None,
+    allowed_statuses: set[str] | None = None,
+) -> dict[str, str]:
+    """fetch ontology versions and build objectClassId -> type mapping."""
+    ontology = convex_query(url=convex_url, path="ontologies:get", args={"id": ontology_id}, token=token, client=client)
+    ontology_group_id = ontology.get("ontologyGroupId")
+    ontologies = [ontology]
+    if ontology_group_id:
+        versions = convex_query(
+            url=convex_url,
+            path="ontologies:listVersionsInGroup",
+            args={"ontologyId": ontology_id},
+            token=token,
+            client=client,
+        )
+        version_summaries = versions.get("items", versions) if isinstance(versions, dict) else versions
+        ontologies = []
+        for version in version_summaries:
+            if version.get("objectClasses"):
+                ontologies.append(version)
+                continue
+
+            version_id = version.get("_id")
+            if not version_id:
+                continue
+            ontologies.append(
+                convex_query(
+                    url=convex_url,
+                    path="ontologies:get",
+                    args={"id": version_id},
+                    token=token,
+                    client=client,
+                )
+            )
+
     class_map: dict[str, str] = {}
-    for obj_class in ontology.get("objectClasses", []):
-        class_id = obj_class["_id"]
-        annotation_type = obj_class.get("annotationType", "")
-        class_type = obj_class.get("type", "")
-        if annotation_type == "time_aligned":
-            if "sign" in class_type:
-                class_map[class_id] = "sign"
-            elif "phrase" in class_type or "spoken" in class_type:
-                class_map[class_id] = "phrase"
+    for ontology_version in ontologies:
+        ontology_status = ontology_version.get("status")
+        if allowed_statuses is not None and ontology_status not in allowed_statuses:
+            print(
+                f"  Skipping ontology {ontology_version.get('_id', ontology_id)}: "
+                f"status={ontology_status!r}, allowed={sorted(allowed_statuses)}"
+            )
+            continue
+
+        for obj_class in ontology_version.get("objectClasses", []):
+            class_id = obj_class["_id"]
+            annotation_type = obj_class.get("annotationType", "")
+            class_type = obj_class.get("type", "")
+            if annotation_type == "time_aligned":
+                if "sign" in class_type:
+                    class_map[class_id] = "sign"
+                elif "phrase" in class_type or "spoken" in class_type:
+                    class_map[class_id] = "phrase"
     return class_map
 
 
@@ -81,6 +148,8 @@ def fetch_project_annotations(
     convex_url: str,
     project_id: str,
     token: str | None = None,
+    client: httpx.Client | None = None,
+    ontology_statuses: set[str] | None = None,
 ) -> tuple[dict[str, list[dict]], list[str]]:
     """fetch all annotations for a project, grouped by externalItemId.
 
@@ -96,20 +165,26 @@ def fetch_project_annotations(
          belong to a completed task (see comment below)
     """
     # projects:get returns ontology, linked datasets, and task counts — no auth needed
-    project = convex_query(url=convex_url, path="projects:get", args={"id": project_id}, token=token)
+    project = convex_query(url=convex_url, path="projects:get", args={"id": project_id}, token=token, client=client)
     if not project:
         raise ValueError(f"Project {project_id} not found")
 
     ontology_id = project["ontologyId"]
     dataset_ids = [d["datasetId"] for d in project.get("datasets", [])]
-    class_map = fetch_ontology_class_map(convex_url=convex_url, ontology_id=ontology_id, token=token)
+    class_map = fetch_ontology_class_map(
+        convex_url=convex_url,
+        ontology_id=ontology_id,
+        token=token,
+        client=client,
+        allowed_statuses=ontology_statuses,
+    )
 
     # fetch tasks, keep only those that reached the workflow's terminal node
     # (completedAt is set when a task flows through to the "Complete" node).
     # all production workflows currently have no review stage, so every
     # completed status is treated as good. if a review stage is added later,
     # filter on status == "approved" here.
-    tasks = convex_query(url=convex_url, path="tasks:list", args={"projectId": project_id}, token=token)
+    tasks = convex_query(url=convex_url, path="tasks:list", args={"projectId": project_id}, token=token, client=client)
     completed_tasks = [t for t in tasks if t.get("completedAt") is not None]
 
     # build item -> completed task IDs mapping (for filtering annotations)
@@ -131,7 +206,7 @@ def fetch_project_annotations(
     for item_id in completed_item_ids:
         item_annotations = convex_query(
             url=convex_url, path="annotations:listByItem",
-            args={"externalItemId": item_id}, token=token,
+            args={"externalItemId": item_id}, token=token, client=client,
         )
         for ann in item_annotations:
             if "startTime" not in ann or "endTime" not in ann:
@@ -165,6 +240,7 @@ def resolve_video_paths(
     poses_dir: str,
     token: str | None = None,
     video_map_cache_path: Path | None = None,
+    client: httpx.Client | None = None,
 ) -> dict[str, dict]:
     """resolve externalItemId -> {pose_hash, fps, total_frames} via datasetItems API + local files.
 
@@ -187,7 +263,7 @@ def resolve_video_paths(
     try:
         result = convex_query(
             url=convex_url, path="datasetItems:list",
-            args={"datasetId": dataset_id, "limit": 10000}, token=token,
+            args={"datasetId": dataset_id, "limit": 10000}, token=token, client=client,
         )
     except RuntimeError as e:
         if "Unauthorized" in str(e):
@@ -266,9 +342,11 @@ def sync(
     gcs_root: str,
     output_path: str | Path,
     token: str | None = None,
+    ontology_statuses: set[str] | None = None,
 ) -> None:
     """fetch annotations from Convex and write annotations_cache.json."""
     output_path = Path(output_path)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
 
     if output_path.exists():
         print(f"Cache already exists at {output_path}, skipping sync")
@@ -280,27 +358,33 @@ def sync(
     all_annotations: dict[str, list[dict]] = {}
     dataset_ids: set[str] = set()
 
-    for project_id in project_ids:
-        annotations_by_video, project_dataset_ids = fetch_project_annotations(
-            convex_url=convex_url, project_id=project_id, token=token,
-        )
-        for video_id, anns in annotations_by_video.items():
-            all_annotations.setdefault(video_id, []).extend(anns)
-        dataset_ids.update(project_dataset_ids)
+    with httpx.Client(timeout=30) as client:
+        for project_id in project_ids:
+            annotations_by_video, project_dataset_ids = fetch_project_annotations(
+                convex_url=convex_url,
+                project_id=project_id,
+                token=token,
+                client=client,
+                ontology_statuses=ontology_statuses,
+            )
+            for video_id, anns in annotations_by_video.items():
+                all_annotations.setdefault(video_id, []).extend(anns)
+            dataset_ids.update(project_dataset_ids)
 
-    print(f"\nFound {len(all_annotations)} videos with time-aligned annotations")
+        print(f"\nFound {len(all_annotations)} videos with time-aligned annotations")
 
-    # resolve video paths
-    video_map_cache = output_path.parent / "video_map_cache.json"
-    video_map: dict[str, dict] = {}
-    for dataset_id in dataset_ids:
-        resolved = resolve_video_paths(
-            convex_url=convex_url, dataset_id=dataset_id,
-            video_ids=set(all_annotations.keys()), gcs_root=gcs_root,
-            poses_dir=poses_dir, token=token,
-            video_map_cache_path=video_map_cache,
-        )
-        video_map.update(resolved)
+        # resolve video paths
+        video_map_cache = output_path.parent / "video_map_cache.json"
+        video_map: dict[str, dict] = {}
+        for dataset_id in dataset_ids:
+            resolved = resolve_video_paths(
+                convex_url=convex_url, dataset_id=dataset_id,
+                video_ids=set(all_annotations.keys()), gcs_root=gcs_root,
+                poses_dir=poses_dir, token=token,
+                video_map_cache_path=video_map_cache,
+                client=client,
+            )
+            video_map.update(resolved)
 
     # build output
     videos: dict[str, dict] = {}
@@ -427,8 +511,10 @@ def main() -> None:
     parser.add_argument("--gcs_root", type=str, default="/mnt/nas/GCS")
     parser.add_argument("--output", type=Path, default=_DEFAULT_ANNOTATIONS_CACHE)
     parser.add_argument("--no_score", action="store_true", default=False, help="skip scoring after sync")
-    parser.add_argument("--model_path", type=str, default="sign_language_segmentation/dist/2026/best.ckpt",
-                        help="model checkpoint for scoring (default: dist/2026/best.ckpt)")
+    parser.add_argument("--ontology_status", type=str, nargs="+", default=["published"],
+                        help="only use project ontologies with one of these statuses, e.g. published")
+    parser.add_argument("--model_path", type=str, default="sign_language_segmentation/dist/2026/model.safetensors",
+                        help="model checkpoint or safetensors file for scoring")
     parser.add_argument("--device", type=str, default="gpu")
 
     args = parser.parse_args()
@@ -441,6 +527,7 @@ def main() -> None:
         gcs_root=args.gcs_root,
         output_path=args.output,
         token=token,
+        ontology_statuses=set(args.ontology_status) if args.ontology_status else None,
     )
     if not args.no_score:
         score(
