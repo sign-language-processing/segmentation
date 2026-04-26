@@ -153,3 +153,35 @@ class TestPublishIntegration:
         mock_api.upload_folder.assert_called_once()
         # regression failed — no promotion
         mock_api.create_tag.assert_not_called()
+
+    def test_dry_run_writes_card_and_skips_hf(self, ckpt_fixture, capsys, tmp_path, monkeypatch):
+        from sign_language_segmentation.publish.publish import publish
+
+        monkeypatch.chdir(tmp_path)
+        mock_api = self._mock_api()
+        with patch("huggingface_hub.HfApi", return_value=mock_api):
+            publish(
+                checkpoint=ckpt_fixture,
+                repo_id="fake/repo",
+                tag="v2026.4.20",
+                datasets="ds_a",
+                corpus="",
+                poses="",
+                device="cpu",
+                skip_eval=True,
+                metrics_json=None,
+                regression_threshold=0.005,
+                no_promote=False,
+                dry_run=True,
+            )
+        mock_api.create_repo.assert_not_called()
+        mock_api.create_branch.assert_not_called()
+        mock_api.upload_folder.assert_not_called()
+        mock_api.create_tag.assert_not_called()
+        preview = tmp_path / "publish_dry_run.md"
+        assert preview.exists()
+        out = capsys.readouterr().out
+        assert "new tag: v2026.4.20" in out
+        assert "previous: none" in out
+        assert "revision: weekly" in out
+        assert "regression: skipped" in out
