@@ -245,17 +245,6 @@ class TestIsSignAnnotation:
             assert _is_sign_annotation({"language": lang}) is False
 
 
-class _FakeBody:
-    def __init__(self, fps: float, n_frames: int):
-        self.fps = fps
-        self.data = [None] * n_frames
-
-
-class _FakeMeta:
-    def __init__(self, fps: float, n_frames: int):
-        self.body = _FakeBody(fps, n_frames)
-
-
 class TestBuildCache:
     def test_happy_path(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
         md5 = "abc123"
@@ -264,8 +253,11 @@ class TestBuildCache:
         pose_file.write_bytes(b"fake-bytes")
 
         monkeypatch.setattr(sync, "_NAS_POSES_DIR", tmp_path)
-        monkeypatch.setattr(sync, "_build_signtube_md5_lookup", lambda: {video_id: md5})
-        monkeypatch.setattr(sync.Pose, "read", lambda *a, **kw: _FakeMeta(fps=30.0, n_frames=130))
+        monkeypatch.setattr(
+            sync,
+            "_build_signtube_video_lookup",
+            lambda: {video_id: {"md5": md5, "fps": 30.0, "total_frames": 130}},
+        )
 
         videos = {
             video_id: [
@@ -284,11 +276,24 @@ class TestBuildCache:
         assert entry["signs"] == [{"start": 500.0, "end": 1500.0}]
         assert entry["sentences"] == [{"start": 0.0, "end": 3000.0}]
 
-    def test_skips_when_md5_missing(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    def test_skips_when_video_metadata_missing(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
         monkeypatch.setattr(sync, "_NAS_POSES_DIR", tmp_path)
-        monkeypatch.setattr(sync, "_build_signtube_md5_lookup", lambda: {})
+        monkeypatch.setattr(sync, "_build_signtube_video_lookup", lambda: {})
 
         videos = {"swn_vid_nomatch": [{"language": "Sgnw", "start": 500, "end": 1500}]}
         cache = sync._build_cache(videos)
 
         assert cache == {"videos": {}}
+
+    def test_build_signtube_video_lookup_uses_csv_metadata(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+        video_list = tmp_path / "video_list.csv"
+        video_list.write_text(
+            "name,md5Hash,age,gender,duration,avg_frame_rate,skin_tone\n"
+            "sign-tube/foo.mp4,abc123,,,2.86,50/1,\n"
+            "other/bar.mp4,ignored,,,2.00,25/1,\n"
+        )
+        monkeypatch.setattr(sync, "_NAS_VIDEO_LIST", video_list)
+
+        lookup = sync._build_signtube_video_lookup()
+
+        assert lookup == {"foo": {"md5": "abc123", "fps": 50.0, "total_frames": 143}}

@@ -14,14 +14,12 @@ import argparse
 import csv
 import json
 import os
-import struct
 from collections import Counter
+from fractions import Fraction
 from pathlib import Path
 
 import psycopg
 from dotenv import load_dotenv
-from pose_format import Pose
-from pose_format.pose_body import EmptyPoseBody
 from tqdm import tqdm
 
 from sign_language_segmentation.datasets.common import CACHE_DIR
@@ -33,7 +31,7 @@ _DATASET_CACHE_DIR = CACHE_DIR / "signtube"
 _DEFAULT_CACHE = _DATASET_CACHE_DIR / "annotations_cache.json"
 _QUERY_PATH = _PACKAGE_DIR / "captions.sql"
 
-# NAS-mounted pose files, keyed by md5 of the source video (see _NAS_VIDEO_LIST)
+# nas-mounted pose files, keyed by md5 of the source video (see _NAS_VIDEO_LIST)
 _NAS_POSES_DIR = Path("/mnt/nas/GCS/sign-mediapipe-holistic-poses")
 _NAS_VIDEO_LIST = Path("/mnt/nas/transformations/videos/video_list.csv")
 
@@ -75,51 +73,66 @@ def _is_sign_annotation(row: dict) -> bool:
     return row["language"] in ("Sgnw", "hns")
 
 
-def _build_signtube_md5_lookup() -> dict[str, str]:
-    """map signtube video IDs to md5 hashes via the NAS video list."""
-    lookup: dict[str, str] = {}
+def _parse_video_metadata(row: dict[str, str]) -> dict[str, str | float | int] | None:
+    md5 = row["md5Hash"]
+    if not md5:
+        return None
+
+    duration_text = row["duration"]
+    frame_rate_text = row["avg_frame_rate"]
+    if not duration_text or not frame_rate_text or frame_rate_text == "0/0":
+        return None
+
+    try:
+        duration = float(duration_text)
+        fps = float(Fraction(frame_rate_text))
+    except (ValueError, ZeroDivisionError):
+        return None
+
+    if duration < 0 or fps <= 0:
+        return None
+
+    return {"md5": md5, "fps": fps, "total_frames": round(duration * fps)}
+
+
+def _build_signtube_video_lookup() -> dict[str, dict[str, str | float | int]]:
+    """map signtube video IDs to NAS video metadata."""
+    lookup: dict[str, dict[str, str | float | int]] = {}
     with open(_NAS_VIDEO_LIST, newline="") as f:
         reader = csv.DictReader(f)
         for row in reader:
             name = row["name"]
             if not name.startswith("sign-tube/"):
                 continue
-            lookup[Path(name).stem] = row["md5Hash"]
+            metadata = _parse_video_metadata(row=row)
+            if metadata is None:
+                continue
+            lookup[Path(name).stem] = metadata
     return lookup
 
 
 def _build_cache(videos: dict[str, list[dict]]) -> dict:
-    """build annotations cache from DB rows + pose metadata (poses resolved on NAS)."""
+    """build annotations cache from DB rows + video metadata (poses resolved on NAS)."""
     cache: dict[str, dict] = {}
     skipped: Counter[str] = Counter()
 
-    print(f"Building signtube md5 lookup from {_NAS_VIDEO_LIST}...")
-    md5_lookup = _build_signtube_md5_lookup()
-    print(f"Loaded {len(md5_lookup)} signtube md5 entries")
+    print(f"Building signtube video metadata lookup from {_NAS_VIDEO_LIST}...")
+    video_lookup = _build_signtube_video_lookup()
+    print(f"Loaded {len(video_lookup)} signtube video metadata entries")
 
     for video_id, video_annotations in tqdm(videos.items()):
-        md5 = md5_lookup.get(video_id)
-        if md5 is None:
-            skipped["no_md5"] += 1
+        video_metadata = video_lookup.get(video_id)
+        if video_metadata is None:
+            skipped["no_video_metadata"] += 1
             continue
 
-        pose_path = _NAS_POSES_DIR / f"{md5}.pose"
+        pose_path = _NAS_POSES_DIR / f"{video_metadata['md5']}.pose"
         if not pose_path.exists():
             skipped["pose_missing"] += 1
             continue
 
-        try:
-            meta = Pose.read(pose_path.read_bytes(), pose_body=EmptyPoseBody)
-        except (struct.error, EOFError, ValueError) as e:
-            # pose_format fails modes: struct.error on binary corruption, EOFError on
-            # truncation, ValueError on malformed headers/dims — skip those and let
-            # real bugs (AttributeError, ImportError, etc.) surface instead of a bare Exception.
-            print(f"skipping {pose_path}: {type(e).__name__}: {e}")
-            skipped["pose_unreadable"] += 1
-            continue
-
-        fps = float(meta.body.fps)
-        total_frames = len(meta.body.data)
+        fps = float(video_metadata["fps"])
+        total_frames = int(video_metadata["total_frames"])
 
         if total_frames < 2:
             skipped["frames_lt_2"] += 1
