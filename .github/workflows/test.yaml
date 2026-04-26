@@ -24,7 +24,7 @@ jobs:
           activate-environment: true
 
       - name: Install dependencies
-        run: uv pip install ".[dev,server,train]" --extra-index-url https://download.pytorch.org/whl/cpu
+        run: uv pip install ".[dev,server,train,hf]" --extra-index-url https://download.pytorch.org/whl/cpu
 
       - name: Test Code
         run: uv run pytest
