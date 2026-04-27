@@ -13,6 +13,7 @@ from sign_language_segmentation.datasets.annotation_platform.sync import (
     _gcs_url_to_local,
     convex_query,
     fetch_ontology_class_map,
+    sync,
 )
 from sign_language_segmentation.datasets.common import Split, split_bucket as _split_bucket
 
@@ -293,19 +294,127 @@ class TestConvexQuery:
 class TestFetchOntologyClassMap:
     @patch("sign_language_segmentation.datasets.annotation_platform.sync.convex_query")
     def test_maps_sign_and_phrase(self, mock_query):
-        mock_query.return_value = {
-            "objectClasses": [
-                {"_id": "cls1", "annotationType": "time_aligned", "type": "sign_language_sign"},
-                {"_id": "cls2", "annotationType": "time_aligned", "type": "spoken_language_phrase"},
-                {"_id": "cls3", "annotationType": "global", "type": "personal_attributes"},
-            ]
-        }
+        mock_query.side_effect = [
+            {
+                "ontologyGroupId": "group1",
+                "objectClasses": [],
+            },
+            [{
+                "status": "published",
+                "objectClasses": [
+                    {"_id": "cls1", "annotationType": "time_aligned", "type": "sign_language_sign"},
+                    {"_id": "cls2", "annotationType": "time_aligned", "type": "spoken_language_phrase"},
+                    {"_id": "cls3", "annotationType": "global", "type": "personal_attributes"},
+                ],
+            }],
+        ]
         result = fetch_ontology_class_map(convex_url="https://x.convex.cloud", ontology_id="onto1")
         assert result == {"cls1": "sign", "cls2": "phrase"}
         assert "cls3" not in result  # global should be skipped
+
+    @patch("sign_language_segmentation.datasets.annotation_platform.sync.convex_query")
+    def test_maps_all_ontology_versions_in_group(self, mock_query):
+        mock_query.side_effect = [
+            {"ontologyGroupId": "group1", "objectClasses": []},
+            [
+                {"_id": "v1", "status": "published"},
+                {"_id": "v2", "status": "published"},
+            ],
+            {
+                "status": "published",
+                "objectClasses": [
+                    {"_id": "old_cls", "annotationType": "time_aligned", "type": "sign_language_sign"},
+                ],
+            },
+            {
+                "status": "published",
+                "objectClasses": [
+                    {"_id": "new_cls", "annotationType": "time_aligned", "type": "sign_language_sign"},
+                ],
+            },
+        ]
+
+        result = fetch_ontology_class_map(convex_url="https://x.convex.cloud", ontology_id="onto1")
+
+        assert result == {"old_cls": "sign", "new_cls": "sign"}
+
+    @patch("sign_language_segmentation.datasets.annotation_platform.sync.convex_query")
+    def test_uses_version_object_classes_when_present(self, mock_query):
+        mock_query.side_effect = [
+            {"ontologyGroupId": "group1", "objectClasses": []},
+            [
+                {
+                    "_id": "v1",
+                    "status": "published",
+                    "objectClasses": [
+                        {"_id": "old_cls", "annotationType": "time_aligned", "type": "sign_language_sign"},
+                    ],
+                },
+            ],
+        ]
+
+        result = fetch_ontology_class_map(convex_url="https://x.convex.cloud", ontology_id="onto1")
+
+        assert result == {"old_cls": "sign"}
+
+    @patch("sign_language_segmentation.datasets.annotation_platform.sync.convex_query")
+    def test_falls_back_to_current_ontology_without_group(self, mock_query):
+        mock_query.return_value = {
+            "objectClasses": [
+                {"_id": "cls1", "annotationType": "time_aligned", "type": "sign_language_sign"},
+            ]
+        }
+        result = fetch_ontology_class_map(convex_url="https://x.convex.cloud", ontology_id="onto1")
+        assert result == {"cls1": "sign"}
 
     @patch("sign_language_segmentation.datasets.annotation_platform.sync.convex_query")
     def test_empty_ontology(self, mock_query):
         mock_query.return_value = {"objectClasses": []}
         result = fetch_ontology_class_map(convex_url="https://x.convex.cloud", ontology_id="onto1")
         assert result == {}
+
+    @patch("sign_language_segmentation.datasets.annotation_platform.sync.convex_query")
+    def test_filters_ontology_status(self, mock_query):
+        mock_query.side_effect = [
+            {"ontologyGroupId": "group1", "objectClasses": []},
+            [{
+                "status": "draft",
+                "objectClasses": [
+                    {"_id": "cls1", "annotationType": "time_aligned", "type": "sign_language_sign"},
+                ],
+            }],
+        ]
+        result = fetch_ontology_class_map(
+            convex_url="https://x.convex.cloud",
+            ontology_id="onto1",
+            allowed_statuses={"published"},
+        )
+        assert result == {}
+
+
+# -- sync ---------------------------------------------------------------------
+
+class TestSync:
+    @patch("sign_language_segmentation.datasets.annotation_platform.sync.resolve_video_paths")
+    @patch("sign_language_segmentation.datasets.annotation_platform.sync.fetch_project_annotations")
+    def test_creates_output_parent_directory(self, mock_fetch, mock_resolve, tmp_path: Path):
+        output_path = tmp_path / "missing" / "annotation_platform" / "annotations_cache.json"
+        mock_fetch.return_value = (
+            {"video-1": [{"type": "sign", "start": 0, "end": 1000}]},
+            ["dataset-1"],
+        )
+        mock_resolve.return_value = {
+            "video-1": {"pose_hash": "hash1", "fps": 30.0, "total_frames": 100},
+        }
+
+        sync(
+            convex_url="https://x.convex.cloud",
+            project_ids=["project-1"],
+            poses_dir=str(tmp_path / "poses"),
+            gcs_root=str(tmp_path / "gcs"),
+            output_path=output_path,
+        )
+
+        assert output_path.exists()
+        cache = json.loads(output_path.read_text())
+        assert set(cache["videos"]) == {"video-1"}
