@@ -13,18 +13,13 @@ RUN mkdir -p sign_language_segmentation/model sign_language_segmentation/data &&
     touch sign_language_segmentation/__init__.py \
           sign_language_segmentation/model/__init__.py \
           sign_language_segmentation/data/__init__.py && \
-    pip install --no-cache-dir ".[server]" && \
+    pip install --no-cache-dir ".[server,hf]" && \
     rm -rf sign_language_segmentation
 
 # Copy source (includes dist/2026/best.ckpt as package data) and install package
 COPY sign_language_segmentation ./sign_language_segmentation
 RUN pip install --no-cache-dir --no-deps -e .
 
-# Warm up: run inference once so model is loaded and cached for the first real request
-RUN pose_to_segments \
-      --pose sign_language_segmentation/tests/example.pose \
-      --elan /tmp/warmup.eaf \
-      --no-pose-link && \
-    rm /tmp/warmup.eaf
+# runtime requests download the private HF model with HF_TOKEN, avoiding token leakage into image layers.
 
 CMD ["sh", "-c", "exec gunicorn --bind :$PORT --workers 1 --threads 8 --timeout 0 sign_language_segmentation.server:app"]
