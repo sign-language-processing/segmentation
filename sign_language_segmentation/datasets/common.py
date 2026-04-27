@@ -43,6 +43,7 @@ def ensure_datasets_registered() -> None:
     # importing the modules registers the datasets
     import sign_language_segmentation.datasets.dgs  # noqa: F401
     import sign_language_segmentation.datasets.annotation_platform  # noqa: F401
+    import sign_language_segmentation.datasets.null  # noqa: F401
     import sign_language_segmentation.datasets.signtube  # noqa: F401
 
 
