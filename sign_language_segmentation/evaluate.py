@@ -6,9 +6,8 @@ matching the evaluation protocol from the EMNLP 2023 paper.
 import argparse
 
 import torch
-from torch.utils.data import DataLoader
 
-from sign_language_segmentation.datasets.common import Split, build_datasets, collate_fn
+from sign_language_segmentation.datasets.common import Split, get_dataloader
 from sign_language_segmentation.utils.bio import BIO
 from sign_language_segmentation.metrics import (
     frame_f1, likeliest_probs_to_segments,
@@ -94,15 +93,16 @@ if __name__ == "__main__":
     fps_aug = getattr(model.hparams, 'fps_aug', False)
     velocity = getattr(model.hparams, 'velocity', True)
 
-    dataset = build_datasets(
-        names=eval_args.datasets,
+    dataloader = get_dataloader(
         split=Split(eval_args.split),
+        dataset_names=eval_args.datasets,
         args=eval_args,
+        batch_size=1,
         num_frames=999999,
+        persistent_workers=False,
         fps_aug=fps_aug,
         velocity=velocity,
     )
-    dataloader = DataLoader(dataset, batch_size=1, collate_fn=collate_fn)
 
     def seg_fn(lp):
         segs = likeliest_probs_to_segments(lp)

@@ -3,6 +3,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from argparse import Namespace
 import hashlib
+from pathlib import Path
 import random
 from enum import StrEnum
 
@@ -10,10 +11,13 @@ import numpy as np
 import torch
 from pose_format import Pose
 from torch import Tensor
-from torch.utils.data import ConcatDataset, Dataset
+from torch.utils.data import ConcatDataset, DataLoader, Dataset
 
 from sign_language_segmentation.utils.bio import BIO, create_bio, create_bio_from_times
 from sign_language_segmentation.utils.pose import compute_velocity, preprocess_pose
+
+# project-level cache directory for generated dataset metadata.
+CACHE_DIR = Path(__file__).resolve().parents[2] / ".cache"
 
 
 class Split(StrEnum):
@@ -49,7 +53,7 @@ def build_datasets(names: str, split: Split, args: Namespace, **augment_kwargs) 
     """
     _ensure_datasets_registered()
 
-    dataset_names = [n.strip() for n in names.split(",")]
+    dataset_names = sorted(DATASET_REGISTRY.keys()) if names == "all" else [n.strip() for n in names.split(",")]
     datasets: list[Dataset] = []
     for name in dataset_names:
         if name not in DATASET_REGISTRY:
@@ -63,6 +67,41 @@ def build_datasets(names: str, split: Split, args: Namespace, **augment_kwargs) 
     return ConcatDataset(datasets)
 
 
+def get_dataloader(
+    split: Split,
+    dataset_names: str,
+    args: Namespace,
+    batch_size: int | None = None,
+    num_frames: int | None = None,
+    persistent_workers: bool = True,
+    **augment_overrides,
+) -> DataLoader:
+    """build a DataLoader for one or more datasets.
+
+    augment kwargs default to values from *args* but can be overridden
+    via **augment_overrides (e.g. fps_aug=False for evaluation).
+    """
+    augment_kwargs = dict(
+        num_frames=num_frames if num_frames is not None else getattr(args, "num_frames", 999999),
+        velocity=getattr(args, "velocity", True),
+        fps_aug=getattr(args, "fps_aug", True),
+        frame_dropout=getattr(args, "frame_dropout", 0.0),
+        body_part_dropout=getattr(args, "body_part_dropout", 0.0) if split == Split.TRAIN else 0.0,
+    )
+    augment_kwargs.update(augment_overrides)
+    dataset = build_datasets(names=dataset_names, split=split, args=args, **augment_kwargs)
+    return DataLoader(
+        dataset,
+        batch_size=batch_size or getattr(args, "batch_size", 1),
+        shuffle=(split == Split.TRAIN),
+        collate_fn=collate_fn,
+        num_workers=8,
+        persistent_workers=persistent_workers,
+        prefetch_factor=4 if persistent_workers else 2,
+        pin_memory=True,
+    )
+
+
 def md5sum(file_path: str) -> str:
     """compute MD5 hash of a file."""
     h = hashlib.md5()
@@ -72,13 +111,43 @@ def md5sum(file_path: str) -> str:
     return h.hexdigest()
 
 
+def split_bucket(video_id: str, seed: int) -> int:
+    """deterministic hash-based split assignment. returns 0-999."""
+    h = hashlib.sha256(f"{video_id}_{seed}".encode()).hexdigest()
+    return int(h, 16) % 1000
+
+
+def assign_split(
+    video_id: str,
+    split_seed: int,
+    dev_ratio: float = 0.1,
+    test_ratio: float = 0.1,
+) -> Split:
+    """assign a split to a video ID based on deterministic hashing."""
+    train_threshold = int((1.0 - dev_ratio - test_ratio) * 1000)
+    dev_threshold = int((1.0 - test_ratio) * 1000)
+    bucket = split_bucket(video_id=video_id, seed=split_seed)
+    if bucket < train_threshold:
+        return Split.TRAIN
+    if bucket < dev_threshold:
+        return Split.DEV
+    return Split.TEST
+
+
 class BaseSegmentationDataset(Dataset, ABC):
     """base class for segmentation datasets.
 
     Subclasses must populate self.items in __init__ — a list of dicts with keys:
     id, pose_path, fps, total_frames, glosses (sign spans), sentences (phrase spans).
     All span times must be in milliseconds.
+
+    Split tracking via _init_split_tracking / _track_and_filter / get_split_manifest.
+    Default get_split_manifest uses split_seed (for hash-based splits); subclasses
+    with fixed splits (e.g. DGS) can override get_split_manifest.
     """
+
+    # dataset name used in manifests — subclasses should set this
+    dataset_name: str = "base"
 
     items: list[dict]
     split: Split
@@ -87,9 +156,24 @@ class BaseSegmentationDataset(Dataset, ABC):
     fps_aug: bool
     frame_dropout: float
     body_part_dropout: float
+    _all_split_ids: dict[str, list[str]]
 
     @abstractmethod
     def __init__(self, *args, **kwargs) -> None: ...
+
+    def _init_split_tracking(self) -> None:
+        """initialize split tracking — call at the start of subclass __init__."""
+        self._all_split_ids = {
+            Split.TRAIN: [],
+            Split.DEV: [],
+            Split.TEST: [],
+        }
+
+    def _track_and_filter(self, video_id: str, video_split: Split, item: dict) -> None:
+        """track a video's split assignment and append to self.items if it matches."""
+        self._all_split_ids[video_split].append(video_id)
+        if video_split == self.split:
+            self.items.append(item)
 
     @classmethod
     @abstractmethod
@@ -97,8 +181,15 @@ class BaseSegmentationDataset(Dataset, ABC):
         """construct from a parsed argument namespace + shared augment kwargs."""
         ...
 
-    @abstractmethod
-    def get_split_manifest(self) -> dict: ...
+    def get_split_manifest(self) -> dict:
+        """return manifest of video IDs per split for reproducibility tracking."""
+        return {
+            "dataset": self.dataset_name,
+            "split_seed": self.split_seed,
+            "splits": {
+                s.value: sorted(ids) for s, ids in self._all_split_ids.items()
+            },
+        }
 
     def __len__(self) -> int:
         return len(self.items)

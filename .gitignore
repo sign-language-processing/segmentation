@@ -8,3 +8,4 @@ models/
 logs/
 lightning_logs/
 uv.lock
+.cache/

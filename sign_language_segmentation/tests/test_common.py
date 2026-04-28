@@ -43,7 +43,6 @@ class TestDatasetRegistry:
             def __init__(self): ...
             @classmethod
             def from_args(cls, split, args, **kw): return cls()
-            def get_split_manifest(self): return {}
 
         register_dataset("_test_dummy", _Dummy)
         assert DATASET_REGISTRY["_test_dummy"] is _Dummy
@@ -285,6 +284,8 @@ class TestBaseSegmentationDataset:
 
     def test_subclass_inherits_len_and_getitem(self):
         class DummyDataset(BaseSegmentationDataset):
+            dataset_name = "dummy"
+
             def __init__(self):
                 self.items = [{"id": "test"}]
                 self.split = Split.TRAIN
@@ -293,14 +294,15 @@ class TestBaseSegmentationDataset:
                 self.fps_aug = False
                 self.frame_dropout = 0.0
                 self.body_part_dropout = 0.0
+                self.split_seed = 42
+                self._init_split_tracking()
 
             @classmethod
             def from_args(cls, split, args, **kw):
                 return cls()
 
-            def get_split_manifest(self) -> dict:
-                return {"dataset": "dummy"}
-
         ds = DummyDataset()
         assert len(ds) == 1
-        assert ds.get_split_manifest() == {"dataset": "dummy"}
+        manifest = ds.get_split_manifest()
+        assert manifest["dataset"] == "dummy"
+        assert manifest["split_seed"] == 42
