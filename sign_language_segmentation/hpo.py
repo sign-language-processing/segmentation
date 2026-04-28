@@ -83,7 +83,14 @@ def run_study(
     if wandb_callback:
         objective = wandb_callback.track_in_wandb()(objective)
 
-    study = optuna.create_study(direction="maximize", study_name="segmentation-hpo")
+    # use TPE so early random trials teach Optuna which hyperparameters look promising;
+    # w&b still only records each trial and does not provide sampler state.
+    sampler = optuna.samplers.TPESampler(
+        n_startup_trials=10,
+        multivariate=True,
+        seed=42,
+    )
+    study = optuna.create_study(direction="maximize", study_name="segmentation-hpo", sampler=sampler)
     study.optimize(
         objective,
         n_trials=n_trials,
