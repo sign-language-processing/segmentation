@@ -9,6 +9,7 @@ from pytorch_lightning.loggers import WandbLogger
 from torch.utils.data import ConcatDataset, Dataset
 
 from sign_language_segmentation.args import args
+from sign_language_segmentation.bin import load_model
 from sign_language_segmentation.datasets.common import Split, get_dataloader
 from sign_language_segmentation.model.model import PoseTaggingModel
 
@@ -36,6 +37,12 @@ def _dated_run_name(run_name: str | None) -> str:
     base_name = run_name or "model"
     today = datetime.now(tz=timezone.utc).strftime("%Y.%m.%d")
     return f"{base_name}-{today}"
+
+
+def _model_load_device(accelerator: str) -> str:
+    if accelerator == "gpu":
+        return "cuda"
+    return accelerator
 
 
 def train(overrides: dict | None = None, monitor_metric: str = _DEFAULT_MONITOR_METRIC) -> float:
@@ -103,7 +110,12 @@ def train(overrides: dict | None = None, monitor_metric: str = _DEFAULT_MONITOR_
 
     if args.finetune_from:
         print(f"Fine-tuning from: {args.finetune_from}")
-        model = PoseTaggingModel.load_from_checkpoint(args.finetune_from, **model_kwargs)
+        model = load_model(
+            model_dir=args.finetune_from,
+            device=_model_load_device(accelerator=args.device),
+            config_overrides=model_kwargs,
+            eval_mode=False,
+        )
     else:
         model = PoseTaggingModel(**model_kwargs)
 

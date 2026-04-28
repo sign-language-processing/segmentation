@@ -1,0 +1,20 @@
+{
+  "pose_dims": [
+    50,
+    6
+  ],
+  "hidden_dim": 384,
+  "encoder_depth": 4,
+  "num_classes": 4,
+  "learning_rate": 0.0005,
+  "steps_per_epoch": 69,
+  "max_epochs": 400,
+  "dice_loss_weight": 1.5,
+  "attn_nhead": 8,
+  "attn_ff_mult": 2,
+  "attn_dropout": 0.1,
+  "optimizer": "adamw-onecycle",
+  "fps_aug": true,
+  "frame_dropout": 0.15,
+  "num_frames": 1024
+}

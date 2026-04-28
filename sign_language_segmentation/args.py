@@ -30,7 +30,7 @@ parser.add_argument('--optimizer',
                     choices=['adam', 'adamw', 'adamw-onecycle', 'cosine', 'constant'],
                     default='adamw-onecycle')
 parser.add_argument('--finetune_from', type=str, default=None,
-                    help='checkpoint to fine-tune from')
+                    help='Lightning .ckpt, model.safetensors file, or safetensors model directory to fine-tune from')
 parser.add_argument('--optuna', type=str, default=None, metavar='YAML',
                     help='run Optuna hyperparameter search using ranges from YAML file')
 parser.add_argument('--optuna_trials', type=int, default=50,

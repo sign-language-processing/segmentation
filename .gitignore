@@ -8,4 +8,8 @@ models/
 logs/
 lightning_logs/
 uv.lock
+*.safetensors
 .cache/
+dist/
+wandb/
+*.log
