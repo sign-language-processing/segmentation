@@ -32,6 +32,12 @@ def _collect_split_manifest(dataset: Dataset, dataset_names: str) -> dict:
 _DEFAULT_MONITOR_METRIC = "validation_hm_iou"
 
 
+def _dated_run_name(run_name: str | None) -> str:
+    base_name = run_name or "model"
+    today = datetime.now(tz=timezone.utc).strftime("%Y.%m.%d")
+    return f"{base_name}-{today}"
+
+
 def train(overrides: dict | None = None, monitor_metric: str = _DEFAULT_MONITOR_METRIC) -> float:
     """run a single training loop. returns best monitor_metric value.
 
@@ -44,6 +50,7 @@ def train(overrides: dict | None = None, monitor_metric: str = _DEFAULT_MONITOR_
     monitor_metric: validation metric to maximize and monitor for early stopping.
     """
     overrides = overrides or {}
+    effective_run_name = _dated_run_name(run_name=args.run_name)
 
     def _get(name: str):
         return overrides[name] if name in overrides else getattr(args, name)
@@ -53,18 +60,18 @@ def train(overrides: dict | None = None, monitor_metric: str = _DEFAULT_MONITOR_
         if overrides and "_trial" in overrides:
             import wandb
             trial_num = overrides["_trial"].number
-            run_name = f"{args.run_name}-t{trial_num}"
+            run_name = f"{effective_run_name}-t{trial_num}"
             wandb.run.name = run_name
             logger = WandbLogger(experiment=wandb.run)
         else:
             logger = WandbLogger(
                 entity=args.wandb_entity,
                 project=args.wandb_project,
-                name=args.run_name,
+                name=effective_run_name,
                 save_dir=args.wandb_dir,
                 log_model=False,
             )
-        effective_args = {**vars(args), **overrides}
+        effective_args = {**vars(args), **overrides, "run_name": effective_run_name}
         logger.log_hyperparams(effective_args)
 
     train_loader = get_dataloader(Split.TRAIN, dataset_names=args.datasets, args=args, batch_size=_get("batch_size"))
@@ -103,7 +110,9 @@ def train(overrides: dict | None = None, monitor_metric: str = _DEFAULT_MONITOR_
     total_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
     print(f"Parameters: {total_params:,}")
 
-    model_dir = Path("dist") / (args.run_name or "model")
+    model_dir = Path("dist") / effective_run_name
+    if overrides and "_trial" in overrides:
+        model_dir = model_dir / f"trial-{overrides['_trial'].number}"
     model_dir.mkdir(parents=True, exist_ok=True)
 
     # write split manifest
@@ -112,19 +121,20 @@ def train(overrides: dict | None = None, monitor_metric: str = _DEFAULT_MONITOR_
     manifest_path.write_text(json.dumps(manifest, indent=2))
     print(f"Split manifest: {manifest_path}")
 
+    checkpoint_callback = ModelCheckpoint(
+        dirpath=model_dir,
+        filename='best',
+        verbose=True,
+        save_top_k=1,
+        save_last=True,
+        monitor=monitor_metric,
+        every_n_epochs=1,
+        mode='max',
+    )
     callbacks = [
         EarlyStopping(monitor=monitor_metric, patience=args.patience, verbose=True, mode='max'),
         LearningRateMonitor(logging_interval='epoch'),
-        ModelCheckpoint(
-            dirpath=model_dir,
-            filename='best',
-            verbose=True,
-            save_top_k=1,
-            save_last=True,
-            monitor=monitor_metric,
-            every_n_epochs=1,
-            mode='max',
-        ),
+        checkpoint_callback,
     ]
 
     # add Optuna pruning callback when running a sweep
@@ -148,7 +158,7 @@ def train(overrides: dict | None = None, monitor_metric: str = _DEFAULT_MONITOR_
 
     trainer.fit(model, train_dataloaders=train_loader, val_dataloaders=validation_loader)
 
-    best_score = trainer.callback_metrics.get(monitor_metric)
+    best_score = checkpoint_callback.best_model_score
     best_val = float(best_score) if best_score is not None else 0.0
 
     if not overrides:
