@@ -36,7 +36,7 @@ def register_dataset(name: str, cls: type[BaseSegmentationDataset]) -> None:
     DATASET_REGISTRY[name] = cls
 
 
-def _ensure_datasets_registered() -> None:
+def ensure_datasets_registered() -> None:
     """lazily import known dataset packages to trigger registration."""
     if DATASET_REGISTRY:
         return
@@ -52,7 +52,7 @@ def build_datasets(names: str, split: Split, args: Namespace, **augment_kwargs) 
     args are pulled from *args* inside each class's from_args classmethod.
     augment_kwargs (num_frames, velocity, fps_aug, ...) are forwarded as-is.
     """
-    _ensure_datasets_registered()
+    ensure_datasets_registered()
 
     dataset_names = sorted(DATASET_REGISTRY.keys()) if names == "all" else [n.strip() for n in names.split(",")]
     datasets: list[Dataset] = []

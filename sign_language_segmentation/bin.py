@@ -1,10 +1,11 @@
 #!/usr/bin/env python
 """Inference entry point for 2026 sign language segmentation models.
 
-Loads a PyTorch Lightning checkpoint (.ckpt), runs inference on a .pose file,
+Loads a PyTorch Lightning checkpoint or safetensors model, runs inference on a .pose file,
 and writes an ELAN (.eaf) annotation file with SIGN and SENTENCE tiers.
 """
 import argparse
+import json
 import os
 from functools import lru_cache
 from pathlib import Path
@@ -13,22 +14,147 @@ import numpy as np
 import pympi
 import torch
 from pose_format import Pose
+from safetensors.torch import load_file as load_safetensors
 
 from sign_language_segmentation.utils.pose import preprocess_pose, compute_velocity
 from sign_language_segmentation.metrics import likeliest_probs_to_segments, filter_segments
 from sign_language_segmentation.model.model import PoseTaggingModel
 
+_BAKED_IN_DIR = Path(__file__).resolve().parent / "dist" / "2026"
 
-def _default_model_path() -> str:
-    return os.path.join(os.path.dirname(os.path.abspath(__file__)), "dist", "2026", "best.ckpt")
+
+def resolve_model_path() -> str:
+    """Resolve model directory path.
+
+    Priority: MODEL_PATH env > HF_MODEL_REPO env > baked-in package default.
+    """
+    # explicit local path
+    explicit = os.environ.get("MODEL_PATH")
+    if explicit:
+        return explicit
+
+    # huggingface hub download
+    hf_repo = os.environ.get("HF_MODEL_REPO")
+    if hf_repo:
+        return _download_from_hf(hf_repo)
+
+    # baked-in default
+    return str(_BAKED_IN_DIR)
+
+
+def _download_from_hf(repo_id: str) -> str:
+    """Download model from HuggingFace Hub. Returns local cache directory."""
+    try:
+        from huggingface_hub import snapshot_download
+    except ImportError:
+        raise ImportError(
+            "huggingface_hub is required for HF_MODEL_REPO. "
+            "Install with: pip install sign-language-segmentation[hf]"
+        )
+    revision = os.environ.get("HF_MODEL_REVISION")
+    if not revision:
+        raise ValueError("HF_MODEL_REVISION must be set when using HF_MODEL_REPO")
+    return snapshot_download(
+        repo_id=repo_id,
+        revision=revision,
+        allow_patterns=["model.safetensors", "config.json"],
+    )
+
+
+def _resolve_safetensors_paths(model_path: str) -> tuple[Path, Path]:
+    model_path_obj = Path(model_path)
+    if model_path_obj.suffix == ".safetensors":
+        return model_path_obj, model_path_obj.parent / "config.json"
+    return model_path_obj / "model.safetensors", model_path_obj / "config.json"
+
+
+def _load_model_config(config_path: Path, config_overrides: dict | None = None) -> dict:
+    config = {}
+    if config_path.exists():
+        with open(config_path) as f:
+            config = json.load(f)
+    elif config_overrides is None:
+        raise FileNotFoundError(f"Missing model config: {config_path}")
+
+    if config_overrides:
+        config.update(config_overrides)
+
+    # config.json stores tuples as lists; convert pose_dims back.
+    if "pose_dims" in config:
+        config["pose_dims"] = tuple(config["pose_dims"])
+    return config
+
+
+def _set_model_mode(model: PoseTaggingModel, eval_mode: bool) -> PoseTaggingModel:
+    if eval_mode:
+        model.eval()
+    else:
+        model.train()
+    return model
+
+
+def _load_from_safetensors(
+    model_dir: str,
+    device: str,
+    config_overrides: dict | None = None,
+    eval_mode: bool = True,
+) -> PoseTaggingModel:
+    """Load model from safetensors + config.json directory or explicit config."""
+    safetensors_path, config_path = _resolve_safetensors_paths(model_path=model_dir)
+    config = _load_model_config(config_path=config_path, config_overrides=config_overrides)
+    model = PoseTaggingModel(**config)
+    state_dict = load_safetensors(filename=str(safetensors_path), device=device)
+    model.load_state_dict(state_dict=state_dict)
+    model = model.to(device)
+    return _set_model_mode(model=model, eval_mode=eval_mode)
 
 
 @lru_cache(maxsize=1)
-def load_model(model_path: str, device: str = "cpu") -> PoseTaggingModel:
-    model = PoseTaggingModel.load_from_checkpoint(model_path, map_location=device)
+def _load_model_cached(model_dir: str, device: str = "cpu") -> PoseTaggingModel:
+    return _load_model_uncached(model_dir=model_dir, device=device)
+
+
+def _load_model_uncached(
+    model_dir: str,
+    device: str = "cpu",
+    config_overrides: dict | None = None,
+    eval_mode: bool = True,
+) -> PoseTaggingModel:
+    model_dir_path = Path(model_dir)
+    # prefer safetensors if available, fall back to .ckpt
+    if model_dir_path.suffix == ".safetensors" or (model_dir_path / "model.safetensors").exists():
+        return _load_from_safetensors(
+            model_dir=str(model_dir),
+            device=device,
+            config_overrides=config_overrides,
+            eval_mode=eval_mode,
+        )
+    # backward compat: load .ckpt directly (model_dir might be a file path)
+    ckpt_path = model_dir_path if model_dir_path.suffix == ".ckpt" else model_dir_path / "best.ckpt"
+    model = PoseTaggingModel.load_from_checkpoint(
+        checkpoint_path=str(ckpt_path),
+        map_location=device,
+        **(config_overrides or {}),
+    )
     model = model.to(device)
-    model.eval()
-    return model
+    return _set_model_mode(model=model, eval_mode=eval_mode)
+
+
+def load_model(
+    model_dir: str,
+    device: str = "cpu",
+    config_overrides: dict | None = None,
+    eval_mode: bool = True,
+) -> PoseTaggingModel:
+    # skip cache for overrides/train-mode: dicts aren't hashable, and a cached eval-mode model must not leak into fine-tune callers
+    if config_overrides or not eval_mode:
+        return _load_model_uncached(
+            model_dir=model_dir,
+            device=device,
+            config_overrides=config_overrides,
+            eval_mode=eval_mode,
+        )
+    return _load_model_cached(model_dir=model_dir, device=device)
 
 
 @torch.inference_mode()
@@ -51,7 +177,7 @@ def run_inference(model: PoseTaggingModel, pose: Pose, device: str) -> dict:
     return model(pose_tensor, timestamps=timestamps)
 
 
-def segment_pose(pose: Pose, model_path: str = None, device: str = "cpu",
+def segment_pose(pose: Pose, model_dir: str = None, device: str = "cpu",
                  min_frames: int = 3, merge_gap: int = 0):
     """Segment a pose into signs and sentences.
 
@@ -59,10 +185,10 @@ def segment_pose(pose: Pose, model_path: str = None, device: str = "cpu",
         eaf: pympi.Elan.Eaf with SIGN and SENTENCE tiers
         tiers: dict mapping tier name to list of {start, end} segment dicts
     """
-    model_path = model_path or _default_model_path()
-    model = load_model(model_path, device)
+    model_dir = model_dir or resolve_model_path()
+    model = load_model(model_dir=model_dir, device=device)
 
-    log_probs = run_inference(model, pose, device)
+    log_probs = run_inference(model=model, pose=pose, device=device)
 
     fps = pose.body.fps
     seg_fn = likeliest_probs_to_segments
@@ -103,7 +229,7 @@ def get_args():
     parser.add_argument("--pose", required=True, type=Path, help="input .pose file")
     parser.add_argument("--elan", required=True, type=str, help="output .eaf file path")
     parser.add_argument("--model", default=None, type=str,
-                        help="path to .ckpt checkpoint (default: dist/2026/best.ckpt)")
+                        help="path to model directory (safetensors) or .ckpt file")
     parser.add_argument("--video", default=None, type=str, help="video file to link in ELAN")
     parser.add_argument("--subtitles", default=None, type=str, help="path to .srt subtitle file")
     parser.add_argument("--no-pose-link", action="store_true", help="do not link pose file in ELAN")
@@ -120,21 +246,21 @@ def get_args():
 def main():
     args = get_args()
 
-    model_path = args.model or _default_model_path()
-    if not os.path.exists(model_path):
+    model_dir = args.model or resolve_model_path()
+    if not os.path.exists(model_dir):
         raise FileNotFoundError(
-            f"Model not found: {model_path}\n"
-            "Download a checkpoint and place it at dist/2026/best.ckpt, "
-            "or pass --model <path>."
+            f"Model not found: {model_dir}\n"
+            "Set HF_MODEL_REPO env var, pass --model <path>, "
+            "or place model files at dist/2026/."
         )
 
     print(f"Loading pose: {args.pose}")
     with open(args.pose, "rb") as f:
         pose = Pose.read(f)
 
-    print(f"Loading model: {model_path}")
+    print(f"Loading model: {model_dir}")
     print("Running inference...")
-    eaf, tiers = segment_pose(pose, model_path=model_path, device=args.device,
+    eaf, tiers = segment_pose(pose, model_dir=model_dir, device=args.device,
                                min_frames=args.min_frames, merge_gap=args.merge_gap)
 
     sign_count = len(tiers["SIGN"])
