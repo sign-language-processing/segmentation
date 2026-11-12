@@ -271,7 +271,7 @@ def main():
         mimetype = "video/mp4" if args.video.endswith(".mp4") else None
         eaf.add_linked_file(args.video, mimetype=mimetype)
     if not args.no_pose_link:
-        eaf.add_linked_file(str(args.pose), mimetype="application/pose")
+        eaf.add_secondary_linked_file(str(args.pose), mimetype="application/pose")
 
     if args.subtitles and os.path.exists(args.subtitles):
         import srt
