@@ -22,6 +22,18 @@ from sign_language_segmentation.model.model import PoseTaggingModel
 
 _BAKED_IN_DIR = Path(__file__).resolve().parent / "dist" / "2026"
 
+# MIME types ELAN uses for linked videos, by lowercase file extension
+VIDEO_MIMETYPES = {
+    "mp4": "video/mp4",
+    "mov": "video/quicktime",
+    "mpg": "video/mpeg",
+    "mpeg": "video/mpeg",
+    "avi": "video/x-msvideo",
+    "wmv": "video/x-ms-wmv",
+    "mkv": "video/x-matroska",
+    "webm": "video/webm",
+}
+
 
 def resolve_model_path() -> str:
     """Resolve model directory path.
@@ -268,7 +280,10 @@ def main():
     print(f"Found {sign_count} signs, {sentence_count} sentences")
 
     if args.video is not None:
-        mimetype = "video/mp4" if args.video.endswith(".mp4") else None
+        # pympi only knows a few extensions (no .mov) and fails on the others, so
+        # set the MIME type here; any case (.MP4, .MOV)
+        extension = Path(args.video).suffix.lower().lstrip(".")
+        mimetype = VIDEO_MIMETYPES.get(extension, f"video/{extension}")
         eaf.add_linked_file(args.video, mimetype=mimetype)
     if not args.no_pose_link:
         eaf.add_linked_file(str(args.pose), mimetype="application/pose")
